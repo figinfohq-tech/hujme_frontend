@@ -1,0 +1,29 @@
+
+.custom-hover:hover {
+          background-color: #aeddae !important; /* Light green */
+          color: #000 !important;
+          transition: 0.3s;
+        }
+.custom-hover1:hover {
+          background-color: #038503 !important;
+          color: #fff !important;
+          transition: 0.3s;
+        }
+
+        /* main auth */
+        .custom-input:focus {
+          border-color: #198754 !important;
+          box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
+        }
+        .input-group-text {
+          border-right: none;
+        }
+        .custom-input {
+          border-left: none;
+        }
+        .input-group:focus-within .input-group-text {
+          border-color: #198754 !important;
+          background-color: #e8f5e9;
+          color: #198754;
+        }
+        
