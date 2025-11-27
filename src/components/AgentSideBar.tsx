@@ -24,7 +24,7 @@ const AgentSidebar = () => {
       path: "/dashboard/packages",
     },
     {
-      name: "My Bookings",
+      name: "Bookings",
       icon: <CalendarCheck size={20} />,
       path: "/dashboard/bookings",
     },

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -40,13 +40,39 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import axios from "axios";
+import { baseURL } from "@/utils/constant/url";
 
 const BookingViewPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { booking } = location.state || {};
-  console.log("plplpl===>", booking);
+  const [pilgrim, setPilgrim] = useState<any>('');
+  const { booking, myPackage, bookingUser } = location.state || {};
+  console.log("plplpl===>", myPackage);
   const selectedBooking = booking;
+console.log("sssss==>", localStorage.getItem("userId"));
+
+  const fetchTravelersByID = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`${baseURL}travelers/${myPackage?.agentId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log("Hello India -**",response.data);
+        setPilgrim(response.data)
+      } catch (error) {
+        console.error("Package Fetch Error:", error);
+      }
+    };
+    useEffect(() => {
+      if (myPackage.agentId) {
+        fetchTravelersByID();
+      }
+      
+    }, [myPackage])
+    
+
+
   if (!selectedBooking) {
     return (
       <div className="p-10 text-center text-xl font-semibold">
@@ -218,29 +244,29 @@ const BookingViewPage = () => {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Package</span>
                       <span className="font-medium">
-                        {selectedBooking.packageTitle}
+                        {myPackage.packageName}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Agent</span>
                       <span className="font-medium">
-                        {selectedBooking.agentName}
+                        {myPackage.agentName}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Type</span>
-                      <Badge>{selectedBooking.type.toUpperCase()}</Badge>
+                      <Badge>{myPackage.travelType.toUpperCase()}</Badge>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Duration</span>
                       <span className="font-medium">
-                        {selectedBooking.duration} days
+                        {myPackage.duration}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Location</span>
                       <span className="font-medium">
-                        {selectedBooking.location}
+                        {myPackage.cityName}
                       </span>
                     </div>
                   </CardContent>
@@ -265,13 +291,13 @@ const BookingViewPage = () => {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Booked On</span>
                       <span className="font-medium">
-                        {formatDate(selectedBooking.bookingDate)}
+                        {formatDate(myPackage.createdAt)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Departure</span>
                       <span className="font-medium">
-                        {formatDate(selectedBooking.departureDate)}
+                        {formatDate(myPackage.departureDate)}
                       </span>
                     </div>
                     <div className="flex justify-between">

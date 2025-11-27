@@ -47,7 +47,8 @@ const MainRouts = () => {
             <Route index element={<User />} />
             <Route path="overview" element={<h1>Overview Page</h1>} />
             <Route path="packages" element={<Packages />} />
-            <Route path="bookings" element={<h1>Bookings Page</h1>} />
+            <Route path="bookings" element={<BookingsPage />} />
+            <Route path="booking-view" element={<BookingViewPage />} />
             <Route path="profiles" element={<h1>Profiles Page</h1>} />
             <Route path="analytics" element={<h1>Analytics Page</h1>} />
           </Route>

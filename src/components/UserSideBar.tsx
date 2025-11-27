@@ -16,23 +16,23 @@ const UserSideBar = () => {
     {
       name: "Overview",
       icon: <LayoutDashboard size={20} />,
-      path: "/dashboard/overview",
+      path: "/customer/overview",
     },
     {
       name: "Packages",
       icon: <Package size={20} />,
-      path: "/dashboard/packages",
+      path: "/customer/packages",
     },
     {
-      name: "Bookings",
+      name: "My Bookings",
       icon: <CalendarCheck size={20} />,
-      path: "/dashboard/bookings",
+      path: "/customer/bookings",
     },
-    { name: "Profiles", icon: <User size={20} />, path: "/dashboard/profiles" },
+    { name: "Profiles", icon: <User size={20} />, path: "/customer/profiles" },
     {
       name: "Analytics",
       icon: <BarChart2 size={20} />,
-      path: "/dashboard/analytics",
+      path: "/customer/analytics",
     },
   ];
 
@@ -56,7 +56,7 @@ const UserSideBar = () => {
           <div className="bg-indigo-500 p-2 rounded-lg">
             <LayoutDashboard size={22} />
           </div>
-          {isOpen && <h1 className="text-xl font-semibold">Agent Dashboard</h1>}
+          {isOpen && <h1 className="text-xl font-semibold">User Interface</h1>}
         </div>
 
         {/* Menu */}

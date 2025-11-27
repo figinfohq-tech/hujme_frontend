@@ -341,6 +341,8 @@ const mockBookings: Booking[] = [
 
 export const BookingsPage = () => {
   const [bookings, setBookings] = useState<Booking[]>(mockBookings)
+  const [bookingUser, setBookingUser] = useState<any>('');
+  const [myPackage, setMyPackge] = useState<any>();
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
@@ -371,13 +373,35 @@ const fetchBookingByUser = async () => {
     try {
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
-      console.log("ppppp==>", userId);
-      
 
       const response = await axios.get(`${baseURL}bookings/byUser/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Hello India",response.data);
+      console.log("Hello India -1",response.data);
+      setBookingUser(response.data)
+    } catch (error) {
+      console.error("Package Fetch Error:", error);
+    }
+  };
+// Fetch Booking By User
+console.log("xxxx===>", bookingUser.length);
+const ActiveUser = bookingUser.length
+
+
+useEffect(() => {
+  fetchBookingByUser();
+}, [])
+
+
+const fetchPackages = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(`${baseURL}packages/${bookingUser[0]?.packageId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Hello India - 2",response.data);
+      setMyPackge(response.data)
     } catch (error) {
       console.error("Package Fetch Error:", error);
     }
@@ -385,8 +409,11 @@ const fetchBookingByUser = async () => {
 // Fetch Booking By User
 
 useEffect(() => {
-  fetchBookingByUser();
-}, [])
+  if (bookingUser) {
+    
+    fetchPackages();
+  }
+}, [bookingUser])
 
   console.log('BookingsPage rendering, bookings:', bookings.length)
 
@@ -831,18 +858,22 @@ useEffect(() => {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <CardTitle className="text-lg">{booking.packageTitle}</CardTitle>
+              <CardTitle className="text-lg">
+                {myPackage?.packageName}
+              </CardTitle>
               <CardDescription className="flex items-center gap-2">
-                <span>{booking.agentName}</span>
+                <span>{myPackage?.agentName}</span>
                 <Badge variant="outline" className="text-xs">
-                  {booking.type.toUpperCase()}
+                  {myPackage?.travelType.toUpperCase()}
                 </Badge>
               </CardDescription>
             </div>
             <div className="flex flex-col gap-2">
               <Badge className={getStatusColor(booking.status)}>
                 {getStatusIcon(booking.status)}
-                <span className="ml-1 capitalize">{booking.status.replace('_', ' ')}</span>
+                <span className="ml-1 capitalize">
+                  {booking.status.replace("_", " ")}
+                </span>
               </Badge>
               {hasPendingRefund && (
                 <Badge className="bg-blue-100 text-blue-800 text-xs">
@@ -853,93 +884,124 @@ useEffect(() => {
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>{formatDate(booking.departureDate)}</span>
+              <span>
+                {myPackage?.departureDate
+                  ? formatDate(myPackage.departureDate)
+                  : "N/A"}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{booking.location}</span>
+              <span>{myPackage?.cityName}</span>
             </div>
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
               <span>
-                {activeCount} Active
+                {ActiveUser} Active
                 {cancelledCount > 0 && (
-                  <span className="text-red-600 ml-1">({cancelledCount} Cancelled)</span>
+                  <span className="text-red-600 ml-1">
+                    ({cancelledCount} Cancelled)
+                  </span>
                 )}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>{booking.duration} days</span>
+              <span>{myPackage?.duration}</span>
             </div>
           </div>
 
-          {booking.status === 'cancelled' && booking.cancellationDate && (
+          {booking.status === "cancelled" && booking.cancellationDate && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex items-center gap-2 text-red-800 text-sm font-medium">
                 <XCircle className="h-4 w-4" />
                 <span>Cancelled on {formatDate(booking.cancellationDate)}</span>
               </div>
               {booking.cancellationReason && (
-                <p className="text-red-700 text-xs mt-1">{booking.cancellationReason}</p>
+                <p className="text-red-700 text-xs mt-1">
+                  {booking.cancellationReason}
+                </p>
               )}
               {booking.refundTransactions.length > 0 && (
                 <div className="mt-2">
-                  <Badge className={getRefundStatusColor(booking.refundTransactions[0].status)}>
+                  <Badge
+                    className={getRefundStatusColor(
+                      booking.refundTransactions[0].status
+                    )}
+                  >
                     <RefreshCw className="h-3 w-3 mr-1" />
                     Refund {booking.refundTransactions[0].status}
                   </Badge>
                   <p className="text-xs text-red-700 mt-1">
-                    Refund amount: {formatCurrency(booking.refundTransactions[0].amount)}
+                    Refund amount:{" "}
+                    {formatCurrency(booking.refundTransactions[0].amount)}
                   </p>
                 </div>
               )}
             </div>
           )}
 
-          {booking.status === 'partially_cancelled' && (
+          {booking.status === "partially_cancelled" && (
             <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
               <div className="flex items-center gap-2 text-orange-800 text-sm font-medium">
                 <AlertTriangle className="h-4 w-4" />
-                <span>Partially Cancelled - {cancelledCount} pilgrim(s) cancelled</span>
+                <span>
+                  Partially Cancelled - {cancelledCount} pilgrim(s) cancelled
+                </span>
               </div>
               {booking.refundTransactions.length > 0 && (
                 <div className="mt-2">
-                  <Badge className={getRefundStatusColor(booking.refundTransactions[0].status)}>
+                  <Badge
+                    className={getRefundStatusColor(
+                      booking.refundTransactions[0].status
+                    )}
+                  >
                     <RefreshCw className="h-3 w-3 mr-1" />
                     Refund {booking.refundTransactions[0].status}
                   </Badge>
                   <p className="text-xs text-orange-700 mt-1">
-                    Refund amount: {formatCurrency(booking.refundTransactions[0].amount)}
+                    Refund amount:{" "}
+                    {formatCurrency(booking.refundTransactions[0].amount)}
                   </p>
                 </div>
               )}
             </div>
           )}
 
-          {booking.status !== 'cancelled' && activeCount > 0 && (
+          {booking.status !== "cancelled" && activeCount > 0 && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Trip Progress</span>
-                <span>{Math.round(getOverallMilestoneProgress(booking.pilgrims))}%</span>
+                <span>
+                  {Math.round(getOverallMilestoneProgress(booking.pilgrims))}%
+                </span>
               </div>
-              <Progress value={getOverallMilestoneProgress(booking.pilgrims)} className="h-2" />
+              <Progress
+                value={getOverallMilestoneProgress(booking.pilgrims)}
+                className="h-2"
+              />
             </div>
           )}
 
           <div className="flex items-center justify-between pt-2">
             <div className="space-y-1">
-              <p className="text-lg font-semibold">{formatCurrency(booking.totalAmount)}</p>
-              <p className={`text-sm ${getPaymentStatusColor(booking.paymentStatus)}`}>
-                Paid: {formatCurrency(booking.amountPaid)}
+              <p className="text-lg font-semibold">
+                {formatCurrency(myPackage?.price * ActiveUser)}
+              </p>
+              <p
+                className={`text-sm ${getPaymentStatusColor(
+                  booking.paymentStatus
+                )}`}
+              >
+                Paid: {formatCurrency(myPackage?.price)}
               </p>
             </div>
-            
+
             <div className="flex gap-2">
               {/* <Button
                 variant="outline"
@@ -956,16 +1018,15 @@ useEffect(() => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                     navigate("/dashboard/booking-view", {
-                         state: { booking: booking }
-                      }
-                    )
+                  navigate("/customer/booking-view", {
+                    state: { booking: booking, myPackage: myPackage, bookingUser:bookingUser },
+                  });
                 }}
               >
                 <Eye className="h-4 w-4 mr-1" />
                 Details
               </Button>
-              
+
               {/* Refund Process Button */}
               {hasPendingRefund && (
                 <Button
@@ -973,36 +1034,43 @@ useEffect(() => {
                   size="sm"
                   className="text-blue-600 border-blue-200 hover:bg-blue-50"
                   onClick={() => {
-                    setSelectedBooking(booking)
-                    setIsRefundOpen(true)
+                    setSelectedBooking(booking);
+                    setIsRefundOpen(true);
                   }}
                 >
                   <Banknote className="h-4 w-4 mr-1" />
                   Process Refund
                 </Button>
               )}
-              
+
               {/* Cancel Button */}
-              {(booking.status === 'confirmed' || booking.status === 'pending' || booking.status === 'partially_cancelled') && 
-               activeCount > 0 && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedBooking(booking)
-                    setSelectedPilgrims([])
-                    setCancellationType(booking.pilgrims.filter(p => p.status === 'active').length > 1 ? 'full' : 'full')
-                    setIsCancelOpen(true)
-                  }}
-                >
-                  Cancel
-                </Button>
-              )}
+              {(booking.status === "confirmed" ||
+                booking.status === "pending" ||
+                booking.status === "partially_cancelled") &&
+                activeCount > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedBooking(booking);
+                      setSelectedPilgrims([]);
+                      setCancellationType(
+                        booking.pilgrims.filter((p) => p.status === "active")
+                          .length > 1
+                          ? "full"
+                          : "full"
+                      );
+                      setIsCancelOpen(true);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                )}
             </div>
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (

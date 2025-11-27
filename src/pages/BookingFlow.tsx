@@ -229,9 +229,11 @@ export const BookingFlow: React.FC = () => {
         });
 
         toast.success(`${t.firstName} ${t.lastName} added successfully`);
+        console.log("new travelers====>", response.data);
       }
 
       // When ALL traveler APIs are successful:
+      
       toast.success("All travelers submitted successfully!");
       setStep(2);
 

@@ -12,13 +12,20 @@ export function formatCurrency(amount: number, currency = 'INR') {
   }).format(amount)
 }
 
-export function formatDate(date: Date | string) {
-  return new Intl.DateTimeFormat('en-IN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(date))
+export function formatDate(date: Date | string | undefined | null) {
+  if (!date) return "";
+
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+
+  return new Intl.DateTimeFormat("en-IN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(d);
 }
+
+
 
 export function validateFileType(file: File, allowedTypes: string[]) {
   const fileType = file.type.toLowerCase()
