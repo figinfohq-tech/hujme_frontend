@@ -29,7 +29,7 @@ const SignUp = () => {
   });
 
   // ✅ Handle Submit
- const handleSubmit = async (values, { resetForm, setSubmitting }) => {
+  const handleSubmit = async (values, { resetForm, setSubmitting }) => {
     try {
       const payload = {
         firstName: values.firstName,
@@ -39,8 +39,6 @@ const SignUp = () => {
         password: values.password,
         role: "User", // fixed value as per your API
       };
-
-      console.log("📦 Payload:", payload);
 
       const response = await axios.post(
         "http://31.97.205.55:8080/api/auth/signup",
@@ -52,9 +50,8 @@ const SignUp = () => {
         }
       );
 
-      console.log("✅ API Response:", response.data);
       toast.success("Sign up successful!");
-      
+
       resetForm();
     } catch (error) {
       console.error("❌ Error during sign up:", error.response?.data || error);
@@ -89,7 +86,6 @@ const SignUp = () => {
                   className="text-gray-700 font-semibold text-sm"
                 >
                   First Name <span className="text-red-500">*</span>
-
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
@@ -117,7 +113,6 @@ const SignUp = () => {
                   className="text-gray-700 font-semibold text-sm"
                 >
                   Last Name <span className="text-red-500">*</span>
-
                 </label>
                 <div className="relative">
                   <Field
@@ -143,7 +138,6 @@ const SignUp = () => {
                 className="text-gray-700 font-semibold text-sm"
               >
                 Email Address <span className="text-red-500">*</span>
-
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
@@ -171,7 +165,6 @@ const SignUp = () => {
                 className="text-gray-700 font-semibold text-sm"
               >
                 Mobile Number <span className="text-red-500">*</span>
-
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
@@ -199,7 +192,6 @@ const SignUp = () => {
                 className="text-gray-700 font-semibold text-sm"
               >
                 Password <span className="text-red-500">*</span>
-
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
@@ -227,7 +219,6 @@ const SignUp = () => {
                 className="text-gray-700 font-semibold text-sm"
               >
                 Confirm Password <span className="text-red-500">*</span>
-
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">

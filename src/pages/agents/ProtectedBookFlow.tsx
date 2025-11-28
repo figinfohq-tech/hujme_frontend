@@ -6,7 +6,6 @@ const ProtectedBookFlow = ({ children }) => {
   const location = useLocation();
   const passedState = location.state; // <-- YOUR PARAMS HERE
 
-  console.log("Protected Route Received Params:", passedState);
 
   if (!token) {
     return <Navigate to="/auth" replace state={{

@@ -19,7 +19,7 @@ const UserSideBar = () => {
       path: "/customer/overview",
     },
     {
-      name: "Packages",
+      name: "Browse Packages",
       icon: <Package size={20} />,
       path: "/customer/packages",
     },
@@ -40,13 +40,13 @@ const UserSideBar = () => {
     <div className="flex  h-screen">
       {/* Sidebar */}
       <div
-        className={`bg-primary text-gray-100 h-screen p-4 pt-6 transition-all duration-300
+        className={`bg-primary z-[9999] text-gray-100 h-screen p-4 pt-6 transition-all duration-300
         ${isOpen ? "w-64" : "w-20"} fixed left-0 flex flex-col`}
       >
         {/* Toggle Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="absolute -right-3 top-6 bg-green-900 border border-white text-white rounded-full p-1 hover:bg-green-200 hover:text-green-900"
+          className="absolute -right-3 top-6 bg-primary border border-white text-white rounded-full p-1 hover:bg-green-200 hover:text-primary"
         >
           <Menu size={20} />
         </button>
@@ -85,7 +85,7 @@ const UserSideBar = () => {
       <div
         className={`flex-1 bg-gray-100 min-h-screen transition-all duration-300 ${
           isOpen ? "ml-64" : "ml-20"
-        } h-[calc(100vh-64px)] p-5`}
+        } h-[calc(100vh-64px)]`}
       >
         <Outlet />
       </div>

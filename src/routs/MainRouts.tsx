@@ -24,9 +24,6 @@ import BookingViewPage from "@/pages/agents/BookingView";
 const MainRouts = () => {
   const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");
-  console.log("role===>", role);
-  console.log("token===>", token);
-
   return (
     <>
       <NavBar />
@@ -37,16 +34,33 @@ const MainRouts = () => {
         <Route path="/agent" element={<SignUp />} />
         <Route path="/agent-registration" element={<AgentRegistration />} />
         <Route path="/search" element={<SearchResults />} />
-         <Route path="/package/:id" element={<PackageDetails />} />
-          <Route path="/compare" element={<ComparePackages />} />
-          <Route path="/booking-detail" element={<ProtectedBookFlow> <BookingFlow /> </ProtectedBookFlow>} />
-          <Route path="/booking-confirmation" element={<ProtectedBookFlow> <BookingConfirmation /> </ProtectedBookFlow>} />
+        <Route path="/package/:id" element={<PackageDetails />} />
+        <Route path="/compare" element={<ComparePackages />} />
+        <Route
+          path="/booking-detail"
+          element={
+            <ProtectedBookFlow>
+              {" "}
+              <BookingFlow />{" "}
+            </ProtectedBookFlow>
+          }
+        />
+        <Route
+          path="/booking-confirmation"
+          element={
+            <ProtectedBookFlow>
+              {" "}
+              <BookingConfirmation />{" "}
+            </ProtectedBookFlow>
+          }
+        />
         {/* Role-Based Protected Routes */}
         {role === "USER" ? (
           <Route path="/customer" element={<UserSideBar />}>
             <Route index element={<User />} />
             <Route path="overview" element={<h1>Overview Page</h1>} />
-            <Route path="packages" element={<Packages />} />
+            <Route path="packages" element={<Home />} />
+            <Route path="search" element={<SearchResults />} />
             <Route path="bookings" element={<BookingsPage />} />
             <Route path="booking-view" element={<BookingViewPage />} />
             <Route path="profiles" element={<h1>Profiles Page</h1>} />

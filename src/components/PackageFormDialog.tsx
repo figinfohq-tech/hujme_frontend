@@ -132,7 +132,6 @@ export function PackageFormDialog({
       const response = await axios.get(
         `${baseURL}countries`);
       setCountries(response.data);
-      console.log("sdfghjklghjkl===>", response);
       
     } catch (error) {
       console.error("Error fetching products:", error);

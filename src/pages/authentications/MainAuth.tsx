@@ -7,27 +7,24 @@ import SignUp from "./SignUp";
 const MainAuth = () => {
   const [activeTab, setActiveTab] = useState("login");
 
-const location = useLocation();
+  const location = useLocation();
   const packageState = location.state;
 
-console.log("yyyyyyyy===>", packageState?.packageData.id);
-
- const packageId = packageState?.packageData.id;
+  const packageId = packageState?.packageData.id;
 
   return (
     // <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex flex-col">
     <div className="min-h-screen flex flex-col">
       {/* Back Button */}
       <div className="p-6">
-  <Link
-    to="/"
-    className="inline-flex items-center gap-2 text-primary hover:opacity-90 transition-smooth font-semibold text-lg transition"
-  >
-    <IoMdArrowRoundBack size={25} />
-    <span>Back to Home</span>
-  </Link>
-</div>
-
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-primary hover:opacity-90 transition-smooth font-semibold text-lg transition"
+        >
+          <IoMdArrowRoundBack size={25} />
+          <span>Back to Home</span>
+        </Link>
+      </div>
 
       {/* Card Container */}
       <div className="flex flex-1 items-center justify-center px-4">
@@ -63,7 +60,11 @@ console.log("yyyyyyyy===>", packageState?.packageData.id);
 
           {/* Forms */}
           <div className="animate-fade-in">
-            {activeTab === "login" ? <SignIn packageId={packageId} /> : <SignUp />}
+            {activeTab === "login" ? (
+              <SignIn packageId={packageId} />
+            ) : (
+              <SignUp />
+            )}
           </div>
         </div>
       </div>

@@ -29,9 +29,6 @@ const SearchResults = () => {
   const location = useLocation();
   const { stateId, cityId, travelTypeId } = location.state || {};
 
-  console.log("state data---->", cityId);
-  
-
   const [priceRange, setPriceRange] = useState([50000, 500000]);
   const [ratingFilter, setRatingFilter] = useState([3]);
   const [durationFilter, setDurationFilter] = useState<string>("");
@@ -138,36 +135,33 @@ const SearchResults = () => {
     },
   ];
 
-
   useEffect(() => {
     fetchSearchResult();
-}, []);
+  }, []);
 
-const fetchSearchResult = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    const params: any = {};
-    if (cityId) params.cityId = cityId;
-    if (stateId) params.stateId = stateId;
-    if (travelTypeId) params.type = travelTypeId;
+  const fetchSearchResult = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const params: any = {};
+      if (cityId) params.cityId = cityId;
+      if (stateId) params.stateId = stateId;
+      if (travelTypeId) params.type = travelTypeId;
 
-    const response = await axios.get(
-      "http://31.97.205.55:8080/api/packages/search",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: params,
-      }
-    );
-    console.log("Search result-1 =>", response);
-    console.log("Search result-2 =>", response.data);
-    setPackages(response.data);
-    // handle response.data
-  } catch (error) {
-    console.error("Error fetching search results:", error);
-  }
-};
+      const response = await axios.get(
+        "http://31.97.205.55:8080/api/packages/search",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: params,
+        }
+      );
+      setPackages(response.data);
+      // handle response.data
+    } catch (error) {
+      console.error("Error fetching search results:", error);
+    }
+  };
 
   // Filter function
   const getFilteredResults = () => {
@@ -208,8 +202,6 @@ const fetchSearchResult = async () => {
   };
 
   const filteredResults = getFilteredResults();
-                    console.log("result===>", filteredResults);
-
 
   return (
     <div className="min-h-screen bg-background">

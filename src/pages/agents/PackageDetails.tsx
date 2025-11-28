@@ -30,11 +30,8 @@ import { BookingConfirmation } from "@/components/BookingConfirmation";
 
 const PackageDetails = () => {
   const { id } = useParams();
- const location = useLocation();
+  const location = useLocation();
   const { result } = location.state || {};
-
-  console.log("Received Result:", result);
-  
   const navigate = useNavigate();
   const [showBookingFlow, setShowBookingFlow] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -142,8 +139,8 @@ const PackageDetails = () => {
       <div className="min-h-screen bg-background">
         {/* <Header /> */}
         <main className="container mx-auto px-4 py-8">
-          <BookingConfirmation 
-            bookingId={bookingId} 
+          <BookingConfirmation
+            bookingId={bookingId}
             onClose={handleCloseConfirmation}
           />
         </main>
@@ -178,7 +175,7 @@ const PackageDetails = () => {
         {/* Back Button */}
         <Button
           variant="ghost"
-          onClick={() => navigate('/search')}
+          onClick={() => navigate("/search")}
           className="mb-6 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -414,8 +411,7 @@ const PackageDetails = () => {
                             duration: packageDetail?.duration,
                           },
                         },
-                      }
-                    )
+                      })
                     }
                     className="w-full bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth"
                   >

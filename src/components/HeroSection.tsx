@@ -25,6 +25,9 @@ const HeroSection = () => {
   const [selectedCityId, setSelectedCityId] = useState<string>("");
   const [selectedTravelTypeId, setSelectedTravelTypeId] = useState<string>("");
 
+  const token = localStorage.getItem("token");
+  
+
   useEffect(() => {
     fetchCountries();
     // fetchStates();
@@ -95,13 +98,22 @@ const HeroSection = () => {
     // }
     // travel type might be optional or mandatory; you said at least state & city are mandatory
     // navigate with state
-    navigate("/search", {
+    token?(
+    navigate("/customer/search", {
       state: {
         stateId: selectedStateId,
         cityId: selectedCityId,
         travelTypeId: selectedTravelTypeId,
       },
-    });
+    })):(
+      navigate("/search", {
+      state: {
+        stateId: selectedStateId,
+        cityId: selectedCityId,
+        travelTypeId: selectedTravelTypeId,
+      },
+    })
+    )
   };
 
   return (

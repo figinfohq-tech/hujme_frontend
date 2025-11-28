@@ -46,32 +46,49 @@ import { baseURL } from "@/utils/constant/url";
 const BookingViewPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [pilgrim, setPilgrim] = useState<any>('');
+  const [pilgrimData, setPilgrimData] = useState<any>([]);
+  const [bookingDetails, setBookingDetails] = useState<any>("");
   const { booking, myPackage, bookingUser } = location.state || {};
-  console.log("plplpl===>", myPackage);
   const selectedBooking = booking;
-console.log("sssss==>", localStorage.getItem("userId"));
 
   const fetchTravelersByID = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(`${baseURL}travelers/${myPackage?.agentId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        console.log("Hello India -**",response.data);
-        setPilgrim(response.data)
-      } catch (error) {
-        console.error("Package Fetch Error:", error);
-      }
-    };
-    useEffect(() => {
-      if (myPackage.agentId) {
-        fetchTravelersByID();
-      }
-      
-    }, [myPackage])
-    
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${baseURL}travelers/byBooking/36`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPilgrimData(response.data);
+    } catch (error) {
+      console.error("Package Fetch Error:", error);
+    }
+  };
 
+  const fetchBookingDetails = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${baseURL}bookings/${pilgrimData[0].bookingId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setBookingDetails(response.data);
+    } catch (error) {
+      console.error("Package Fetch Error:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (pilgrimData) {
+    }
+    fetchBookingDetails();
+  }, [pilgrimData]);
+
+  useEffect(() => {
+    if (myPackage.agentId) {
+      fetchTravelersByID();
+    }
+  }, [myPackage]);
 
   if (!selectedBooking) {
     return (
@@ -199,17 +216,28 @@ console.log("sssss==>", localStorage.getItem("userId"));
     return booking.pilgrims.filter((p) => p.status === "cancelled").length;
   };
 
+  const calculateAgeOnlyYear = (dob) => {
+    if (!dob) return 0;
+
+    const birthYear = new Date(dob).getFullYear();
+    const currentYear = new Date().getFullYear();
+
+    const age = currentYear - birthYear;
+
+    return age; // future date → 0
+  };
+
   return (
     <div className="pb-8 ">
-         {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to My Bookings
-        </Button>
+      {/* Back Button */}
+      <Button
+        variant="ghost"
+        onClick={() => navigate(-1)}
+        className="text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to My Bookings
+      </Button>
       <div className="max-w-full container mx-auto px-4  ">
         <div className="my-5">
           <h1 className="text-2xl font-bold text-gray-800">
@@ -233,7 +261,7 @@ console.log("sssss==>", localStorage.getItem("userId"));
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">
@@ -249,9 +277,7 @@ console.log("sssss==>", localStorage.getItem("userId"));
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Agent</span>
-                      <span className="font-medium">
-                        {myPackage.agentName}
-                      </span>
+                      <span className="font-medium">{myPackage.agentName}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Type</span>
@@ -259,15 +285,11 @@ console.log("sssss==>", localStorage.getItem("userId"));
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Duration</span>
-                      <span className="font-medium">
-                        {myPackage.duration}
-                      </span>
+                      <span className="font-medium">{myPackage.duration}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Location</span>
-                      <span className="font-medium">
-                        {myPackage.cityName}
-                      </span>
+                      <span className="font-medium">{myPackage.cityName}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -279,7 +301,9 @@ console.log("sssss==>", localStorage.getItem("userId"));
                   <CardContent className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Booking ID</span>
-                      <span className="font-mono">{selectedBooking.id}</span>
+                      <span className="font-mono">
+                        {bookingDetails ? bookingDetails?.bookingId : "NA"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Status</span>
@@ -291,7 +315,9 @@ console.log("sssss==>", localStorage.getItem("userId"));
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Booked On</span>
                       <span className="font-medium">
-                        {formatDate(myPackage.createdAt)}
+                        {formatDate(
+                          bookingDetails ? bookingDetails.bookingDate : "NA"
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -379,7 +405,7 @@ console.log("sssss==>", localStorage.getItem("userId"));
                         Total Amount
                       </span>
                       <span className="font-semibold text-lg">
-                        {formatCurrency(selectedBooking.totalAmount)}
+                        {formatCurrency(bookingDetails.totalAmt)}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -677,7 +703,7 @@ console.log("sssss==>", localStorage.getItem("userId"));
 
             <TabsContent value="pilgrims" className="space-y-6">
               <div className="grid gap-6">
-                {selectedBooking.pilgrims.map((pilgrim, index) => (
+                {pilgrimData?.map((pilgrim, index) => (
                   <Card
                     key={pilgrim.id}
                     className={
@@ -689,7 +715,7 @@ console.log("sssss==>", localStorage.getItem("userId"));
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <User className="h-5 w-5" />
-                        Pilgrim {index + 1} - {pilgrim.name}
+                        Pilgrim {index + 1} - {pilgrim.firstName}
                         {pilgrim.status === "cancelled" && (
                           <Badge variant="destructive" className="ml-2">
                             <X className="h-3 w-3 mr-1" />
@@ -697,14 +723,14 @@ console.log("sssss==>", localStorage.getItem("userId"));
                           </Badge>
                         )}
                       </CardTitle>
-                      {pilgrim.status === "cancelled" &&
+                      {/* {pilgrim.status === "cancelled" &&
                         pilgrim.cancellationDate && (
                           <CardDescription className="text-red-600">
                             Cancelled on {formatDate(pilgrim.cancellationDate)}
                             {pilgrim.cancellationReason &&
                               ` - ${pilgrim.cancellationReason}`}
                           </CardDescription>
-                        )}
+                        )} */}
                     </CardHeader>
                     <CardContent>
                       <div className="grid md:grid-cols-2 gap-6">
@@ -713,12 +739,15 @@ console.log("sssss==>", localStorage.getItem("userId"));
                             <span className="text-muted-foreground">
                               Full Name
                             </span>
-                            <span className="font-medium">{pilgrim.name}</span>
+                            <span className="font-medium">
+                              {pilgrim.firstName}
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Age</span>
                             <span className="font-medium">
-                              {pilgrim.age} years
+                              {calculateAgeOnlyYear(pilgrim.dateOfBirth)} years
+                              {/* {pilgrim.dateOfBirth} years */}
                             </span>
                           </div>
                           <div className="flex justify-between">
@@ -729,14 +758,14 @@ console.log("sssss==>", localStorage.getItem("userId"));
                               {pilgrim.gender}
                             </span>
                           </div>
-                          <div className="flex justify-between">
+                          {/* <div className="flex justify-between">
                             <span className="text-muted-foreground">
                               Relationship
                             </span>
                             <span className="font-medium capitalize">
                               {pilgrim.relationship}
                             </span>
-                          </div>
+                          </div> */}
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">
                               Passport Number
@@ -750,7 +779,7 @@ console.log("sssss==>", localStorage.getItem("userId"));
                         <div className="space-y-3">
                           <h4 className="font-medium">Document Status</h4>
                           <div className="space-y-2">
-                            {Object.entries(pilgrim.documentsStatus).map(
+                            {/* {Object.entries(pilgrim.documentsStatus).map(
                               ([doc, status]) => (
                                 <div
                                   key={doc}
@@ -778,7 +807,7 @@ console.log("sssss==>", localStorage.getItem("userId"));
                                   </div>
                                 </div>
                               )
-                            )}
+                            )} */}
                           </div>
                         </div>
                       </div>

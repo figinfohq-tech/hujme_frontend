@@ -160,7 +160,6 @@ const AgentRegistration = () => {
         );
 
         localStorage.setItem("agentId", response.data.agentId);
-        console.log("agentId", response.data.agentId);
         
         toast.success("Agent Registration Successful!");
         navigate("/dashboard");

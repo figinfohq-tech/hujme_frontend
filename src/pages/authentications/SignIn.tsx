@@ -8,8 +8,6 @@ import { toast } from "react-toastify";
 import { baseURL } from "@/utils/constant/url";
 
 const SignIn = ({ packageId }) => {
-  console.log("balapur=====>", packageId);
-
   // Validation schema
   const validationSchema = Yup.object({
     email: Yup.string()

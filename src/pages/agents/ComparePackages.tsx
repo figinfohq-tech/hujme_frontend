@@ -13,7 +13,6 @@ const ComparePackages = () => {
   const [comparePackage, setComparePackage] = useState<any>([]);
   const navigate = useNavigate();
   const packageIds = searchParams.get("packages")?.split(",") || [];
-  console.log("packageIds====>", packageIds);
 
   useEffect(() => {
     comparePackages();
@@ -33,14 +32,12 @@ const ComparePackages = () => {
         }
       );
 
-      console.log("Compare Response:", response.data);
       setComparePackage(response.data);
     } catch (error) {
       console.error("Compare API Error:", error);
     }
   };
 
-  console.log("sdfghjkl;fghjk====>", comparePackage);
 
   // Mock package data - in real app, fetch based on packageIds
   const allPackages = [

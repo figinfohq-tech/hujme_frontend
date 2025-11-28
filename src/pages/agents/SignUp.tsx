@@ -9,8 +9,7 @@ import { toast } from "react-toastify";
 import { baseURL } from "@/utils/constant/url";
 
 const SignUp = () => {
-
- const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const validationSchema = Yup.object({
     firstName: Yup.string()
@@ -44,19 +43,12 @@ const SignUp = () => {
         role: "AGENT", // fixed value as per your API
       };
 
-      console.log("📦 Payload:", payload);
+      const response = await axios.post(`${baseURL}auth/signup`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      const response = await axios.post(
-        `${baseURL}auth/signup`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("✅ API Response:", response.data);
       toast.success("Sign up successful!");
       navigate("/auth");
       resetForm();
@@ -67,7 +59,6 @@ const SignUp = () => {
       setSubmitting(false);
     }
   };
-
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
