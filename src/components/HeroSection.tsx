@@ -26,7 +26,9 @@ const HeroSection = () => {
   const [selectedTravelTypeId, setSelectedTravelTypeId] = useState<string>("");
 
   const token = localStorage.getItem("token");
-  
+  const role = localStorage.getItem("role");
+
+  console.log("role===>", role);
 
   useEffect(() => {
     fetchCountries();
@@ -48,8 +50,7 @@ const HeroSection = () => {
 
   const fetchCountries = async () => {
     try {
-      const response = await axios.get(
-        `${baseURL}countries`);
+      const response = await axios.get(`${baseURL}countries`);
       setCountries(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -58,8 +59,7 @@ const HeroSection = () => {
 
   const fetchTravelType = async () => {
     try {
-      const response = await axios.get(
-        `${baseURL}lookups/TRAVEL_TYPE`);
+      const response = await axios.get(`${baseURL}lookups/TRAVEL_TYPE`);
       setTravelType(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -68,8 +68,7 @@ const HeroSection = () => {
 
   const fetchStates = async () => {
     try {
-      const response = await axios.get(
-        `${baseURL}states/byCountry/${1}`);
+      const response = await axios.get(`${baseURL}states/byCountry/${1}`);
       setState(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -78,13 +77,13 @@ const HeroSection = () => {
   const fetchCities = async () => {
     try {
       const response = await axios.get(
-        `${baseURL}cities/byState/${selectedStateId}`);
+        `${baseURL}cities/byState/${selectedStateId}`
+      );
       setCities(response.data);
     } catch (error) {
       console.error("Error fetching Cities:", error);
     }
   };
-
 
   const handleSearch = () => {
     // validation
@@ -98,22 +97,31 @@ const HeroSection = () => {
     // }
     // travel type might be optional or mandatory; you said at least state & city are mandatory
     // navigate with state
-    token?(
-    navigate("/customer/search", {
-      state: {
-        stateId: selectedStateId,
-        cityId: selectedCityId,
-        travelTypeId: selectedTravelTypeId,
-      },
-    })):(
-      navigate("/search", {
-      state: {
-        stateId: selectedStateId,
-        cityId: selectedCityId,
-        travelTypeId: selectedTravelTypeId,
-      },
-    })
-    )
+    if (role === "AGENT") {
+      navigate("/dashboard/search", {
+        state: {
+          stateId: selectedStateId,
+          cityId: selectedCityId,
+          travelTypeId: selectedTravelTypeId,
+        },
+      });
+    } else {
+      token
+        ? navigate("/customer/search", {
+            state: {
+              stateId: selectedStateId,
+              cityId: selectedCityId,
+              travelTypeId: selectedTravelTypeId,
+            },
+          })
+        : navigate("/search", {
+            state: {
+              stateId: selectedStateId,
+              cityId: selectedCityId,
+              travelTypeId: selectedTravelTypeId,
+            },
+          });
+    }
   };
 
   return (
@@ -168,8 +176,8 @@ const HeroSection = () => {
                       );
                     })}
                     {/* <SelectItem value="delhi">Delhi</SelectItem> */}
-              </SelectContent>
-              </Select>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2 text-left">
                 <label className="text-sm font-medium text-gray-700 flex items-center">
@@ -177,7 +185,7 @@ const HeroSection = () => {
                   State
                 </label>
                 <Select
-                 onValueChange={(value) => {
+                  onValueChange={(value) => {
                     setSelectedStateId(value);
                     // reset city when state changes
                     setSelectedCityId("");
@@ -231,7 +239,7 @@ const HeroSection = () => {
                   <Calendar className="w-4 h-4 mr-2 text-green-700" />
                   Travel Type
                 </label>
-               <Select
+                <Select
                   onValueChange={(value) => {
                     setSelectedTravelTypeId(value);
                   }}

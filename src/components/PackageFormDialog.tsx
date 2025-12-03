@@ -103,7 +103,8 @@ export function PackageFormDialog({
     }
   }, [pkg]);
 
-  const agentId = localStorage.getItem("agentId");
+  const agentId = localStorage.getItem("agentID");
+  
   useEffect(() => {
     fetchTravelType();
   }, []);
@@ -247,7 +248,7 @@ export function PackageFormDialog({
         // Convert required fields to number
         const payload = {
           ...values,
-          agentId: Number(values.agentId),
+          agentId: agentId,
           countryId: Number(values.countryId),
           stateId: Number(values.stateId),
           cityId: Number(values.cityId),
@@ -293,6 +294,8 @@ export function PackageFormDialog({
           // ---------------------------------
           //       CREATE API (POST)
           // ---------------------------------
+          console.log("fghjk===>", payload);
+          
           response = await axios.post(
             "http://31.97.205.55:8080/api/packages/create",
             payload,

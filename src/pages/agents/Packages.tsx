@@ -24,6 +24,7 @@ import Loader from "@/components/Loader";
 import DeleteModal from "@/components/DeleteModal";
 import { toast } from "react-toastify";
 import { baseURL } from "@/utils/constant/url";
+import { useNavigate } from "react-router";
 
 const Packages = () => {
   const [packages, setPackages] = useState<any[]>([]);
@@ -34,6 +35,8 @@ const Packages = () => {
   const [selectedPkg, setSelectedPkg] = useState<any>(false);
   const [agentId, setAgentId] = useState<any>("");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
+
+  const navigate = useNavigate();
 
   const handleAddPackage = () => {
     setSelectedPackage(null);
@@ -90,6 +93,8 @@ const Packages = () => {
     fetchAgentID();
   }, []);
 
+  // const agentId = localStorage.getItem("agentId");
+
   useEffect(() => {
     if (agentId) {
       fetchPackages();
@@ -104,7 +109,7 @@ const Packages = () => {
       const response = await axios.get(`${baseURL}agents/byUser/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      localStorage.setItem("agentID", response.data.agentId);
       setAgentId(response.data.agentId);
     } catch (error) {
       console.error("GET API Error:", error);
@@ -118,7 +123,7 @@ const Packages = () => {
       const token = localStorage.getItem("token");
 
       const response = await axios.get(
-        `${baseURL}packages/byAgent/${agentId}`,
+        `${baseURL}packages/byAgent/2`,
         // byAgent
         {
           headers: {
@@ -162,8 +167,15 @@ const Packages = () => {
 
         <div className="flex justify-end mb-3 items-center">
           {/* <h2 className="text-2xl font-semibold">My Packages</h2> */}
-          <Button
+          {/* <Button
             onClick={handleAddPackage}
+            className="bg-primary text-primary-foreground"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Package
+          </Button> */}
+          <Button
+            onClick={() => navigate("/dashboard/add-package")}
             className="bg-primary text-primary-foreground"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -218,7 +230,10 @@ const Packages = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleEditPackage(pkg)}
+                        // onClick={() => handleEditPackage(pkg)}
+                        onClick={() =>
+                          navigate("/dashboard/add-package", { state: { pkg } })
+                        }
                       >
                         <Edit className="w-4 h-4 mr-1" />
                         Edit

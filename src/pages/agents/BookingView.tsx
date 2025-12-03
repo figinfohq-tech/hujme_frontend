@@ -47,10 +47,11 @@ const BookingViewPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [pilgrimData, setPilgrimData] = useState<any>([]);
+  const [details, setDetails] = useState<any>({});
   const [bookingDetails, setBookingDetails] = useState<any>("");
   const { booking, myPackage, bookingUser } = location.state || {};
   const selectedBooking = booking;
-
+  
   const fetchTravelersByID = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -58,6 +59,18 @@ const BookingViewPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPilgrimData(response.data);
+    } catch (error) {
+      console.error("Package Fetch Error:", error);
+    }
+  };
+
+  const fetchDetailByAgentID = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${baseURL}agents/contact/${myPackage?.agentId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDetails(response.data)
     } catch (error) {
       console.error("Package Fetch Error:", error);
     }
@@ -87,6 +100,7 @@ const BookingViewPage = () => {
   useEffect(() => {
     if (myPackage.agentId) {
       fetchTravelersByID();
+      fetchDetailByAgentID();
     }
   }, [myPackage]);
 
@@ -963,12 +977,12 @@ const BookingViewPage = () => {
                   <div className="flex items-center gap-4 p-4 border rounded-lg">
                     <Avatar className="h-12 w-12">
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {selectedBooking.agentName.charAt(0)}
+                        {details.agencyName?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <h4 className="font-medium">
-                        {selectedBooking.agentName}
+                        {details.agencyName}
                       </h4>
                       <p className="text-sm text-muted-foreground">
                         Travel Agent
@@ -979,7 +993,7 @@ const BookingViewPage = () => {
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{selectedBooking.agentContact.phone}</span>
+                      <span>{details.phone}</span>
                       <Button variant="outline" size="sm">
                         Call
                       </Button>
@@ -987,7 +1001,7 @@ const BookingViewPage = () => {
 
                     <div className="flex items-center gap-3">
                       <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span>{selectedBooking.agentContact.email}</span>
+                      <span>{details.email}</span>
                       <Button variant="outline" size="sm">
                         Email
                       </Button>
@@ -996,7 +1010,7 @@ const BookingViewPage = () => {
                     {selectedBooking.agentContact.whatsapp && (
                       <div className="flex items-center gap-3">
                         <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedBooking.agentContact.whatsapp}</span>
+                        <span>{details.phone}</span>
                         <Button
                           variant="outline"
                           size="sm"

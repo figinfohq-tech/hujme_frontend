@@ -40,3 +40,25 @@ export function validateFileSize(file: File, maxSizeMB = 5) {
 export function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2)
 }
+
+export const calculateDaysStay = (checkinDate: any, checkoutDate: any) => {
+  const checkin = new Date(checkinDate);
+  const checkout = new Date(checkoutDate);
+
+  // Difference in milliseconds
+  const diffTime = checkout - checkin;
+
+  // Convert ms → days
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays;
+};
+
+
+export const convertToISO = (dateObj, timeStr) => {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  const d = new Date(dateObj);
+  d.setHours(hours);
+  d.setMinutes(minutes);
+  return d.toISOString(); // final format API needs
+};

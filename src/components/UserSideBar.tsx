@@ -83,7 +83,7 @@ const UserSideBar = () => {
 
       {/* Content Area (for demo) */}
       <div
-        className={`flex-1 bg-gray-100 min-h-screen transition-all duration-300 ${
+        className={`flex-1 min-h-screen transition-all duration-300 ${
           isOpen ? "ml-64" : "ml-20"
         } h-[calc(100vh-64px)]`}
       >
