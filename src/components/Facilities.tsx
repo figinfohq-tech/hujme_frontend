@@ -17,12 +17,16 @@ import {
 
 import Loader from "./Loader";
 import { baseURL } from "@/utils/constant/url";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
 
-const Facilities = () => {
+const Facilities = ({ pkg, packageId }) => {
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [facilities, setFacilities] = useState([]);
   const [search, setSearch] = useState("");
   const [isLoader, setIsLoader] = useState(false);
+
+  const navigate = useNavigate();
 
   const fetchFacilities = async () => {
     try {
@@ -66,6 +70,44 @@ const Facilities = () => {
     );
   };
 
+  const handleCreatePackage = async () => {
+    try {
+      setIsLoader(true);
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Token missing — login again");
+        return;
+      }
+      if (!packageId) {
+        toast.error("package missing — once please create package");
+        return;
+      }
+
+      for (const flight of selectedFacilities) {
+        const payload = {
+          packageId: packageId,
+          facilityId: flight,
+         
+        };
+
+        await axios.post(`${baseURL}package-facilities`, payload, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+      }
+      toast.success("Facilities submitted successfully!");
+      navigate("/dashboard/packages");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to create package");
+    } finally {
+      setIsLoader(false);
+    }
+  };
+
   if (isLoader) return <Loader />;
 
   return (
@@ -94,14 +136,19 @@ const Facilities = () => {
           );
 
           return (
-            <AccordionItem key={category} value={category} className="border rounded-lg">
+            <AccordionItem
+              key={category}
+              value={category}
+              className="border rounded-lg"
+            >
               <AccordionTrigger className="px-4 py-2 font-semibold flex justify-between">
                 <div className="flex items-center gap-2">
                   <span>{category}</span>
                   <span className="text-xs text-muted-foreground">
                     {
-                      items.filter((f) => selectedFacilities.includes(f.facilityId))
-                        .length
+                      items.filter((f) =>
+                        selectedFacilities.includes(f.facilityId)
+                      ).length
                     }
                     /{items.length}
                   </span>
@@ -124,8 +171,12 @@ const Facilities = () => {
                         <TableRow key={fItem.facilityId}>
                           <TableCell>
                             <Checkbox
-                              checked={selectedFacilities.includes(fItem.facilityId)}
-                              onCheckedChange={() => toggleFacility(fItem.facilityId)}
+                              checked={selectedFacilities.includes(
+                                fItem.facilityId
+                              )}
+                              onCheckedChange={() =>
+                                toggleFacility(fItem.facilityId)
+                              }
                             />
                           </TableCell>
 
@@ -141,7 +192,10 @@ const Facilities = () => {
 
                       {filteredItems.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={3} className="text-center py-4 text-sm">
+                          <TableCell
+                            colSpan={3}
+                            className="text-center py-4 text-sm"
+                          >
                             No facilities found.
                           </TableCell>
                         </TableRow>
@@ -167,9 +221,25 @@ const Facilities = () => {
           Select All
         </Button>
 
-        <Button variant="outline" size="sm" onClick={() => setSelectedFacilities([])}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSelectedFacilities([])}
+        >
           Clear All
         </Button>
+      </div>
+      <div className="flex justify-end gap-2 pt-4">
+        <Button variant="outline">Cancel</Button>
+        {pkg ? (
+          <Button onClick={handleCreatePackage}>
+            {isLoader ? "Updating..." : "Update Package"}
+          </Button>
+        ) : (
+          <Button onClick={handleCreatePackage}>
+            {isLoader ? "Creating..." : "Create Package"}
+          </Button>
+        )}
       </div>
     </div>
   );

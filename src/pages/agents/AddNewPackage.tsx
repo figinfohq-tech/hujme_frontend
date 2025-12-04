@@ -866,7 +866,7 @@ export function AddNewPackage({
               <FlightDetails pkg={pkg} packageId={packageData.packageId} />
             </TabsContent>
             <TabsContent value="facilities" className="space-y-6 mt-4">
-              <Facilities />
+              <Facilities pkg={pkg} packageId={packageData.packageId} />
             </TabsContent>
           </Tabs>
           {/* </form> */}

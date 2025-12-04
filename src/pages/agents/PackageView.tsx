@@ -1,0 +1,74 @@
+import { ArrowLeft } from 'lucide-react'
+import React from 'react'
+import { useLocation, useNavigate } from 'react-router';
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PackageBasicView from './PackageBasicView';
+import HotelViewDetails from './HotelViewDetails';
+import FlightViewDetails from './FlightViewDetails';
+import FacilitiesViewDetails from './FacilitiesViewDetails';
+
+
+
+const PackageView = () => {
+      const navigate = useNavigate();
+      const { state } = useLocation();
+      const pkg = state?.pkg;
+
+      console.log("packages--->", pkg);
+      const token = localStorage.getItem("token");
+      
+      
+    
+  return (
+    <div className="min-h-full rounded-lg border py-4 bg-background">
+      <main className="container mx-auto px-4">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/dashboard/packages")}
+          className="mb-6 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Packages
+        </Button>
+
+        <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="basic">Basic View Details</TabsTrigger>
+              <TabsTrigger value="hotel">Hotel View Details </TabsTrigger>
+              <TabsTrigger value="flights">
+                Flight View Details
+              </TabsTrigger>
+              <TabsTrigger value="facilities">
+                Facilities View
+              </TabsTrigger>
+            </TabsList>
+            {/* Basic View details */}
+            <TabsContent value="basic" className="space-y-4 mt-4">
+                <PackageBasicView packageId = {pkg.packageId} />
+            </TabsContent>
+            {/* Basic View details */}
+            {/* Hotel View Details */}
+            <TabsContent value="hotel" className="space-y-4 mt-4">
+                <HotelViewDetails packageId = {pkg.packageId} />
+            </TabsContent>
+            {/* Hotel View Details */}
+            {/* Flight View Details */}
+            <TabsContent value="flights" className="space-y-4 mt-4">
+                 <FlightViewDetails packageId = {pkg.packageId} />
+            </TabsContent>
+            {/* Flight View Details */}
+            {/* Facilities View Details */}
+
+            <TabsContent value="facilities" className="space-y-4 mt-4">
+                 <FacilitiesViewDetails packageId = {pkg.packageId} />
+            </TabsContent>
+            {/* Facilities View Details */}
+            </Tabs>
+        </main>
+        </div>
+  )
+}
+
+export default PackageView

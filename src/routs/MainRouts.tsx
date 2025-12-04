@@ -21,6 +21,7 @@ import ChoosePaymentOption from "@/pages/ChoosePaymentOption";
 import { BookingsPage } from "@/pages/agents/BookingsPage";
 import BookingViewPage from "@/pages/agents/BookingView";
 import { AddNewPackage } from "@/pages/agents/AddNewPackage";
+import PackageView from "@/pages/agents/PackageView";
 
 const MainRouts = () => {
   const role = localStorage.getItem("role");
@@ -88,6 +89,7 @@ const MainRouts = () => {
               <Route path="overview" element={<h1>Overview Page</h1>} />
               <Route path="packages" element={<Packages />} />
               <Route path="add-package" element={<AddNewPackage />} />
+              <Route path="view-package" element={<PackageView />} />
               <Route path="bookings" element={<BookingsPage />} />
               <Route path="booking-view" element={<BookingViewPage />} />
               <Route path="profiles" element={<h1>Profiles Page</h1>} />
