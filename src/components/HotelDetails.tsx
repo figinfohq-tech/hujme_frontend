@@ -29,54 +29,6 @@ import { calculateDaysStay, cn, convertToISO } from "@/lib/utils";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
 
-const HOTELS = {
-  Madina: [
-    {
-      id: 1,
-      name: "Al Madinah Oberoi Hotel",
-      address: "King Abdul Aziz Road, Al Madinah Al Munawwarah",
-      rating: 5,
-      distanceFromHaram: "100 meters",
-    },
-    {
-      id: 2,
-      name: "Shaza Al Madina",
-      address: "Al Masjid Al Nabawi Road, Al Madinah Al Munawwarah",
-      rating: 4,
-      distanceFromHaram: "250 meters",
-    },
-    {
-      id: 3,
-      name: "Dar Al Iman InterContinental",
-      address: "Ar Rawdah, Madinah",
-      rating: 5,
-      distanceFromHaram: "150 meters",
-    },
-  ],
-  Makkah: [
-    {
-      id: 4,
-      name: "Swissotel Makkah",
-      address: "Ibrahim Al Khalil Street, Makkah",
-      rating: 5,
-      distanceFromHaram: "50 meters",
-    },
-    {
-      id: 5,
-      name: "Hilton Suites Makkah",
-      address: "Abraj Al Bait Complex, Makkah",
-      rating: 5,
-      distanceFromHaram: "20 meters",
-    },
-    {
-      id: 6,
-      name: "Anjum Hotel Makkah",
-      address: "Ajyad Street, Makkah",
-      rating: 4,
-      distanceFromHaram: "300 meters",
-    },
-  ],
-};
 interface SelectedHotel {
   id: string;
   city: "Madina" | "Makkah";
