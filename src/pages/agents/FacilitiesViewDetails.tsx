@@ -1,10 +1,22 @@
 import { baseURL } from "@/utils/constant/url";
 import axios from "axios";
-import { CircleDot, Hash } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { CheckCircle, ListChecks, CalendarClock } from "lucide-react";
+import { ListChecks } from "lucide-react";
 import Loader from "@/components/Loader";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const FacilitiesViewDetails = ({ packageId }) => {
   const [basicFacilitiesDetails, setBasicFacilitiesDetails] = useState<any>([]);
@@ -67,9 +79,16 @@ const FacilitiesViewDetails = ({ packageId }) => {
     }
   }, [basicFacilitiesDetails]);
 
+  const groupedFacilities = finalFacilities?.reduce((acc: any, item: any) => {
+    if (!acc[item.category]) acc[item.category] = [];
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+
   if (isLoading) {
     return <Loader />;
   }
+
   return (
     <div className="w-full">
       {/* Title */}
@@ -78,78 +97,70 @@ const FacilitiesViewDetails = ({ packageId }) => {
         Facilities
       </h1>
 
-      {/* No data */}
-      {finalFacilities?.length === 0 ? (
+      {/* No Data */}
+      {!finalFacilities ? (
         <p className="text-gray-500 text-center py-6 text-sm">
           No Facilities Added
         </p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {finalFacilities.map((item: any) => (
-            <Card
-              key={item.facilityId}
-              className="shadow-sm rounded-xl border hover:shadow-md transition-all p-3"
-            >
-              <CardHeader className="p-0">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <CheckCircle className="text-primary w-4 h-4" />
-                  {item.facilityName}
-                </CardTitle>
+        <Accordion type="single" collapsible className="w-full space-y-3">
+          {Object.keys(groupedFacilities).map((category: string, i: number) => (
+            <AccordionItem key={i} value={`category-${i}`}>
+              {/* Category Heading */}
+              <AccordionTrigger className="text-base font-medium bg-gray-100 hover:bg-green-100 px-4 py-2 rounded-sm">
+                {category}
+              </AccordionTrigger>
 
-                <p className="text-xs text-gray-500">{item.category}</p>
-              </CardHeader>
+              {/* Table Inside */}
+              <AccordionContent className="mt-3 bg-white rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[80px]">ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Updated</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-              <CardContent className="p-0 space-y-3 text-xs text-gray-700">
-                {/* Description */}
-                <div className="bg-gray-50 p-2 rounded-md text-[11px] leading-relaxed">
-                  {item.description}
-                </div>
+                  <TableBody>
+                    {groupedFacilities[category].map((item: any) => (
+                      <TableRow key={item.facilityId}>
+                        <TableCell className="font-medium">
+                          {item.facilityId}
+                        </TableCell>
 
-                {/* 3 Column Info */}
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Facility ID */}
-                  <div className="flex items-center gap-2">
-                    <Hash className="w-3 h-3 text-primary" />
-                    <span>
-                      <span className="font-medium">ID:</span> {item.facilityId}
-                    </span>
-                  </div>
+                        <TableCell>{item.facilityName}</TableCell>
 
-                  {/* Active / Inactive Status */}
-                  <div className="flex items-center gap-2">
-                    <CircleDot
-                      className={`w-3 h-3 ${
-                        item.isActive ? "text-green-600" : "text-red-500"
-                      }`}
-                    />
-                    <span className="font-medium">
-                      {item.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                </div>
+                        <TableCell className="max-w-[250px] truncate">
+                          {item.description}
+                        </TableCell>
 
-                {/* Created & Updated Dates */}
-                <div className="grid grid-cols-2 gap-3 border-t pt-2 text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <CalendarClock className="w-3 h-3 text-primary" />
-                    <span className="text-[11px]">
-                      <span className="font-medium">Created:</span>{" "}
-                      {item.createdAt?.split("T")[0]}
-                    </span>
-                  </div>
+                        <TableCell>
+                          <span
+                            className={`px-2 py-1 text-xs rounded-full ${
+                              item.isActive
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-600"
+                            }`}
+                          >
+                            {item.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </TableCell>
 
-                  <div className="flex items-center gap-2">
-                    <CalendarClock className="w-3 h-3 text-primary" />
-                    <span className="text-[11px]">
-                      <span className="font-medium">Updated:</span>{" "}
-                      {item.updatedAt?.split("T")[0]}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                        <TableCell>{item.createdAt?.split("T")[0]}</TableCell>
+
+                        <TableCell>{item.updatedAt?.split("T")[0]}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       )}
     </div>
   );

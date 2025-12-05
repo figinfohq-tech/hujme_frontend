@@ -30,6 +30,7 @@ const FlightViewDetails = ({ packageId }) => {
       );
 
       setBasicFlightsDetails(response.data);
+
       setIsLoading(false);
     } catch (error) {
       console.error("GET API Error:", error);
@@ -61,13 +62,42 @@ const FlightViewDetails = ({ packageId }) => {
           {basicFlightsDetails.map((item: any, index: number) => (
             <Card key={index} className="shadow-md border rounded-xl">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <PlaneTakeoff className="text-primary" />
-                  Flight Code: {item.flightCode}
+                <CardTitle className="flex flex-col gap-2 text-lg">
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2">
+                      <PlaneTakeoff className="text-primary" />
+                      Flight Code: {item.airlineDTO.flightCode}
+                    </div>
+                    <div className="ml-7">
+                      {item.airlineDTO.isActive ? (
+                        <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700 font-medium">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Flight Name */}
+                  <div className="text-sm text-gray-600 ml-7">
+                    <span className="font-medium">Flight Name:</span>{" "}
+                    {item.airlineDTO.flightName}
+                  </div>
                 </CardTitle>
               </CardHeader>
 
-              <CardContent className="space-y-4 text-sm">
+              <CardContent className="space-y-3 text-sm">
+                {/* Description Section */}
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                  <h3 className="text-blue-700 font-medium mb-1">
+                    Description:
+                  </h3>
+                  <p className="text-gray-700">{item.airlineDTO.description}</p>
+                </div>
+
                 {/* Departure */}
                 <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
                   <h3 className="font-medium flex items-center gap-2 text-primary">
