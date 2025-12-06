@@ -66,11 +66,16 @@ const MainRouts = () => {
 
           {/* Role Based */}
           {role === "USER" ? (
-            <Route path="/customer" element={<UserSideBar />}>
+            <Route path="/" element={<UserSideBar />}>
               <Route index element={<User />} />
               <Route path="overview" element={<h1>Overview Page</h1>} />
               <Route path="packages" element={<Home />} />
-              <Route path="search" element={<SearchResults />} />
+              <Route path="/costomer/search" element={<SearchResults />} />
+              <Route
+                path="/customer/package/:id"
+                element={<PackageDetails />}
+              />
+              <Route path="/customer/compare" element={<ComparePackages />} />
               <Route path="bookings" element={<BookingsPage />} />
               <Route path="booking-view" element={<BookingViewPage />} />
               <Route path="profiles" element={<h1>Profiles Page</h1>} />
@@ -78,7 +83,7 @@ const MainRouts = () => {
             </Route>
           ) : role === "AGENT" ? (
             <Route
-              path="/dashboard"
+              path="/"
               element={
                 <ProtectedRoute>
                   <AgentSidebar />

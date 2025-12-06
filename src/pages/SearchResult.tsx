@@ -36,6 +36,9 @@ const SearchResults = () => {
   const [compareList, setCompareList] = useState<string[]>([]);
   const [packages, setPackages] = useState<any>([]);
 
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
   const toggleCompare = (packageId: string) => {
     setCompareList((prev) =>
       prev.includes(packageId)
@@ -48,92 +51,13 @@ const SearchResults = () => {
 
   const goToCompare = () => {
     if (compareList.length > 0) {
-      navigate(`/compare?packages=${compareList.join(",")}`);
+      token
+        ? role === "USER"
+          ? navigate(`/customer/compare?packages=${compareList.join(",")}`)
+          : null
+        : navigate(`/compare?packages=${compareList.join(",")}`);
     }
   };
-
-  // Mock search results data
-  const searchResults = [
-    {
-      id: "1",
-      agentName: "Al-Haramain Tours",
-      packageName: "Umrah Premium Package",
-      type: "Umrah",
-      duration: "10 Days",
-      price: 125000,
-      originalPrice: 150000,
-      rating: 4.8,
-      reviews: 234,
-      packageType: "Deluxe",
-      city: "Mumbai",
-      state: "Maharashtra",
-      features: [
-        "5 Star Hotel",
-        "Direct Flight",
-        "Visa Included",
-        "Guide Service",
-      ],
-      image: "/placeholder.svg",
-    },
-    {
-      id: "2",
-      agentName: "Makkah Travels",
-      packageName: "Hajj Complete Package",
-      type: "Hajj",
-      duration: "15 Days",
-      price: 285000,
-      originalPrice: 320000,
-      rating: 4.6,
-      reviews: 189,
-      packageType: "Super Deluxe",
-      city: "Delhi",
-      state: "Delhi",
-      features: ["5 Star Hotel", "VIP Transport", "All Meals", "24/7 Support"],
-      image: "/placeholder.svg",
-    },
-    {
-      id: "3",
-      agentName: "Ziyarat Express",
-      packageName: "Umrah Economy Package",
-      type: "Umrah",
-      duration: "7 Days",
-      price: 89000,
-      originalPrice: 99000,
-      rating: 4.2,
-      reviews: 156,
-      packageType: "Economy",
-      city: "Bangalore",
-      state: "Karnataka",
-      features: [
-        "3 Star Hotel",
-        "Group Package",
-        "Visa Included",
-        "Meals Included",
-      ],
-      image: "/placeholder.svg",
-    },
-    {
-      id: "4",
-      agentName: "Baitul Haram Tours",
-      packageName: "Hajj & Umrah Combo",
-      type: "Both",
-      duration: "21 Days",
-      price: 450000,
-      originalPrice: 500000,
-      rating: 4.9,
-      reviews: 312,
-      packageType: "Super Deluxe",
-      city: "Hyderabad",
-      state: "Telangana",
-      features: [
-        "5 Star Hotel",
-        "Private Transport",
-        "Premium Meals",
-        "Expert Guide",
-      ],
-      image: "/placeholder.svg",
-    },
-  ];
 
   useEffect(() => {
     fetchSearchResult();
@@ -141,7 +65,6 @@ const SearchResults = () => {
 
   const fetchSearchResult = async () => {
     try {
-      const token = localStorage.getItem("token");
       const params: any = {};
       if (cityId) params.cityId = cityId;
       if (stateId) params.stateId = stateId;
@@ -423,13 +346,26 @@ const SearchResults = () => {
                             <Button
                               size="sm"
                               className="bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth"
-                              onClick={() =>
-                                navigate(`/package/${result.packageId}`, {
-                                  state: {
-                                    result: result,
-                                  },
-                                })
-                              }
+                              onClick={() => {
+                                const token = localStorage.getItem("token");
+                                const role = localStorage.getItem("role");
+                                return token
+                                  ? role === "USER"
+                                    ? navigate(
+                                        `/customer/package/${result.packageId}`,
+                                        {
+                                          state: {
+                                            result: result,
+                                          },
+                                        }
+                                      )
+                                    : null
+                                  : navigate(`/package/${result.packageId}`, {
+                                      state: {
+                                        result: result,
+                                      },
+                                    });
+                              }}
                             >
                               View Details
                             </Button>

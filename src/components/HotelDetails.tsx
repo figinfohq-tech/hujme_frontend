@@ -227,6 +227,7 @@ const HotelDetails = ({ pkg, packageId }) => {
       }
 
       toast.success("All hotels added successfully!");
+      setAddedHotels([]);
     } catch (err) {
       console.error(err);
       toast.error("Failed to submit package");

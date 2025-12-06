@@ -48,13 +48,13 @@ const SignIn = ({ packageId }) => {
           {
             packageId
               ? navigate(`/package/${packageId}`)
-              : navigate("/dashboard");
+              : navigate("/");
           }
         } else if (response.data.user.role === "USER") {
           {
             packageId
               ? navigate(`/package/${packageId}`)
-              : navigate("/customer");
+              : navigate("/");
           }
         } else {
           navigate("/auth");

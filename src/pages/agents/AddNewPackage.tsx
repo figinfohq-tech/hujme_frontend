@@ -475,7 +475,7 @@ export function AddNewPackage({
         {/* Back Button */}
         <Button
           variant="ghost"
-          onClick={() => navigate("/dashboard/packages")}
+          onClick={() => navigate("/packages")}
           className="mb-6 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />

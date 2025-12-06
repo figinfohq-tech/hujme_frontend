@@ -58,7 +58,7 @@ const FlightViewDetails = ({ packageId }) => {
           No Flight Details Found.
         </p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {basicFlightsDetails.map((item: any, index: number) => (
             <Card key={index} className="shadow-md border rounded-xl">
               <CardHeader>

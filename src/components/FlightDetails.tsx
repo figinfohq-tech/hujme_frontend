@@ -95,7 +95,12 @@ const FlightDetails = ({ pkg, packageId }) => {
   };
   const fetchAirlines = async () => {
     try {
-      const response = await axios.get(`${baseURL}lookups/AIRLINE`);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${baseURL}airlines`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setAirlines(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -199,6 +204,7 @@ const FlightDetails = ({ pkg, packageId }) => {
     }
   }, [selectedStateId2]);
   7;
+
   const formik = useFormik({
     initialValues: {
       airline: "",
@@ -254,7 +260,7 @@ const FlightDetails = ({ pkg, packageId }) => {
       for (const flight of addedFlights) {
         const payload = {
           packageId: packageId,
-          flightCode: flight.flightNumber,
+          airlineId: Number(flight.airline),
           departureDate: new Date(flight.departureDate).toISOString(),
           departureTime: new Date(
             `1970-01-01T${flight.departureTime}:00`
@@ -274,6 +280,8 @@ const FlightDetails = ({ pkg, packageId }) => {
         });
       }
       toast.success("All flights submitted successfully!");
+      setAddedFlights([]);
+      formik.resetForm();
     } catch (error) {
       console.error(error);
       toast.error("Failed to create package");
@@ -358,8 +366,8 @@ const FlightDetails = ({ pkg, packageId }) => {
               <SelectContent>
                 {airlines.map((items) => {
                   return (
-                    <SelectItem value={String(items.lookupId)}>
-                      {items.lookupName}
+                    <SelectItem value={String(items.airlineId)}>
+                      {items.flightName}
                     </SelectItem>
                   );
                 })}

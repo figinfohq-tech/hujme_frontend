@@ -99,7 +99,7 @@ const Facilities = ({ pkg, packageId }) => {
         });
       }
       toast.success("Facilities submitted successfully!");
-      navigate("/dashboard/packages");
+      navigate("/packages");
     } catch (error) {
       console.error(error);
       toast.error("Failed to create package");

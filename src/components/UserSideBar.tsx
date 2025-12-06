@@ -16,23 +16,23 @@ const UserSideBar = () => {
     {
       name: "Overview",
       icon: <LayoutDashboard size={20} />,
-      path: "/customer/overview",
+      path: "/overview",
     },
     {
       name: "Browse Packages",
       icon: <Package size={20} />,
-      path: "/customer/packages",
+      path: "/packages",
     },
     {
       name: "My Bookings",
       icon: <CalendarCheck size={20} />,
-      path: "/customer/bookings",
+      path: "/bookings",
     },
-    { name: "Profiles", icon: <User size={20} />, path: "/customer/profiles" },
+    { name: "Profiles", icon: <User size={20} />, path: "/profiles" },
     {
       name: "Analytics",
       icon: <BarChart2 size={20} />,
-      path: "/customer/analytics",
+      path: "/analytics",
     },
   ];
 

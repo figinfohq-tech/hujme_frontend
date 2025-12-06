@@ -1177,7 +1177,7 @@ export const BookingsPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  navigate("/customer/booking-view", {
+                  navigate("/booking-view", {
                     state: {
                       booking: booking,
                       myPackage: myPackage,
@@ -1278,7 +1278,7 @@ export const BookingsPage = () => {
             </Select>
 
             <Button variant="outline" className="hover:bg-secondary" asChild>
-              <Link to="/dashboard/packages">Book New Package</Link>
+              <Link to="/packages">Book New Package</Link>
             </Button>
           </div>
         </CardContent>

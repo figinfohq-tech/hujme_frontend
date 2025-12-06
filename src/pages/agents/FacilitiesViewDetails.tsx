@@ -107,7 +107,7 @@ const FacilitiesViewDetails = ({ packageId }) => {
           {Object.keys(groupedFacilities).map((category: string, i: number) => (
             <AccordionItem key={i} value={`category-${i}`}>
               {/* Category Heading */}
-              <AccordionTrigger className="text-base font-medium bg-gray-100 hover:bg-green-100 px-4 py-2 rounded-sm">
+              <AccordionTrigger className="text-base font-medium bg-gray-100 px-4 py-2 rounded-sm">
                 {category}
               </AccordionTrigger>
 

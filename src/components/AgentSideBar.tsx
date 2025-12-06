@@ -16,23 +16,23 @@ const AgentSidebar = () => {
     {
       name: "Overview",
       icon: <LayoutDashboard size={20} />,
-      path: "/dashboard/overview",
+      path: "/overview",
     },
     {
       name: "Packages",
       icon: <Package size={20} />,
-      path: "/dashboard/packages",
+      path: "/packages",
     },
     {
       name: "Bookings",
       icon: <CalendarCheck size={20} />,
-      path: "/dashboard/bookings",
+      path: "/bookings",
     },
-    { name: "Profiles", icon: <User size={20} />, path: "/dashboard/profiles" },
+    { name: "Profiles", icon: <User size={20} />, path: "/profiles" },
     {
       name: "Analytics",
       icon: <BarChart2 size={20} />,
-      path: "/dashboard/analytics",
+      path: "/analytics",
     },
   ];
 

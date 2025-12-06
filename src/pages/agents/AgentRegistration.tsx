@@ -162,7 +162,7 @@ const AgentRegistration = () => {
         localStorage.setItem("agentId", response.data.agentId);
         
         toast.success("Agent Registration Successful!");
-        navigate("/dashboard");
+        navigate("/");
       } catch (error) {
         console.error("API Error:", error.response?.data || error);
         toast.error(error.response?.data?.message || "Something went wrong!");

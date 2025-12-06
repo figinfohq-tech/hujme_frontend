@@ -175,7 +175,7 @@ const Packages = () => {
             Add New Package
           </Button> */}
           <Button
-            onClick={() => navigate("/dashboard/add-package")}
+            onClick={() => navigate("/add-package")}
             className="bg-primary text-primary-foreground"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -232,7 +232,7 @@ const Packages = () => {
                         size="sm"
                         // onClick={() => handleEditPackage(pkg)}
                         onClick={() =>
-                          navigate("/dashboard/add-package", { state: { pkg } })
+                          navigate("/add-package", { state: { pkg } })
                         }
                       >
                         <Edit className="w-4 h-4 mr-1" />
@@ -243,7 +243,7 @@ const Packages = () => {
                         variant="outline"
                         size="sm"
                         // onClick={() => handleViewPackage(pkg)}
-                        onClick={() => navigate("/dashboard/view-package", { state: { pkg } })}
+                        onClick={() => navigate("/view-package", { state: { pkg } })}
                       >
                         <Eye className="w-4 h-4 mr-1" />
                         View
