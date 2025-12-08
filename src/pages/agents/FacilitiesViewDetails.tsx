@@ -21,7 +21,6 @@ import {
 const FacilitiesViewDetails = ({ packageId }) => {
   const [basicFacilitiesDetails, setBasicFacilitiesDetails] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [finalFacilities, setFinalFacilities] = useState([]);
 
   const getPackagesByID = async () => {
     try {
@@ -45,49 +44,26 @@ const FacilitiesViewDetails = ({ packageId }) => {
     }
   };
 
-  const fetchAllFacilitiesByIDs = async (facilitiesList) => {
-    try {
-      const token = localStorage.getItem("token");
-
-      // Promise.all → to call all hotel APIs in parallel
-      const facilitiesRequests = facilitiesList.map((item) =>
-        axios.get(`${baseURL}facilities/${item.facilityId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-      );
-
-      const responses = await Promise.all(facilitiesRequests);
-
-      // Extract data from responses
-      const facilitiesData = responses.map((res) => res.data);
-
-      setFinalFacilities(facilitiesData);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("HotelId API Error:", error);
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (packageId) getPackagesByID();
   }, [packageId]);
 
-  useEffect(() => {
-    if (basicFacilitiesDetails.length > 0) {
-      fetchAllFacilitiesByIDs(basicFacilitiesDetails);
-    }
-  }, [basicFacilitiesDetails]);
-
-  const groupedFacilities = finalFacilities?.reduce((acc: any, item: any) => {
-    if (!acc[item.category]) acc[item.category] = [];
-    acc[item.category].push(item);
-    return acc;
-  }, {});
+  // Grouping by facilityDetails.category
+  const groupedFacilities = basicFacilitiesDetails?.reduce(
+    (acc: any, item: any) => {
+      const category = item.facilityDetails?.category;
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(item);
+      return acc;
+    },
+    {}
+  );
 
   if (isLoading) {
     return <Loader />;
   }
+
+  const finalFacilities = basicFacilitiesDetails?.length > 0;
 
   return (
     <div className="w-full">
@@ -111,7 +87,7 @@ const FacilitiesViewDetails = ({ packageId }) => {
                 {category}
               </AccordionTrigger>
 
-              {/* Table Inside */}
+              {/* Table */}
               <AccordionContent className="mt-3 bg-white rounded-lg border">
                 <Table>
                   <TableHeader>
@@ -127,32 +103,40 @@ const FacilitiesViewDetails = ({ packageId }) => {
 
                   <TableBody>
                     {groupedFacilities[category].map((item: any) => (
-                      <TableRow key={item.facilityId}>
+                      <TableRow key={item.id}>
                         <TableCell className="font-medium">
-                          {item.facilityId}
+                          {item.facilityDetails?.facilityId}
                         </TableCell>
 
-                        <TableCell>{item.facilityName}</TableCell>
+                        <TableCell>
+                          {item.facilityDetails?.facilityName}
+                        </TableCell>
 
                         <TableCell className="max-w-[250px] truncate">
-                          {item.description}
+                          {item.facilityDetails?.description}
                         </TableCell>
 
                         <TableCell>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${
-                              item.isActive
+                              item.facilityDetails?.isActive
                                 ? "bg-green-100 text-green-700"
                                 : "bg-red-100 text-red-600"
                             }`}
                           >
-                            {item.isActive ? "Active" : "Inactive"}
+                            {item.facilityDetails?.isActive
+                              ? "Active"
+                              : "Inactive"}
                           </span>
                         </TableCell>
 
-                        <TableCell>{item.createdAt?.split("T")[0]}</TableCell>
+                        <TableCell>
+                          {item.facilityDetails?.createdAt?.split("T")[0]}
+                        </TableCell>
 
-                        <TableCell>{item.updatedAt?.split("T")[0]}</TableCell>
+                        <TableCell>
+                          {item.facilityDetails?.updatedAt?.split("T")[0]}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

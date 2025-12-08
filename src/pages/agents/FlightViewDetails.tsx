@@ -59,17 +59,17 @@ const FlightViewDetails = ({ packageId }) => {
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {basicFlightsDetails.map((item: any, index: number) => (
+          {basicFlightsDetails?.map((item: any, index: number) => (
             <Card key={index} className="shadow-md border rounded-xl">
               <CardHeader>
                 <CardTitle className="flex flex-col gap-2 text-lg">
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
                       <PlaneTakeoff className="text-primary" />
-                      Flight Code: {item.airlineDTO.flightCode}
+                      Flight Code: {item.airlineDetails.flightCode}
                     </div>
                     <div className="ml-7">
-                      {item.airlineDTO.isActive ? (
+                      {item.airlineDetails.isActive ? (
                         <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">
                           Active
                         </span>
@@ -84,18 +84,20 @@ const FlightViewDetails = ({ packageId }) => {
                   {/* Flight Name */}
                   <div className="text-sm text-gray-600 ml-7">
                     <span className="font-medium">Flight Name:</span>{" "}
-                    {item.airlineDTO.flightName}
+                    {item.airlineDetails.flightName}
                   </div>
                 </CardTitle>
               </CardHeader>
 
               <CardContent className="space-y-3 text-sm">
                 {/* Description Section */}
-                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                  <h3 className="text-blue-700 font-medium mb-1">
+                <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                  <h3 className="text-primary font-medium mb-1">
                     Description:
                   </h3>
-                  <p className="text-gray-700">{item.airlineDTO.description}</p>
+                  <p className="text-gray-700">
+                    {item.airlineDetails.description}
+                  </p>
                 </div>
 
                 {/* Departure */}
