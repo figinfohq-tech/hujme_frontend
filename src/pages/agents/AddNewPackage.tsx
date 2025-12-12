@@ -90,16 +90,9 @@ interface LookupType {
 }
 
 export function AddNewPackage({
-  open,
-  onOpenChange,
   package: editPackage,
-  onSuccess,
 }: PackageFormDialogProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [packageData, setPackagesData] = useState<any>("");
-  const [selectedCity, setSelectedCity] = useState<"Madina" | "Makkah">(
-    "Madina"
-  );
 
   // Flight Details state
   const [addedFlights, setAddedFlights] = useState<FlightSegment[]>([]);
@@ -116,12 +109,6 @@ export function AddNewPackage({
   const [selectdCitiesId, setSelectedCitiesId] = useState("");
   const [selectedCountryId, setSelectedCountryId] = useState("");
   const [isLoader, setIsLoader] = useState(false);
-  const [errors, setErrors] = useState({
-    city: "",
-    hotel: "",
-    checkInDate: "",
-    checkOutDate: "",
-  });
 
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -155,12 +142,36 @@ export function AddNewPackage({
         notes: pkg.notes || "",
       });
 
-      // 👇 State drop-down ke liye values set karna zaroori hai
       setSelectedCountryId(pkg.countryId?.toString());
       setSelectedStateId(pkg.stateId?.toString());
       setSelectedCitiesId(pkg.cityId?.toString());
     }
   }, [pkg]);
+
+  // ⭐ FIX FOR ALL 5 DROPDOWNS ⭐
+  useEffect(() => {
+    if (
+      pkg &&
+      countries.length > 0 &&
+      states.length > 0 &&
+      cities.length > 0 &&
+      travelType.length > 0 &&
+      packageType.length > 0
+    ) {
+      formik.setValues({
+        ...formik.values,
+        countryId: pkg.countryId?.toString() || "",
+        stateId: pkg.stateId?.toString() || "",
+        cityId: pkg.cityId?.toString() || "",
+        travelType: pkg.travelType?.toString() || "",
+        packageType: pkg.packageType?.toString() || "",
+      });
+
+      setSelectedCountryId(pkg.countryId?.toString());
+      setSelectedStateId(pkg.stateId?.toString());
+      setSelectedCitiesId(pkg.cityId?.toString());
+    }
+  }, [pkg, countries, states, cities, travelType, packageType]);
 
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageFormSchema),
@@ -178,88 +189,6 @@ export function AddNewPackage({
   });
 
   const agentId = localStorage.getItem("agentID");
-
-  const onSubmit = async (values: PackageFormValues) => {
-    setIsSubmitting(true);
-    try {
-      const devRole = localStorage.getItem("dev_role");
-
-      // Get agent profile
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id")
-        .eq("role", "agent")
-        .limit(1);
-
-      if (!profiles || profiles.length === 0) {
-        toast({
-          title: "Error",
-          description:
-            "Agent profile not found. Please set up your profile first.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      // const agentId = profiles[0].user_id;
-
-      const packageData = {
-        name: values.name,
-        description: values.description,
-        price: Number(values.price),
-        duration: values.duration,
-        accommodation: values.accommodation,
-        transportation: values.transportation,
-        inclusions: values.inclusions,
-        exclusions: values.exclusions || null,
-        max_travelers: Number(values.max_travelers),
-        agent_id: agentId,
-        is_active: true,
-      };
-
-      if (editPackage) {
-        const { error } = await (supabase as any)
-          .from("packages")
-          .update(packageData)
-          .eq("id", editPackage.id);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Package updated successfully",
-        });
-      } else {
-        const { error } = await (supabase as any)
-          .from("packages")
-          .insert([packageData]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Package created successfully",
-        });
-      }
-
-      form.reset();
-      setAddedHotels([]);
-      setAddedFlights([]);
-      setSelectedFacilities([]);
-      onOpenChange(false);
-      onSuccess();
-    } catch (error: any) {
-      console.error("Error saving package:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save package",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   useEffect(() => {
     // fetchStates();

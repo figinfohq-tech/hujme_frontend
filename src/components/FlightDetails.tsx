@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -71,6 +71,7 @@ interface CityType {
 
 const FlightDetails = ({ pkg, packageId }) => {
   const [addedFlights, setAddedFlights] = useState<FlightSegment[]>([]);
+  const [flightDetails, setFlightDetails] = useState([]);
   const [isLoader, setIsLoader] = useState(false);
   const [countries, setCountries] = useState([]);
   const [airlines, setAirlines] = useState([]);
@@ -84,6 +85,9 @@ const FlightDetails = ({ pkg, packageId }) => {
   const [selectedCountryId2, setSelectedCountryId2] = useState("");
   const [selectedStateId2, setSelectedStateId2] = useState("");
   const [selectdCitiesId2, setSelectedCitiesId2] = useState("");
+  const [editIndex, setEditIndex] = useState(null);
+
+  const id = pkg?.packageId;
 
   const fetchCountries = async () => {
     try {
@@ -175,6 +179,29 @@ const FlightDetails = ({ pkg, packageId }) => {
     }
   };
 
+  const getFlightByID = async () => {
+    try {
+      setIsLoader(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${baseURL}package-airlines/byPackage/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setFlightDetails(response.data || []);
+    } catch (error) {
+      console.error("GET API Error:", error);
+    } finally {
+      setIsLoader(false);
+    }
+  };
+  useEffect(() => {
+    if (id) {
+      getFlightByID();
+    }
+  }, [id]);
+
   useEffect(() => {
     fetchCountries();
     fetchAirlines();
@@ -205,6 +232,38 @@ const FlightDetails = ({ pkg, packageId }) => {
   }, [selectedStateId2]);
   7;
 
+  useEffect(() => {
+    if (!flightDetails) return;
+
+    const mapped = flightDetails.map((item: any) => {
+      return {
+        id: String(item.id),
+        flightId: item.id,
+        airlineId: item.airlineDetails?.airlineId,
+        airline: item.airlineDetails?.flightName,
+        flightNumber: item.airlineDetails?.flightCode,
+
+        // location fields (IMPORTANT for edit)
+        departureCountries: item.departureCountryId,
+        departureState: item.departureStateId,
+        departureCity: item.departureCityId,
+        arrivalCountries: item.arrivalCountryId,
+        arrivalState: item.arrivalStateId,
+        arrivalCity: item.arrivalCityId,
+
+        departureDate: item.departureDate
+          ? new Date(item.departureDate)
+          : undefined,
+        arrivalDate: item.arrivalDate ? new Date(item.arrivalDate) : undefined,
+
+        departureTime: item.departureTime?.slice(11, 16),
+        arrivalTime: item.arrivalTime?.slice(11, 16),
+      };
+    });
+
+    setAddedFlights(mapped);
+  }, [flightDetails]);
+
   const formik = useFormik({
     initialValues: {
       airline: "",
@@ -222,14 +281,25 @@ const FlightDetails = ({ pkg, packageId }) => {
     },
     validationSchema,
     onSubmit: (values, { resetForm }) => {
-      const newFlight: FlightSegment = {
-        id: `${Date.now()}-${values.flightNumber}`,
+      const newFlight = {
+        id: editIndex !== null ? addedFlights[editIndex].id : `${Date.now()}`,
         ...values,
       };
 
-      setAddedFlights([...addedFlights, newFlight]);
+      if (editIndex !== null) {
+        // UPDATE MODE
+        const copy = [...addedFlights];
+        copy[editIndex] = newFlight;
+        setAddedFlights(copy);
+        toast.success("Flight segment updated!");
+      } else {
+        // ADD MODE
+        setAddedFlights([...addedFlights, newFlight]);
+        toast.success("Flight segment added!");
+      }
+
       resetForm();
-      toast.success("Flight segment added!");
+      setEditIndex(null); // reset edit mode
     },
   });
 
@@ -252,11 +322,15 @@ const FlightDetails = ({ pkg, packageId }) => {
         toast.error("Token missing — login again");
         return;
       }
-      if (!packageId) {
-        toast.error("package missing — once please create package");
-        return;
-      }
 
+      if (!pkg) {
+              if (!packageId) {
+                toast.error("package missing — once please create package");
+                return;
+              }
+              
+            }
+            
       for (const flight of addedFlights) {
         const payload = {
           packageId: packageId,
@@ -271,13 +345,40 @@ const FlightDetails = ({ pkg, packageId }) => {
           ).toISOString(),
           notes: "Flight segment added",
         };
+        const payload1 = {
+          packageId: id,
+          airlineId: Number(flight.airline),
+          departureDate: new Date(flight.departureDate).toISOString(),
+          departureTime: new Date(
+            `1970-01-01T${flight.departureTime}:00`
+          ).toISOString(),
+          arrivalDate: new Date(flight.arrivalDate).toISOString(),
+          arrivalTime: new Date(
+            `1970-01-01T${flight.arrivalTime}:00`
+          ).toISOString(),
+          notes: "Flight segment added",
+        };
 
-        await axios.post(`${baseURL}package-airlines`, payload, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        if (pkg) {
+          await axios.put(
+            `${baseURL}package-airlines/${Number(flight.id)}`,
+            payload1,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          getFlightByID();
+        } else {
+          await axios.post(`${baseURL}package-airlines`, payload, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+        }
       }
       toast.success("All flights submitted successfully!");
       setAddedFlights([]);
@@ -290,6 +391,25 @@ const FlightDetails = ({ pkg, packageId }) => {
     }
   };
 
+  const handleEditFlight = (flight, index) => {
+    setEditIndex(index); // <-- yaad rakhe kis card ko update karna hai
+
+    formik.setValues({
+      airline: String(flight.airlineId ?? flight.airline),
+      flightNumber: flight.flightNumber,
+      departureCountries: String(flight.departureCountries),
+      departureState: String(flight.departureState),
+      departureCity: String(flight.departureCity),
+      arrivalCountries: String(flight.arrivalCountries),
+      arrivalState: String(flight.arrivalState),
+      arrivalCity: String(flight.arrivalCity),
+      departureDate: new Date(flight.departureDate),
+      arrivalDate: new Date(flight.arrivalDate),
+      departureTime: flight.departureTime,
+      arrivalTime: flight.arrivalTime,
+    });
+  };
+
   return (
     <>
       {/* Added Flights List */}
@@ -299,7 +419,7 @@ const FlightDetails = ({ pkg, packageId }) => {
             Added Flight Segments ({addedFlights.length})
           </h4>
 
-          {addedFlights.map((flight) => (
+          {addedFlights.map((flight, index) => (
             <div
               key={flight.id}
               className="rounded-lg border bg-card p-4 space-y-2"
@@ -323,15 +443,27 @@ const FlightDetails = ({ pkg, packageId }) => {
                     {flight.arrivalTime}
                   </div>
                 </div>
+                <div>
+                  {pkg ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditFlight(flight, index)}
+                    >
+                      Edit
+                    </Button>
+                  ) : null}
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveFlight(flight.id)}
-                  className="text-destructive"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveFlight(flight.id)}
+                    className="text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
@@ -611,7 +743,7 @@ const FlightDetails = ({ pkg, packageId }) => {
         </div>
 
         <Button type="submit" variant="secondary" className="w-full">
-          Add Flight to Package
+          {pkg ? "Update Flight Package" : "Add Flight to Package"}
         </Button>
         <div className="flex justify-end gap-2 pt-4">
           <Button variant="outline">Cancel</Button>

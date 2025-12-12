@@ -5,7 +5,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 import {
   Table,
   TableBody,
@@ -23,10 +28,13 @@ import { useNavigate } from "react-router";
 const Facilities = ({ pkg, packageId }) => {
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [facilities, setFacilities] = useState([]);
+  const [facilitiesDetails, setFacilitiesDetails] = useState<any>([]);
   const [search, setSearch] = useState("");
   const [isLoader, setIsLoader] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
+  const id = pkg?.packageId;
 
   const fetchFacilities = async () => {
     try {
@@ -47,9 +55,39 @@ const Facilities = ({ pkg, packageId }) => {
     }
   };
 
+  const getFacilitiesPackageByID = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${baseURL}package-facilities/byPackage/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setFacilitiesDetails(response.data || []);
+    } catch (error) {
+      console.error("GET API Error:", error);
+    } finally {
+    }
+  };
+
   useEffect(() => {
     fetchFacilities();
   }, []);
+
+  useEffect(() => {
+    if (id) getFacilitiesPackageByID();
+  }, [id]);
+
+  useEffect(() => {
+    if (facilitiesDetails?.length > 0) {
+      const preselected = facilitiesDetails.map(
+        (item) => item.facilityDetails?.facilityId
+      );
+
+      setSelectedFacilities(preselected);
+    }
+  }, [facilitiesDetails]);
 
   // Group by category
   const groupedFacilities = useMemo(() => {
@@ -64,47 +102,93 @@ const Facilities = ({ pkg, packageId }) => {
   // Toggle checkbox
   const toggleFacility = (id) => {
     setSelectedFacilities((prev) =>
-      prev.includes(id)
-        ? prev.filter((item) => item !== id)
-        : [...prev, id]
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
+  // -----------------------------
+  const oldFacilityIds = useMemo(() => {
+    return facilitiesDetails.map((item) => item.facilityDetails?.facilityId);
+  }, [facilitiesDetails]);
+
+  const newFacilityIds = selectedFacilities.filter(
+    (id) => !oldFacilityIds.includes(id)
+  );
+
+  // -----------------------------
+
   const handleCreatePackage = async () => {
     try {
-      setIsLoader(true);
+      setIsLoading(true);
 
       const token = localStorage.getItem("token");
       if (!token) {
         toast.error("Token missing — login again");
         return;
       }
-      if (!packageId) {
-        toast.error("package missing — once please create package");
+
+      if (!pkg && !packageId) {
+        toast.error("Package missing — please create package first");
         return;
       }
 
-      for (const flight of selectedFacilities) {
-        const payload = {
-          packageId: packageId,
-          facilityId: flight,
-         
-        };
+      // OLD facilityIds from DB
+      const oldFacilityIds = facilitiesDetails.map(
+        (item) => item.facilityDetails?.facilityId
+      );
 
-        await axios.post(`${baseURL}package-facilities`, payload, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+      // ONLY NEW facilities selected now
+      const newFacilityIds = selectedFacilities.filter(
+        (id) => !oldFacilityIds.includes(id)
+      );
+
+      // If pkg = true → only POST new additions
+      if (pkg) {
+        for (const facilityId of newFacilityIds) {
+          await axios.post(
+            `${baseURL}package-facilities`,
+            {
+              packageId: id, // pkg update ke time packageId = id
+              facilityId,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+        }
+
+        toast.success("Facilities updated successfully!");
+        getFacilitiesPackageByID();
+        return;
       }
+
+      // NEW package create
+      for (const facilityId of selectedFacilities) {
+        await axios.post(
+          `${baseURL}package-facilities`,
+          {
+            packageId: packageId,
+            facilityId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+
       toast.success("Facilities submitted successfully!");
       navigate("/packages");
     } catch (error) {
       console.error(error);
-      toast.error("Failed to create package");
+      toast.error("Failed to process facilities");
     } finally {
-      setIsLoader(false);
+      setIsLoading(false);
     }
   };
 
@@ -233,11 +317,11 @@ const Facilities = ({ pkg, packageId }) => {
         <Button variant="outline">Cancel</Button>
         {pkg ? (
           <Button onClick={handleCreatePackage}>
-            {isLoader ? "Updating..." : "Update Package"}
+            {isLoading ? "Updating..." : "Update Package"}
           </Button>
         ) : (
           <Button onClick={handleCreatePackage}>
-            {isLoader ? "Creating..." : "Create Package"}
+            {isLoading ? "Creating..." : "Create Package"}
           </Button>
         )}
       </div>
