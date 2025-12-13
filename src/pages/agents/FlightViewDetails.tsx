@@ -46,7 +46,7 @@ const FlightViewDetails = ({ packageId }) => {
     return <Loader />;
   }
   return (
-    <div className="w-full">
+    <div className="w-full px-4">
       {/* Title */}
       <h1 className="text-2xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
         <PlaneTakeoff className="text-primary" /> Flight Details

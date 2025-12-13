@@ -66,7 +66,7 @@ const FacilitiesViewDetails = ({ packageId }) => {
   const finalFacilities = basicFacilitiesDetails?.length > 0;
 
   return (
-    <div className="w-full">
+    <div className="w-full px-4">
       {/* Title */}
       <h1 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
         <ListChecks className="text-primary w-5 h-5" />

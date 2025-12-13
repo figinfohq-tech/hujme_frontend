@@ -25,6 +25,10 @@ import { baseURL } from "@/utils/constant/url";
 import { BookingFlow } from "../BookingFlow";
 import { useLocation } from "react-router-dom";
 import { BookingConfirmation } from "@/components/BookingConfirmation";
+import PackageBasicView from "./PackageBasicView";
+import HotelViewDetails from "./HotelViewDetails";
+import FlightViewDetails from "./FlightViewDetails";
+import FacilitiesViewDetails from "./FacilitiesViewDetails";
 // import { BookingFlow } from "@/components/BookingFlow";
 // import { BookingConfirmation } from "@/components/BookingConfirmation";
 
@@ -240,28 +244,29 @@ const PackageDetails = () => {
             {/* Tabs */}
             <Tabs defaultValue="overview" className="w-full">
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
-                <TabsTrigger value="inclusions">Inclusions</TabsTrigger>
-                <TabsTrigger value="agent">Agent Info</TabsTrigger>
+                <TabsTrigger value="basic">Basic View</TabsTrigger>
+                <TabsTrigger value="hotel">Hotel View</TabsTrigger>
+                <TabsTrigger value="flights">Flight View</TabsTrigger>
+                <TabsTrigger value="facilities">Facilities View</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview" className="mt-6">
+              <TabsContent value="basic" className="mt-2">
                 <Card>
-                  <CardHeader>
+                  {/* <CardHeader>
                     <CardTitle>Package Overview</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground leading-relaxed">
                       {packageDetail?.description}
                     </p>
-                  </CardContent>
+                  </CardContent> */}
+                  <PackageBasicView packageId = {id} />
                 </Card>
               </TabsContent>
 
-              <TabsContent value="itinerary" className="mt-6">
+              <TabsContent value="hotel" className="mt-2">
                 <Card>
-                  <CardHeader>
+                  {/* <CardHeader>
                     <CardTitle>Day-wise Itinerary</CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -287,13 +292,14 @@ const PackageDetails = () => {
                         </div>
                       ))}
                     </div>
-                  </CardContent>
+                  </CardContent> */}
+                  <HotelViewDetails packageId={id} />
                 </Card>
               </TabsContent>
 
-              <TabsContent value="inclusions" className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card>
+              <TabsContent value="flights" className="mt-2">
+                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
+                  {/* <Card>
                     <CardHeader>
                       <CardTitle className="text-green-600">
                         Inclusions
@@ -331,13 +337,16 @@ const PackageDetails = () => {
                         ))}
                       </ul>
                     </CardContent>
+                  </Card> */}
+                {/* </div> */}
+                  <Card>
+                  <FlightViewDetails packageId={id} />
                   </Card>
-                </div>
               </TabsContent>
 
-              <TabsContent value="agent" className="mt-6">
+              <TabsContent value="facilities" className="mt-2">
                 <Card>
-                  <CardHeader>
+                  {/* <CardHeader>
                     <CardTitle>Agent Information</CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -375,7 +384,8 @@ const PackageDetails = () => {
                         </div>
                       </div>
                     </div>
-                  </CardContent>
+                  </CardContent> */}
+                  <FacilitiesViewDetails packageId={id} />
                 </Card>
               </TabsContent>
             </Tabs>
