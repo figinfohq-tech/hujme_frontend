@@ -66,6 +66,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
+import Loader from "@/components/Loader";
 
 interface PaymentTransaction {
   id: string;
@@ -418,6 +419,7 @@ export const BookingsPage = () => {
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
   const [isProcessingCancellation, setIsProcessingCancellation] =
     useState(false);
@@ -440,6 +442,7 @@ export const BookingsPage = () => {
 
   // Fetch Booking By User
   const fetchBookingByUser = async () => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
@@ -448,8 +451,10 @@ export const BookingsPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBookingUser(response.data);
+      setIsLoading(false);
     } catch (error) {
       console.error("Package Fetch Error:", error);
+      setIsLoading(false);
     }
   };
   // Fetch Booking By User
@@ -460,6 +465,7 @@ export const BookingsPage = () => {
   }, []);
 
   const fetchPackages = async () => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
 
@@ -470,8 +476,10 @@ export const BookingsPage = () => {
         }
       );
       setMyPackge(response.data);
+      setIsLoading(false);
     } catch (error) {
       console.error("Package Fetch Error:", error);
+      setIsLoading(false);
     }
   };
   // Fetch Booking By User
@@ -1011,6 +1019,10 @@ export const BookingsPage = () => {
     const hasPendingRefund = booking.refundTransactions.some(
       (r) => r.status === "initiated"
     );
+
+    if (isLoading) {
+      return <Loader />;
+    }
 
     return (
       <Card className="hover:shadow-md transition-shadow">

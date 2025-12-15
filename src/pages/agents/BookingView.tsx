@@ -49,8 +49,10 @@ const BookingViewPage = () => {
   const [pilgrimData, setPilgrimData] = useState<any>([]);
   const [details, setDetails] = useState<any>({});
   const [bookingDetails, setBookingDetails] = useState<any>("");
+  const [isLoading, setIsLoading] = useState(false);
   const { booking, myPackage, bookingUser } = location.state || {};
   const selectedBooking = booking;
+  
   
   const fetchTravelersByID = async () => {
     try {
