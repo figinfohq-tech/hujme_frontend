@@ -22,6 +22,7 @@ import { BookingsPage } from "@/pages/agents/BookingsPage";
 import BookingViewPage from "@/pages/agents/BookingView";
 import { AddNewPackage } from "@/pages/agents/AddNewPackage";
 import PackageView from "@/pages/agents/PackageView";
+import {DocumentsPage} from "@/pages/user/DocumentsPage";
 
 const MainRouts = () => {
   const role = localStorage.getItem("role");
@@ -77,6 +78,7 @@ const MainRouts = () => {
               />
               <Route path="/customer/compare" element={<ComparePackages />} />
               <Route path="bookings" element={<BookingsPage />} />
+              <Route path="ducoments" element={<DocumentsPage />} />
               <Route path="booking-view" element={<BookingViewPage />} />
               <Route path="profiles" element={<h1>Profiles Page</h1>} />
               <Route path="analytics" element={<h1>Analytics Page</h1>} />

@@ -53,7 +53,6 @@ const BookingViewPage = () => {
   const { booking, myPackage, bookingUser } = location.state || {};
   const selectedBooking = booking;
   
-  
   const fetchTravelersByID = async () => {
     try {
       const token = localStorage.getItem("token");

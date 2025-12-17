@@ -15,7 +15,6 @@ const PackageView = () => {
       const { state } = useLocation();
       const pkg = state?.pkg;
 
-      console.log("packages--->", pkg);
       const token = localStorage.getItem("token");
       
       

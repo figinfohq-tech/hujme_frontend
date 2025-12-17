@@ -39,8 +39,6 @@ const SignIn = ({ packageId }) => {
       localStorage.setItem("userDetails", JSON.stringify(response.data.user));
 
       toast.success("Login successful!");
-        console.log("token ==>", response.data.token);
-        console.log("response ==>", response.data);
         
       // Wait for toast → then redirect → then reload
       setTimeout(() => {

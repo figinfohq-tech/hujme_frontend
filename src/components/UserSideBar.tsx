@@ -7,6 +7,8 @@ import {
   CalendarCheck,
   User,
   BarChart2,
+  File,
+  FileText,
 } from "lucide-react";
 
 const UserSideBar = () => {
@@ -27,6 +29,11 @@ const UserSideBar = () => {
       name: "My Bookings",
       icon: <CalendarCheck size={20} />,
       path: "/bookings",
+    },
+    {
+      name: "Ducoments",
+      icon: <FileText size={20} />,
+      path: "/ducoments",
     },
     { name: "Profiles", icon: <User size={20} />, path: "/profiles" },
     {
