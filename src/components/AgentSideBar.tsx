@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   User,
   BarChart2,
+  FileText,
 } from "lucide-react";
 
 const AgentSidebar = () => {
@@ -27,6 +28,11 @@ const AgentSidebar = () => {
       name: "Bookings",
       icon: <CalendarCheck size={20} />,
       path: "/bookings",
+    },
+    {
+      name: "Documents",
+      icon: <FileText size={20} />,
+      path: "/documents",
     },
     { name: "Profiles", icon: <User size={20} />, path: "/profiles" },
     {

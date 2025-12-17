@@ -48,58 +48,52 @@ interface Document {
 
 const requiredDocuments = [
   {
-    id: "passport",
-    name: "Passport (Scanned Copy)",
-    description: "Clear scan of all pages with personal information",
+    id: "Agent Aadhar Card",
+    name: "Agent Aadhar Card",
+    description: "Government issued identity card for agent verification",
     required: true,
   },
   {
-    id: "aadhaar",
-    name: "Aadhaar Card",
-    description: "Government issued identity card",
+    id: "Business PAN Card",
+    name: "Business PAN Card",
+    description: "Permanent Account Number issued for business identification",
     required: true,
   },
   {
-    id: "pan",
-    name: "PAN Card",
-    description: "Permanent Account Number card",
+    id: "Business License",
+    name: "Business License",
+    description: "Official license authorizing business operations",
     required: true,
   },
   {
-    id: "photo",
-    name: "Passport Size Photo",
-    description: "Recent photograph as per passport standards",
+    id: "IATA Certificate",
+    name: "IATA Certificate",
+    description: "International Air Transport Association certification",
     required: true,
   },
   {
-    id: "medical",
-    name: "Medical Fitness Certificate",
-    description: "Certificate from registered medical practitioner",
-    required: true,
-  },
-  {
-    id: "vaccination",
-    name: "Vaccination Certificate",
-    description: "COVID-19 and other required vaccinations",
+    id: "HJTC Certificate",
+    name: "HJTC Certificate",
+    description: "Haj & Umrah Travel Committee approval certificate",
     required: true,
   },
 ];
 
-export const DocumentsPage = () => {
+export const DocumentsAgent = () => {
   // const { user, updateUser } = useAuth()
   const [documents, setDocuments] = useState<Document[]>([]);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [bookingUser, setBookingUser] = useState<any[]>([]);
   const [travelers, setTravelers] = useState<any[]>([]);
-  const [selectedBookingId, setSelectedBookingId] = useState<any>();
-  const [selectedTravelerId, setSelectedTravelerId] = useState<any>();
   const [isLoading, setIsLoading] = useState(false);
 
+
+        const agentId = localStorage.getItem("agentID");
+        console.log("agentId----->", agentId);
+        console.log("token---->", localStorage.getItem("token"));
+        
+
   const handleFileUpload = async (docId: string, file: File) => {
-    if (!selectedBookingId || !selectedTravelerId) {
-      toast.error("Please select booking and traveler first");
-      return;
-    }
 
     // validations
     const allowedTypes = ["pdf", "jpg", "jpeg", "png"];
@@ -117,21 +111,18 @@ export const DocumentsPage = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
 
       const payload = {
-        userId: Number(userId),
-        bookingId: Number(selectedBookingId),
-        travelerId: Number(selectedTravelerId),
+        agentId: Number(agentId),
         documentType: docId,
         fileName: file.name,
-        filePath: `/documents/${userId}/${selectedBookingId}/${selectedTravelerId}/${docId}/${file.name}`,
+        filePath: `/agent-documents/${agentId}/${docId}/${file.name}`,
         fileExtension: file.name.split(".").pop(),
         documentStatus: "pending",
         remarks: "",
       };
 
-      const response = await axios.post(`${baseURL}documents`, payload, {
+      const response = await axios.post(`${baseURL}agent-documents`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -200,54 +191,6 @@ export const DocumentsPage = () => {
   const uploadedCount = documents.length;
   const progressValue = (uploadedCount / requiredDocuments.length) * 100;
 
-  // api booking by user
-  const fetchBookingByUser = async () => {
-    setIsLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
-
-      const response = await axios.get(`${baseURL}bookings/byUser/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setBookingUser(response.data);
-
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Package Fetch Error:", error);
-      setIsLoading(false);
-    }
-  };
-  // Fetch Booking By User
-  // const ActiveUser = bookingUser.length;
-
-  const fetchTravelersByID = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `${baseURL}travelers/byBooking/${selectedBookingId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setTravelers(response.data);
-    } catch (error) {
-      console.error("Package Fetch Error:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchBookingByUser();
-  }, []);
-
-  useEffect(() => {
-    if (selectedBookingId) {
-      fetchTravelersByID();
-    }
-  }, [selectedBookingId]);
-
-  // api booking by user
-
   return (
     <div className="space-y-8 p-4">
       {/* Header */}
@@ -286,57 +229,6 @@ export const DocumentsPage = () => {
       </Card>
 
       {/* Document Upload Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {/* State */}
-        <div className="space-y-2 text-left">
-          <label className="text-sm font-medium text-gray-700 flex items-center">
-            <BookUser className="w-4 h-4 mr-2 text-green-700" />
-            Customer Bookings
-          </label>
-          <Select
-            onValueChange={(value) => {
-              setSelectedBookingId(value);
-            }}
-          >
-            <SelectTrigger className="w-full text-gray-700 border-gray-300 focus:ring-green-700 focus:border-green-700">
-              <SelectValue placeholder="Select Booking" />
-            </SelectTrigger>
-            <SelectContent>
-              {bookingUser.map((items: any) => {
-                return (
-                  <SelectItem key={items.bookingId} value={items.bookingId}>
-                    {items.bookingId}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2 text-left">
-          <label className="text-sm font-medium text-gray-700 flex items-center">
-            <User className="w-4 h-4 mr-2 text-green-700" />
-            Booking Travelers
-          </label>
-          <Select
-            onValueChange={(value) => {
-              setSelectedTravelerId(value);
-            }}
-          >
-            <SelectTrigger className="w-full text-gray-700 border-gray-300 focus:ring-green-700 focus:border-green-700">
-              <SelectValue placeholder="Select Traveler" />
-            </SelectTrigger>
-            <SelectContent>
-              {travelers.map((items: any) => {
-                return (
-                  <SelectItem key={items.travelerId} value={items.travelerId}>
-                    {items.firstName}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
       <div className="grid lg:grid-cols-2 gap-6">
         {requiredDocuments.map((docType) => {
           const uploadedDoc = documents.find((d) => d.id === docType.id);
@@ -467,9 +359,7 @@ export const DocumentsPage = () => {
 
                     <Button
                       className="w-full"
-                      disabled={
-                        isUploading || !selectedBookingId || !selectedTravelerId
-                      }
+                      disabled={isUploading}
                       onClick={() => {
                         document.getElementById(`file-${docType.id}`)?.click();
                       }}
