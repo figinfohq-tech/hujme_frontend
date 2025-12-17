@@ -87,14 +87,9 @@ export const DocumentsAgent = () => {
   const [travelers, setTravelers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-
-        const agentId = localStorage.getItem("agentID");
-        console.log("agentId----->", agentId);
-        console.log("token---->", localStorage.getItem("token"));
-        
+  const agentId = localStorage.getItem("agentID");
 
   const handleFileUpload = async (docId: string, file: File) => {
-
     // validations
     const allowedTypes = ["pdf", "jpg", "jpeg", "png"];
     if (!validateFileType(file, allowedTypes)) {
