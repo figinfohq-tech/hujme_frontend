@@ -11,9 +11,7 @@ import {
   User,
   Users,
   Package,
-  FolderOpen,
   Shield,
-  Calendar,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { formatDate, validateFileSize, validateFileType } from "@/lib/utils";
@@ -24,7 +22,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -48,26 +45,9 @@ import { Separator } from "@/components/ui/separator";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
 
-interface Booking {
-  id: string;
-  packageTitle: string;
-  departureDate: Date;
-  pilgrims: Pilgrim[];
-  status: string;
-}
-
-interface Pilgrim {
-  id: string;
-  name: string;
-  age: number;
-  gender: "male" | "female";
-  relationship: string;
-  passportNumber: string;
-  status: "active" | "cancelled";
-}
-
 interface Document {
   id: string;
+  backendId?: number;
   name: string;
   type: string;
   status: "pending" | "approved" | "rejected";
@@ -118,62 +98,12 @@ const requiredDocuments = [
 ];
 
 // Mock bookings data - in real app, this would come from API/database
-const mockBookings: Booking[] = [
-  {
-    id: "BK001",
-    packageTitle: "Premium Hajj Package 2024",
-    departureDate: new Date("2024-06-15"),
-    status: "confirmed",
-    pilgrims: [
-      {
-        id: "P001",
-        name: "Ahmed Ibrahim",
-        age: 45,
-        gender: "male",
-        relationship: "self",
-        passportNumber: "A1234567",
-        status: "active",
-      },
-      {
-        id: "P002",
-        name: "Fatima Ibrahim",
-        age: 42,
-        gender: "female",
-        relationship: "spouse",
-        passportNumber: "B7654321",
-        status: "active",
-      },
-    ],
-  },
-  {
-    id: "BK002",
-    packageTitle: "Umrah Express Package",
-    departureDate: new Date("2024-04-10"),
-    status: "pending",
-    pilgrims: [
-      {
-        id: "P003",
-        name: "Ahmed Ibrahim",
-        age: 45,
-        gender: "male",
-        relationship: "self",
-        passportNumber: "A1234567",
-        status: "active",
-      },
-    ],
-  },
-];
 
 export const DocumentsPage = () => {
-  const [bookings] = useState<Booking[]>(mockBookings);
-  const [selectedBooking, setSelectedBooking] = useState<string | undefined>(
-    undefined
-  );
   const [selectedPilgrim, setSelectedPilgrim] = useState<string | undefined>(
     undefined
   );
   const [selectedBookingId, setSelectedBookingId] = useState<any>();
-  const [selectedTravelerId, setSelectedTravelerId] = useState<any>();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [viewDocument, setViewDocument] = useState<Document | null>(null);
@@ -182,30 +112,105 @@ export const DocumentsPage = () => {
   const [travelers, setTravelers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<"upload" | "view">("upload");
+  const [docToDelete, setDocToDelete] = useState<any>(null);
 
-  console.log("DocumentsPage rendering, documents:", documents.length);
   const isSelectionDone = Boolean(selectedBookingId && selectedPilgrim);
-console.log("token====>", localStorage.getItem("token"));
 
-  // Auto-select first booking and pilgrim on mount
-  useEffect(() => {
-    if (bookings.length > 0 && !selectedBooking) {
-      setSelectedBooking(bookings[0].id);
-      if (bookings[0].pilgrims.length > 0) {
-        setSelectedPilgrim(bookings[0].pilgrims[0].id);
-      }
-    }
-  }, [bookings, selectedBooking]);
+  // get documents api called
+  const fetchDocumentsByBooking = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
 
-  // When booking changes, select first pilgrim
-  useEffect(() => {
-    if (selectedBooking) {
-      const booking = bookings.find((b) => b.id === selectedBooking);
-      if (booking && booking.pilgrims.length > 0) {
-        setSelectedPilgrim(booking.pilgrims[0].id);
-      }
+      const response = await axios.get(
+        `${baseURL}documents/byTraveler/${selectedPilgrim}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const apiDocs = response.data;
+
+      // MAP API DATA → UI DOCUMENT FORMAT
+      const mappedDocuments: Document[] = apiDocs.map((doc: any) => ({
+        id: `${doc.documentType}-${doc.travelerId}`,
+        backendId: doc.documentId,
+        name:
+          requiredDocuments.find((d) => d.id === doc.documentType)?.name || "",
+        type: doc.fileExtension,
+        status: doc.documentStatus,
+        uploadDate: new Date(doc.createdAt),
+        pilgrimId: String(doc.travelerId),
+        bookingId: String(doc.bookingId),
+        comments: doc.remarks || "",
+        file: {
+          name: doc.fileName,
+        } as File,
+      }));
+
+      //  STATE UPDATE
+      setDocuments(mappedDocuments);
+    } catch (error) {
+      console.error("Document Fetch Error:", error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [selectedBooking, bookings]);
+  };
+
+  // replace document
+  const handleReplaceDocument = async (doc: Document, file: File) => {
+    try {
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+
+      if (!doc.backendId) {
+        toast.error("Document id not found");
+        return;
+      }
+
+      const payload = {
+        userId: Number(userId),
+        travelerId: Number(selectedPilgrim),
+        bookingId: Number(selectedBookingId),
+        documentType: doc.id.split("-")[0],
+        fileName: file.name,
+        filePath: `/documents/${userId}/${selectedBookingId}/${selectedPilgrim}/${doc.documentType}/${file.name}`,
+        fileExtension: file.name.split(".").pop(),
+        documentStatus: "pending",
+        remarks: "",
+        updatedBy: Number(userId),
+      };
+
+      const response = await axios.put(
+        `${baseURL}documents/${doc.backendId}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      toast.success("Document replaced successfully");
+
+      // refresh documents
+      fetchDocumentsByBooking();
+    } catch (error) {
+      console.error("Replace error:", error);
+      toast.error("Failed to replace document");
+    }
+  };
+
+  // replace document
+
+  useEffect(() => {
+    if (selectedPilgrim) {
+      fetchDocumentsByBooking();
+    }
+  }, [selectedPilgrim]);
+
+  // get documents api called
 
   const currentPilgrim = travelers.find(
     (t) => String(t.travelerId) === String(selectedPilgrim)
@@ -213,44 +218,31 @@ console.log("token====>", localStorage.getItem("token"));
 
   // Filter documents for selected pilgrim
   const pilgrimDocuments = documents.filter(
-    (d) => d.pilgrimId === selectedPilgrim && d.bookingId === selectedBooking
+    (d) =>
+      String(d.pilgrimId) === String(selectedPilgrim) &&
+      String(d.bookingId) === String(selectedBookingId)
   );
 
   const handleFileUpload = async (docId: string, file: File) => {
-    if (!selectedPilgrim || !selectedBooking) {
+    if (!selectedPilgrim || !selectedBookingId) {
       toast.error("Please select a booking and pilgrim first");
       return;
     }
 
-    console.log(
-      "Uploading file:",
-      file.name,
-      "for document:",
-      docId,
-      "pilgrim:",
-      selectedPilgrim
-    );
-
-    // Validate file type
     const allowedTypes = ["pdf", "jpg", "jpeg", "png"];
     if (!validateFileType(file, allowedTypes)) {
-      toast.error(
-        "Invalid file type. Please upload PDF, JPG, or PNG files only."
-      );
+      toast.error("Invalid file type");
       return;
     }
 
-    // Validate file size (5MB max)
     if (!validateFileSize(file, 5)) {
-      toast.error("File size too large. Please upload files smaller than 5MB.");
+      toast.error("File too large");
       return;
     }
 
     setUploadingId(docId);
 
     try {
-      // Mock upload process
-      // 🔥 ONLY CHANGE: POST API CALL (mock removed)
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
 
@@ -266,63 +258,48 @@ console.log("token====>", localStorage.getItem("token"));
         remarks: "",
       };
 
-      const response = await axios.post(`${baseURL}documents`, payload, {
+      await axios.post(`${baseURL}documents`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-      console.log("Api response---->", response);
 
-      const newDocument: Document = {
-        id: `${docId}-${selectedPilgrim}-${Date.now()}`,
-        name: requiredDocuments.find((d) => d.id === docId)?.name || "",
-        type: file.type,
-        status: "pending",
-        file,
-        uploadDate: new Date(),
-        pilgrimId: selectedPilgrim,
-        bookingId: selectedBooking,
-      };
+      toast.success("Document uploaded successfully");
 
-      setDocuments((prev) => {
-        // Remove old document of same type for this pilgrim
-        const filtered = prev.filter(
-          (d) => !(d.id.startsWith(docId) && d.pilgrimId === selectedPilgrim)
-        );
-        return [...filtered, newDocument];
-      });
-
-      toast.success(
-        `Document uploaded successfully for ${response.data.documentType}!`
-      );
-
-      // Check if all documents are uploaded for this pilgrim
-      const pilgrimDocs = documents.filter(
-        (d) =>
-          d.pilgrimId === selectedPilgrim && d.bookingId === selectedBooking
-      );
-      const updatedPilgrimDocs = [
-        ...pilgrimDocs.filter((d) => !d.id.startsWith(docId)),
-        newDocument,
-      ];
-
-      if (updatedPilgrimDocs.length === requiredDocuments.length) {
-        toast.success(
-          `All documents uploaded for ${response.data.documentType}`
-        );
-      }
+      fetchDocumentsByBooking();
     } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Failed to upload document. Please try again.");
+      console.error(error);
+      toast.error("Upload failed");
     } finally {
       setUploadingId(null);
     }
   };
 
-  const removeDocument = (docId: string) => {
-    setDocuments((prev) => prev.filter((d) => d.id !== docId));
-    toast.info("Document removed");
+  const removeDocument = async () => {
+    if (!docToDelete?.backendId) {
+      toast.error("Document id not found");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.delete(`${baseURL}documents/${docToDelete.backendId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success("Document deleted successfully");
+
+      fetchDocumentsByBooking();
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete document");
+    } finally {
+      setDocToDelete(null);
+    }
   };
 
   const getDocumentForType = (docTypeId: string) => {
@@ -367,22 +344,6 @@ console.log("token====>", localStorage.getItem("token"));
   const uploadedCount = pilgrimDocuments.length;
   const progressValue = (uploadedCount / requiredDocuments.length) * 100;
 
-  // Get all pilgrims across all bookings
-  const allPilgrims = bookings.flatMap((b) =>
-    b.pilgrims.map((p) => ({
-      ...p,
-      bookingId: b.id,
-      packageTitle: b.packageTitle,
-    }))
-  );
-
-  // Count documents per pilgrim
-  const getDocumentCountForPilgrim = (pilgrimId: string, bookingId: string) => {
-    return documents.filter(
-      (d) => d.pilgrimId === pilgrimId && d.bookingId === bookingId
-    ).length;
-  };
-
   // Fetch Booking By User
   const fetchBookingByUser = async () => {
     setIsLoading(true);
@@ -394,7 +355,6 @@ console.log("token====>", localStorage.getItem("token"));
         headers: { Authorization: `Bearer ${token}` },
       });
       setBookingUser(response.data);
-      console.log("responce---->", response.data);
 
       setIsLoading(false);
     } catch (error) {
@@ -413,9 +373,7 @@ console.log("token====>", localStorage.getItem("token"));
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-
-      // bookingUser se sab packageIds nikaal lo
-      const packageRequests = bookingUser.map((user) =>
+      const packageRequests = bookingUser.map((user: any) =>
         axios.get(`${baseURL}packages/${user.packageId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -438,7 +396,6 @@ console.log("token====>", localStorage.getItem("token"));
     }
   };
 
-  console.log("package responce---->", myPackage);
   // Fetch Booking By User
   // Fetch Booking Travelers
   const fetchTravelersByID = async () => {
@@ -451,7 +408,6 @@ console.log("token====>", localStorage.getItem("token"));
         }
       );
       setTravelers(response.data);
-      console.log("asdfghjkl====>", response.data);
     } catch (error) {
       console.error("Package Fetch Error:", error);
     }
@@ -470,7 +426,6 @@ console.log("token====>", localStorage.getItem("token"));
       fetchTravelersByID();
     }
   }, [selectedBookingId]);
-  console.log("selectedBookingId=====>", selectedBookingId);
 
   return (
     <div className="space-y-8 p-4">
@@ -509,7 +464,7 @@ console.log("token====>", localStorage.getItem("token"));
                   {myPackage.map((items: any) => (
                     <SelectItem
                       key={items.bookingId}
-                      value={String(items.bookingId)} // ✅ bookingId
+                      value={String(items.bookingId)}
                     >
                       <div className="flex items-center gap-2">
                         <Package className="h-4 w-4" />
@@ -543,10 +498,6 @@ console.log("token====>", localStorage.getItem("token"));
                           {pilgrim.firstName + " " + pilgrim.lastName}
                         </div>
                         <Badge variant="outline" className="text-xs">
-                          {/* {getDocumentCountForPilgrim(
-                            pilgrim.travelerId,
-                            selectedBookingId
-                          )} */}
                           {uploadedCount}/{requiredDocuments.length}
                         </Badge>
                       </div>
@@ -694,7 +645,7 @@ console.log("token====>", localStorage.getItem("token"));
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => removeDocument(uploadedDoc.id)}
+                              onClick={() => setDocToDelete(uploadedDoc)}
                             >
                               <X className="h-4 w-4" />
                             </Button>
@@ -726,7 +677,8 @@ console.log("token====>", localStorage.getItem("token"));
                             input.onchange = (e) => {
                               const file = (e.target as HTMLInputElement)
                                 .files?.[0];
-                              if (file) handleFileUpload(docType.id, file);
+                              if (file)
+                                handleReplaceDocument(uploadedDoc, file);
                             };
                             input.click();
                           }}
@@ -891,6 +843,35 @@ console.log("token====>", localStorage.getItem("token"));
           </div>
         </CardContent>
       </Card>
+      {/* delete confirmatio dialog */}
+      <Dialog
+        open={!!docToDelete}
+        onOpenChange={(open) => {
+          if (!open) setDocToDelete(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Document</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this document? This action cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex justify-end gap-3 mt-4">
+            <Button variant="outline" onClick={() => setDocToDelete(null)}>
+              Cancel
+            </Button>
+
+            <Button variant="destructive" onClick={removeDocument}>
+              Yes, Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* delete confirmatio dialog */}
     </div>
   );
 };
