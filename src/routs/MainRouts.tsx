@@ -24,6 +24,8 @@ import { AddNewPackage } from "@/pages/agents/AddNewPackage";
 import PackageView from "@/pages/agents/PackageView";
 import {DocumentsPage} from "@/pages/user/DocumentsPage";
 import { DocumentsAgent } from "@/pages/agents/DocumentsAgent";
+import { ManageBookings } from "@/pages/agents/ManageBookings";
+import { BookingDetailsPage } from "@/pages/agents/BookingDetailsPage";
 
 const MainRouts = () => {
   const role = localStorage.getItem("role");
@@ -98,7 +100,8 @@ const MainRouts = () => {
               <Route path="packages" element={<Packages />} />
               <Route path="add-package" element={<AddNewPackage />} />
               <Route path="view-package" element={<PackageView />} />
-              <Route path="bookings" element={<BookingsPage />} />
+              <Route path="bookings" element={<ManageBookings />} />
+              <Route path="bookings-details" element={<BookingDetailsPage />} />
               <Route path="documents" element={<DocumentsAgent/>} />
               <Route path="booking-view" element={<BookingViewPage />} />
               <Route path="profiles" element={<h1>Profiles Page</h1>} />

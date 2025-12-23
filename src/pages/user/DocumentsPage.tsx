@@ -223,6 +223,15 @@ export const DocumentsPage = () => {
       String(d.bookingId) === String(selectedBookingId)
   );
 
+  const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file); // data:application/pdf;base64,xxxx
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
+
   const handleFileUpload = async (docId: string, file: File) => {
     if (!selectedPilgrim || !selectedBookingId) {
       toast.error("Please select a booking and pilgrim first");
@@ -241,6 +250,10 @@ export const DocumentsPage = () => {
     }
 
     setUploadingId(docId);
+
+    const base64File = await fileToBase64(file);
+    console.log("images--->", base64File);
+    
 
     try {
       const token = localStorage.getItem("token");
