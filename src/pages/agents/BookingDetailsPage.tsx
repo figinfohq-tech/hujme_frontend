@@ -485,7 +485,7 @@ export const BookingDetailsPage = ({
                         {traveler.firstName} {traveler.lastName}
                       </h4>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mt-2">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm mt-2">
                         <div>
                           <p className="text-muted-foreground">Email</p>
                           <p className="font-medium">{traveler.emailId}</p>

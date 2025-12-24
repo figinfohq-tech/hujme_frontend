@@ -113,8 +113,54 @@ export const DocumentsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<"upload" | "view">("upload");
   const [docToDelete, setDocToDelete] = useState<any>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewType, setPreviewType] = useState<"image" | "pdf" | null>(null);
 
   const isSelectionDone = Boolean(selectedBookingId && selectedPilgrim);
+
+  const fetchViewImage = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        `${baseURL}documents/view/${viewDocument?.backendId}?mode=download`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        }
+      );
+
+      const blob = response.data;
+      const url = URL.createObjectURL(blob);
+
+      // detect type
+      if (blob.type.includes("pdf")) {
+        setPreviewType("pdf");
+      } else if (blob.type.includes("image")) {
+        setPreviewType("image");
+      }
+
+      setPreviewUrl(url);
+    } catch (error) {
+      console.error("Document Fetch Error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (viewDocument?.backendId) {
+      fetchViewImage();
+    }
+  }, [viewDocument?.backendId]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   // get documents api called
   const fetchDocumentsByBooking = async () => {
@@ -178,7 +224,6 @@ export const DocumentsPage = () => {
         fileExtension: file.name.split(".").pop(),
         documentStatus: "pending",
         remarks: "",
-        updatedBy: Number(userId),
       };
 
       const response = await axios.put(
@@ -224,13 +269,13 @@ export const DocumentsPage = () => {
   );
 
   const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file); // data:application/pdf;base64,xxxx
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
-};
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file); // data:application/pdf;base64,xxxx
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
   const handleFileUpload = async (docId: string, file: File) => {
     if (!selectedPilgrim || !selectedBookingId) {
@@ -252,34 +297,30 @@ export const DocumentsPage = () => {
     setUploadingId(docId);
 
     const base64File = await fileToBase64(file);
-    console.log("images--->", base64File);
-    
 
     try {
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
 
-      const payload = {
-        userId: Number(userId),
-        bookingId: Number(selectedBookingId),
-        travelerId: Number(selectedPilgrim),
-        documentType: docId,
-        fileName: file.name,
-        filePath: `/documents/${userId}/${selectedBookingId}/${selectedPilgrim}/${docId}/${file.name}`,
-        fileExtension: file.name.split(".").pop(),
-        documentStatus: "pending",
-        remarks: "",
-      };
+      // ✅ FORM DATA
+      const formData = new FormData();
+      formData.append("userId", String(userId));
+      formData.append("bookingId", String(selectedBookingId));
+      formData.append("travelerId", String(selectedPilgrim));
+      formData.append("documentType", docId);
+      formData.append("file", file); // 👈 ACTUAL FILE
 
-      await axios.post(`${baseURL}documents`, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
+      const response = await axios.post(
+        `${baseURL}documents/upload`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
       toast.success("Document uploaded successfully");
-
       fetchDocumentsByBooking();
     } catch (error) {
       console.error(error);
@@ -323,9 +364,38 @@ export const DocumentsPage = () => {
     setViewDocument(doc);
   };
 
-  const handleDownloadDocument = (doc: Document) => {
-    // In real app, this would download from server
-    toast.success(`Downloading ${doc.name}...`);
+  const handleDownloadDocument = async (doc: Document) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${baseURL}documents/view/${doc.backendId}?mode=download`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob", // ✅ IMPORTANT
+        }
+      );
+
+      // 🔽 Create downloadable file
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = doc.file?.name || doc.name || "document";
+      document.body.appendChild(link);
+      link.click();
+
+      // cleanup
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success(`${doc.name} downloaded successfully`);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download document");
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -768,7 +838,7 @@ export const DocumentsPage = () => {
         open={!!viewDocument}
         onOpenChange={(open) => !open && setViewDocument(null)}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[95vh] overflow-hidden p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
@@ -779,7 +849,7 @@ export const DocumentsPage = () => {
 
           {viewDocument && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Status</Label>
                   <Badge
@@ -812,15 +882,40 @@ export const DocumentsPage = () => {
 
               <Separator />
 
-              <div className="border-2 border-dashed rounded-lg p-12 text-center bg-muted">
-                <FileText className="h-24 w-24 text-muted-foreground mx-auto mb-4" />
-                <p className="text-sm text-muted-foreground mb-4">
-                  Document preview would appear here in production
-                </p>
-                <Button onClick={() => handleDownloadDocument(viewDocument)}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Document
-                </Button>
+              <div className="border-2 border-dashed rounded-lg p-4 sm:p-5 bg-muted flex flex-col items-center justify-center overflow-hidden">
+                <div className=" rounded-lg bg-muted">
+                  {isLoading && (
+                    <p className="text-sm text-muted-foreground text-center">
+                      Loading preview...
+                    </p>
+                  )}
+
+                  {!isLoading && previewType === "image" && previewUrl && (
+                    <img
+                      src={previewUrl}
+                      alt="Document Preview"
+                      className="w-full max-w-[100%] max-h-[280px] sm:max-h-[320px] object-contain rounded-md"
+                    />
+                  )}
+
+                  {!isLoading && previewType === "pdf" && previewUrl && (
+                    <iframe
+                      src={`${previewUrl}#zoom=40`}
+                      title="PDF Preview"
+                      className="w-full h-[320px] sm:h-[320px] rounded-md border"
+                    />
+                  )}
+
+                  {!previewUrl && !isLoading && (
+                    <FileText className="h-24 w-24 text-muted-foreground mx-auto" />
+                  )}
+                </div>
+                <div className="flex justify-center pt-3">
+                  <Button onClick={() => handleDownloadDocument(viewDocument)}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Document
+                  </Button>
+                </div>
               </div>
 
               {viewDocument.comments && (
