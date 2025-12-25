@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,23 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CheckCircle, XCircle, Clock, AlertCircle, Eye, X } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import axios from "axios";
+import { baseURL } from "@/utils/constant/url";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { FileText, Download } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 interface TravelerDocument {
   id: string;
@@ -37,11 +53,22 @@ export const TravelerDocumentCard = ({
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewType, setPreviewType] = useState<"image" | "pdf" | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [viewDocument, setViewDocument] = useState<TravelerDocument | null>(
+    null
+  );
 
   const getStatusConfig = (status: string) => {
     const configs: Record<
       string,
-      { icon: any; variant: "default" | "secondary" | "destructive" | "outline"; label: string; color: string }
+      {
+        icon: any;
+        variant: "default" | "secondary" | "destructive" | "outline";
+        label: string;
+        color: string;
+      }
     > = {
       verified: {
         icon: CheckCircle,
@@ -89,14 +116,85 @@ export const TravelerDocumentCard = ({
     setRejectionReason("");
   };
 
+  // View image
+  const fetchViewImage = async (doc: TravelerDocument) => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        `${baseURL}documents/view/${doc.id}?mode=inline`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        }
+      );
+
+      const blob = response.data;
+      const url = URL.createObjectURL(blob);
+
+      if (blob.type.includes("pdf")) {
+        setPreviewType("pdf");
+      } else if (blob.type.includes("image")) {
+        setPreviewType("image");
+      }
+
+      setPreviewUrl(url);
+    } catch (error) {
+      console.error("Document Fetch Error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // View image
+  const handleDownload = async (doc: TravelerDocument) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        `${baseURL}documents/view/${doc.id}?mode=download`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob",
+        }
+      );
+
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+
+      // file name (fallback safe)
+      link.download = `${doc.type || "document"}`;
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download error:", error);
+    }
+  };
+
   return (
     <>
-      <Card className={`p-3 ${isLocked ? "bg-green-50/50 dark:bg-green-950/20" : ""}`}>
+      <Card
+        className={`p-3 ${
+          isLocked ? "bg-green-50/50 dark:bg-green-950/20" : ""
+        }`}
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <p className="font-medium text-sm truncate">{document.type}</p>
-              {isLocked && <X className="h-3 w-3 rotate-45 text-muted-foreground" />}
+              {isLocked && (
+                <X className="h-3 w-3 rotate-45 text-muted-foreground" />
+              )}
             </div>
             <Badge variant={statusConfig.variant} className="gap-1 text-xs">
               <StatusIcon className="h-3 w-3" />
@@ -114,8 +212,8 @@ export const TravelerDocumentCard = ({
                 variant="ghost"
                 className="h-8 w-8 p-0"
                 onClick={() => {
-                  // View document functionality
-                  setIsExpanded(!isExpanded);
+                  setViewDocument(document); // dialog open
+                  fetchViewImage(document); // preview load
                 }}
               >
                 <Eye className="h-4 w-4" />
@@ -163,19 +261,96 @@ export const TravelerDocumentCard = ({
         )}
       </Card>
 
+      {/* Document Preview Dialog */}
+      <Dialog
+        open={!!viewDocument}
+        onOpenChange={(open) => {
+          if (!open) {
+            setViewDocument(null);
+            setPreviewUrl(null);
+            setPreviewType(null);
+          }
+        }}
+      >
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[95vh] overflow-hidden p-4 sm:p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {viewDocument?.type}
+            </DialogTitle>
+            <DialogDescription>Document preview and details</DialogDescription>
+          </DialogHeader>
+
+          {viewDocument && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Status</Label>
+                  <Badge className="mt-1 capitalize">
+                    {viewDocument.status}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Upload Date</Label>
+                  <p className="font-medium">
+                    {new Date(viewDocument.uploaded_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">File Type</Label>
+                  <p className="font-medium">{viewDocument.type}</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="border-2 border-dashed rounded-lg p-4 sm:p-5 bg-muted flex flex-col items-center justify-center overflow-hidden">
+                {isLoading && (
+                  <p className="text-sm text-muted-foreground">
+                    Loading preview...
+                  </p>
+                )}
+
+                {!isLoading && previewType === "image" && previewUrl && (
+                  <img
+                    src={previewUrl}
+                    alt="Document Preview"
+                    className="w-full max-h-[200px] object-contain rounded-md"
+                  />
+                )}
+
+                {!isLoading && previewType === "pdf" && previewUrl && (
+                  <iframe
+                    src={`${previewUrl}#zoom=40`}
+                    title="PDF Preview"
+                    className="w-full h-[320px] rounded-md border"
+                  />
+                )}
+
+                {!previewUrl && !isLoading && (
+                  <FileText className="h-24 w-24 text-muted-foreground" />
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Verify Dialog */}
       <AlertDialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Verify Document</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to verify this {document.type}? Once verified, this document
-              will be locked and cannot be modified.
+              Are you sure you want to verify this {document.type}? Once
+              verified, this document will be locked and cannot be modified.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleVerify}>Verify Document</AlertDialogAction>
+            <AlertDialogAction onClick={handleVerify}>
+              Verify Document
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -186,8 +361,8 @@ export const TravelerDocumentCard = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Reject Document</AlertDialogTitle>
             <AlertDialogDescription>
-              Please provide a reason for rejecting this {document.type}. The customer will be
-              notified and asked to re-upload.
+              Please provide a reason for rejecting this {document.type}. The
+              customer will be notified and asked to re-upload.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="my-4">
@@ -200,7 +375,9 @@ export const TravelerDocumentCard = ({
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setRejectionReason("")}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setRejectionReason("")}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleReject}
               disabled={!rejectionReason.trim()}

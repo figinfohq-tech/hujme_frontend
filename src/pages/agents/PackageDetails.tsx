@@ -260,7 +260,7 @@ const PackageDetails = () => {
                       {packageDetail?.description}
                     </p>
                   </CardContent> */}
-                  <PackageBasicView packageId = {id} />
+                  <PackageBasicView packageId={id} />
                 </Card>
               </TabsContent>
 
@@ -299,7 +299,7 @@ const PackageDetails = () => {
 
               <TabsContent value="flights" className="mt-2">
                 {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
-                  {/* <Card>
+                {/* <Card>
                     <CardHeader>
                       <CardTitle className="text-green-600">
                         Inclusions
@@ -339,9 +339,9 @@ const PackageDetails = () => {
                     </CardContent>
                   </Card> */}
                 {/* </div> */}
-                  <Card>
+                <Card>
                   <FlightViewDetails packageId={id} />
-                  </Card>
+                </Card>
               </TabsContent>
 
               <TabsContent value="facilities" className="mt-2">

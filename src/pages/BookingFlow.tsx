@@ -104,11 +104,7 @@ export const BookingFlow: React.FC = () => {
     initialTraveler,
   ]);
 
-  useEffect(() => {
-    bookingPackages();
-  }, []);
-
-  const bookingPackages = async () => {
+  const bookingPackages = async (travelerCount: number) => {
     try {
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
@@ -122,7 +118,7 @@ export const BookingFlow: React.FC = () => {
         // receivedAmt: 0,
         // startDate: "string",
         totalAmt: packageData?.price,
-        travelerCount: 0,
+        travelerCount: travelerCount,
         packageId: packageData?.id,
         userId: userId, // 👈 userId from localStorage
       };
@@ -132,7 +128,7 @@ export const BookingFlow: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setBookingId(response.data.bookingId);
+      return response.data.bookingId;
     } catch (error) {
       console.error("Compare API Error:", error);
     }
@@ -196,11 +192,12 @@ export const BookingFlow: React.FC = () => {
 
     try {
       const token = localStorage.getItem("token") || "";
-
+      const newBookingId = await bookingPackages(travelers.length);
+      setBookingId(newBookingId);
       // Loop through ALL travelers
       for (let t of travelers) {
         const payload: TravelerPayload = {
-          bookingId: Number(bookingId),
+          bookingId: Number(newBookingId),
           alternateNumber: t.alternateNumber || "",
           createdBy: t.createdBy || "string",
           dateOfBirth: formatDate(t.dateOfBirth),
@@ -232,7 +229,7 @@ export const BookingFlow: React.FC = () => {
       }
 
       // When ALL traveler APIs are successful:
-      
+
       toast.success("All travelers submitted successfully!");
       setStep(2);
 
@@ -367,7 +364,9 @@ export const BookingFlow: React.FC = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor={`middleName-${index}`} className="mb-2">Middle Name *</Label>
+                        <Label htmlFor={`middleName-${index}`} className="mb-2">
+                          Middle Name *
+                        </Label>
                         <Input
                           value={traveler.middleName}
                           onChange={(e) =>
@@ -421,7 +420,12 @@ export const BookingFlow: React.FC = () => {
                       </div>
 
                       <div>
-                     <Label htmlFor={`alternateNumber-${index}`} className="mb-2">Alternate Number</Label>
+                        <Label
+                          htmlFor={`alternateNumber-${index}`}
+                          className="mb-2"
+                        >
+                          Alternate Number
+                        </Label>
                         <Input
                           value={traveler.alternateNumber}
                           onChange={(e) =>
@@ -436,7 +440,9 @@ export const BookingFlow: React.FC = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor={`gender-${index}`} className="mb-2">Gender *</Label>
+                        <Label htmlFor={`gender-${index}`} className="mb-2">
+                          Gender *
+                        </Label>
                         <select
                           className="border rounded p-2 w-full"
                           value={traveler.gender}
@@ -485,7 +491,12 @@ export const BookingFlow: React.FC = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor={`nationality-${index}`} className="mb-2">Nationality *</Label>
+                        <Label
+                          htmlFor={`nationality-${index}`}
+                          className="mb-2"
+                        >
+                          Nationality *
+                        </Label>
                         <Input
                           value={traveler.nationality}
                           onChange={(e) =>
