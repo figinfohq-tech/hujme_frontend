@@ -27,16 +27,6 @@ import {
   Users,
 } from "lucide-react";
 // import { TravelerDocumentCard } from "./TravelerDocumentCard";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useLocation, useNavigate } from "react-router-dom";
 import { TravelerDocumentCard } from "@/components/TravelerDocumentCard";
 import { toast } from "react-toastify";
@@ -564,67 +554,84 @@ export const BookingDetailsPage = ({
       </div>
 
       {/* Confirmation Dialogs */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Booking</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to confirm this booking? This action will
-              notify the customer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => updateBookingStatus("confirmed")}>
-              Confirm
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Booking</DialogTitle>
+          </DialogHeader>
 
-      <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reject Booking</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to reject this booking? This action will
-              notify the customer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to confirm this booking? This action will
+            notify the customer.
+          </p>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={() => updateBookingStatus("confirmed")}>
+              Confirm
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Booking</DialogTitle>
+          </DialogHeader>
+
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to reject this booking? This action will
+            notify the customer.
+          </p>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowRejectDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
               onClick={() => updateBookingStatus("rejected")}
-              className="bg-destructive text-destructive-foreground"
             >
               Reject
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Entire Booking</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will cancel the booking for all {travelers.length}{" "}
-              traveler(s) and initiate a refund of ₹
-              {totalReceived.toLocaleString()}. The refund will be processed
-              within 5-7 business days.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep Booking</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleCancelBooking}
-              className="bg-destructive text-destructive-foreground"
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Entire Booking</DialogTitle>
+          </DialogHeader>
+
+          <p className="text-sm text-muted-foreground">
+            This will cancel the booking for all {travelers.length} traveler(s)
+            and initiate a refund of ₹{totalReceived.toLocaleString()}. The
+            refund will be processed within 5–7 business days.
+          </p>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelDialog(false)}
             >
+              Keep Booking
+            </Button>
+            <Button variant="destructive" onClick={handleCancelBooking}>
               Cancel & Refund
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

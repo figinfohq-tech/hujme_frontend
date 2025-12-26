@@ -3,16 +3,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { CheckCircle, XCircle, Clock, AlertCircle, Eye, X } from "lucide-react";
 import {
   Collapsible,
@@ -337,34 +327,39 @@ export const TravelerDocumentCard = ({
       </Dialog>
 
       {/* Verify Dialog */}
-      <AlertDialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Verify Document</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Verify Document</DialogTitle>
+            <DialogDescription>
               Are you sure you want to verify this {document.type}? Once
               verified, this document will be locked and cannot be modified.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleVerify}>
-              Verify Document
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowVerifyDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleVerify}>Verify Document</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Reject Dialog */}
-      <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reject Document</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Document</DialogTitle>
+            <DialogDescription>
               Please provide a reason for rejecting this {document.type}. The
               customer will be notified and asked to re-upload.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
+
           <div className="my-4">
             <Textarea
               value={rejectionReason}
@@ -374,20 +369,28 @@ export const TravelerDocumentCard = ({
               className="resize-none"
             />
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setRejectionReason("")}>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectionReason("");
+                setShowRejectDialog(false);
+              }}
+            >
               Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleReject}
+            </Button>
+
+            <Button
+              variant="destructive"
               disabled={!rejectionReason.trim()}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleReject}
             >
               Reject & Request Re-upload
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
