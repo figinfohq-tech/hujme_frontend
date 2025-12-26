@@ -63,122 +63,6 @@ export const ManageBookings = () => {
   const [packageBookings, setPackageBookings] = useState<any[]>([]);
   const [usersMap, setUsersMap] = useState<Record<number, any>>({});
 
-  useEffect(() => {
-    // Use hard-coded sample data
-    setLoading(true);
-
-    const samplePackages: Package[] = [
-      {
-        id: "1",
-        package_id: "PKG-HAJJ-2025",
-        package_name: "Premium Hajj Package 2025",
-        destination: "Makkah & Madinah",
-        departure_date: "2025-06-15",
-        available_seats: 25,
-        total_seats: 50,
-        bookings: [
-          {
-            id: "b1",
-            booking_reference: "BK-2025-001",
-            departure_date: "2025-06-15",
-            total_amount: 450000,
-            payment_status: "paid",
-            booking_status: "confirmed",
-            user_id: "u1",
-            customer_name: "Ahmed Khan",
-            customer_email: "ahmed.khan@example.com",
-            travelers_count: 2,
-          },
-          {
-            id: "b2",
-            booking_reference: "BK-2025-002",
-            departure_date: "2025-06-15",
-            total_amount: 225000,
-            payment_status: "pending",
-            booking_status: "pending",
-            user_id: "u2",
-            customer_name: "Fatima Ali",
-            customer_email: "fatima.ali@example.com",
-            travelers_count: 1,
-          },
-          {
-            id: "b3",
-            booking_reference: "BK-2025-003",
-            departure_date: "2025-06-15",
-            total_amount: 675000,
-            payment_status: "paid",
-            booking_status: "confirmed",
-            user_id: "u3",
-            customer_name: "Mohammed Rahman",
-            customer_email: "mohammed.rahman@example.com",
-            travelers_count: 3,
-          },
-        ],
-      },
-      {
-        id: "2",
-        package_id: "PKG-UMRAH-2025",
-        package_name: "Deluxe Umrah Package",
-        destination: "Makkah & Madinah",
-        departure_date: "2025-04-20",
-        available_seats: 15,
-        total_seats: 30,
-        bookings: [
-          {
-            id: "b4",
-            booking_reference: "BK-2025-004",
-            departure_date: "2025-04-20",
-            total_amount: 120000,
-            payment_status: "paid",
-            booking_status: "confirmed",
-            user_id: "u4",
-            customer_name: "Zainab Hussain",
-            customer_email: "zainab.hussain@example.com",
-            travelers_count: 2,
-          },
-          {
-            id: "b5",
-            booking_reference: "BK-2025-005",
-            departure_date: "2025-04-20",
-            total_amount: 60000,
-            payment_status: "pending",
-            booking_status: "pending",
-            user_id: "u5",
-            customer_name: "Ibrahim Malik",
-            customer_email: "ibrahim.malik@example.com",
-            travelers_count: 1,
-          },
-        ],
-      },
-      {
-        id: "3",
-        package_id: "PKG-RAMADAN-2025",
-        package_name: "Ramadan Special Umrah",
-        destination: "Makkah",
-        departure_date: "2025-03-10",
-        available_seats: 8,
-        total_seats: 20,
-        bookings: [
-          {
-            id: "b6",
-            booking_reference: "BK-2025-006",
-            departure_date: "2025-03-10",
-            total_amount: 180000,
-            payment_status: "paid",
-            booking_status: "confirmed",
-            user_id: "u6",
-            customer_name: "Ayesha Siddiqui",
-            customer_email: "ayesha.siddiqui@example.com",
-            travelers_count: 2,
-          },
-        ],
-      },
-    ];
-
-    setPackages(samplePackages);
-    setLoading(false);
-  }, []);
-
   const navigate = useNavigate();
 
   // Fetch Booking By agent
@@ -358,13 +242,13 @@ export const ManageBookings = () => {
             const bookings = getBookingsByPackageId(pkg.packageId);
 
             return (
-              <Card key={pkg.packageId}>
+              <Card key={pkg.packageId} className="p-0">
                 <Collapsible
                   open={expandedPackages.has(pkg.packageId)}
                   onOpenChange={() => togglePackage(pkg.packageId)}
                 >
                   <CollapsibleTrigger className="w-full">
-                    <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
+                    <CardHeader className="cursor-pointer hover:bg-primary/20 rounded transition-colors py-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           {expandedPackages.has(pkg.packageId) ? (
@@ -406,6 +290,7 @@ export const ManageBookings = () => {
                           onClick={() => handleSendNotification(pkg)}
                           variant="outline"
                           size="sm"
+                          className="hover:bg-primary/30"
                         >
                           Send Notification
                         </Button>
@@ -447,7 +332,7 @@ export const ManageBookings = () => {
                               {bookings?.map((booking, index) => (
                                 <tr
                                   key={booking.bookingId}
-                                  className="border-b hover:bg-accent/50"
+                                  className="border-b hover:bg-primary/20"
                                 >
                                   <td className="p-2">
                                     {booking?.bookingRef
@@ -484,6 +369,7 @@ export const ManageBookings = () => {
                                       onClick={() => handleViewBooking(booking)}
                                       variant="ghost"
                                       size="sm"
+                                      className="hover:bg-primary/30"
                                     >
                                       View Details
                                     </Button>

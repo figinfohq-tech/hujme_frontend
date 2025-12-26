@@ -21,6 +21,7 @@ import {
 import { FileText, Download } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "react-toastify";
 
 interface TravelerDocument {
   id: string;
@@ -138,36 +139,47 @@ export const TravelerDocumentCard = ({
   };
 
   // View image
-  const handleDownload = async (doc: TravelerDocument) => {
+  const handleDownloadDocument = async (doc: any) => {
     try {
       const token = localStorage.getItem("token");
 
       const response = await axios.get(
         `${baseURL}documents/view/${doc.id}?mode=download`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
           responseType: "blob",
         }
       );
 
-      const blob = new Blob([response.data]);
+      const blob = response.data;
+
+      const mimeType = blob.type;
+      let extension = "";
+
+      if (mimeType.includes("pdf")) extension = "pdf";
+      else if (mimeType.includes("jpeg")) extension = "jpg";
+      else if (mimeType.includes("png")) extension = "png";
+      else if (mimeType.includes("webp")) extension = "webp";
+      else if (mimeType.includes("image")) extension = "jpg";
+
+      const fileName = `${doc.type || "document"}.${extension}`;
+
       const url = window.URL.createObjectURL(blob);
 
-      const link = document.createElement("a");
+      const link = window.document.createElement("a");
       link.href = url;
+      link.download = fileName;
 
-      // file name (fallback safe)
-      link.download = `${doc.type || "document"}`;
-
-      document.body.appendChild(link);
+      window.document.body.appendChild(link);
       link.click();
 
-      document.body.removeChild(link);
+      link.remove();
       window.URL.revokeObjectURL(url);
+
+      toast.success("Document downloaded successfully");
     } catch (error) {
       console.error("Download error:", error);
+      toast.error("Failed to download document");
     }
   };
 
@@ -200,7 +212,7 @@ export const TravelerDocumentCard = ({
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 hover:bg-primary/30"
                 onClick={() => {
                   setViewDocument(document); // dialog open
                   fetchViewImage(document); // preview load
@@ -212,7 +224,7 @@ export const TravelerDocumentCard = ({
                 size="sm"
                 variant="outline"
                 onClick={() => setShowVerifyDialog(true)}
-                className="h-8 px-2 text-xs"
+                className="h-8 px-2 text-xs hover:bg-primary/30"
               >
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Verify
@@ -320,6 +332,12 @@ export const TravelerDocumentCard = ({
                 {!previewUrl && !isLoading && (
                   <FileText className="h-24 w-24 text-muted-foreground" />
                 )}
+              </div>
+              <div className="flex justify-center">
+                <Button onClick={() => handleDownloadDocument(viewDocument)}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Document
+                </Button>
               </div>
             </div>
           )}

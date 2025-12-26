@@ -26,7 +26,6 @@ import {
   AlertCircle,
   Users,
 } from "lucide-react";
-// import { TravelerDocumentCard } from "./TravelerDocumentCard";
 import { useLocation, useNavigate } from "react-router-dom";
 import { TravelerDocumentCard } from "@/components/TravelerDocumentCard";
 import { toast } from "react-toastify";
