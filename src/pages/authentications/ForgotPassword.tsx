@@ -19,25 +19,25 @@ const ForgotPassword = () => {
 
   // Submit handler
   const handleSubmit = async (values, { resetForm, setSubmitting }) => {
-    // try {
-    //   const payload = {
-    //     email: values.email,
-    //   };
+    try {
+      const payload = {
+        email: values.email,
+      };
 
-    //   await axios.post(`${baseURL}auth/forgot-password`, payload, {
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //   });
+      const response = await axios.post(`${baseURL}auth/forgot-password`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    //   toast.success("Password reset link sent to your email");
-    //   resetForm();
-    // } catch (error) {
-    //   console.error(error);
-    //   toast.error(error.response?.data?.message || "Something went wrong");
-    // } finally {
-    //   setSubmitting(false);
-    // }
+      toast.success("Password reset link sent to your email");      
+      resetForm();
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

@@ -26,7 +26,6 @@ const PackageBasicView = ({ packageId }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-
       setBasicDetails(response.data);
       setIsLoading(false);
     } catch (error) {

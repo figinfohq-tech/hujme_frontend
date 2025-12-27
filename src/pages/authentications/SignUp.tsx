@@ -50,8 +50,7 @@ const SignUp = () => {
         }
       );
 
-      toast.success("Sign up successful!");
-
+      toast.success("Sign up successful!");      
       resetForm();
     } catch (error) {
       console.error("❌ Error during sign up:", error.response?.data || error);

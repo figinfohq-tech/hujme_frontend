@@ -16,9 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 import { Checkbox } from "@/components/ui/checkbox";
-// import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
@@ -93,6 +91,7 @@ export function AddNewPackage({
   package: editPackage,
 }: PackageFormDialogProps) {
   const [packageData, setPackagesData] = useState<any>("");
+  const [isEditInitialized, setIsEditInitialized] = useState(false);
 
   // Flight Details state
   const [addedFlights, setAddedFlights] = useState<FlightSegment[]>([]);
@@ -114,6 +113,24 @@ export function AddNewPackage({
   const { state } = useLocation();
   const pkg: any = state?.pkg;
 
+  const calculateDurationInDays = (startDate, endDate) => {
+    if (!startDate || !endDate) return "";
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const diffTime = end.getTime() - start.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays > 0 ? `${diffDays} Days` : "";
+  };
+
+  const extractTime = (isoString: any) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    return date.toISOString().slice(11, 16); // HH:mm
+  };
+
   useEffect(() => {
     if (pkg) {
       formik.setValues({
@@ -130,15 +147,12 @@ export function AddNewPackage({
         duration: pkg.duration || "",
         departureDate: pkg.departureDate?.split("T")[0] || "",
         arrivalDate: pkg.arrivalDate?.split("T")[0] || "",
-        departureTime: pkg.departureTime || "",
-        arrivalTime: pkg.arrivalTime || "",
+        departureTime: extractTime(pkg.departureTime),
+        arrivalTime: extractTime(pkg.arrivalTime),
         flightStops: pkg.flightStops || "",
-        departureAirlines: pkg.departureAirlines || "",
-        arrivalAirlines: pkg.arrivalAirlines || "",
         bookedSeats: pkg.bookedSeats || "",
         totalSeats: pkg.totalSeats || "",
         availableSeats: pkg.availableSeats || "",
-        featured: pkg.featured || false,
         notes: pkg.notes || "",
       });
 
@@ -152,6 +166,7 @@ export function AddNewPackage({
   useEffect(() => {
     if (
       pkg &&
+      !isEditInitialized &&
       countries.length > 0 &&
       states.length > 0 &&
       cities.length > 0 &&
@@ -170,6 +185,7 @@ export function AddNewPackage({
       setSelectedCountryId(pkg.countryId?.toString());
       setSelectedStateId(pkg.stateId?.toString());
       setSelectedCitiesId(pkg.cityId?.toString());
+      setIsEditInitialized(true);
     }
   }, [pkg, countries, states, cities, travelType, packageType]);
 
@@ -221,7 +237,7 @@ export function AddNewPackage({
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<StateType[]>(
-        `http://31.97.205.55:8080/api/states/byCountry/${1}`,
+        `http://31.97.205.55:8080/api/states/byCountry/${selectedCountryId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -304,12 +320,9 @@ export function AddNewPackage({
       departureTime: "",
       arrivalTime: "",
       flightStops: "",
-      departureAirlines: "",
-      arrivalAirlines: "",
       bookedSeats: "",
       totalSeats: "",
       availableSeats: "",
-      featured: false,
       notes: "",
     },
 
@@ -324,6 +337,15 @@ export function AddNewPackage({
         const token = localStorage.getItem("token");
         setIsLoader(true);
         // Convert required fields to number
+
+        const combineDateAndTime = (date, time) => {
+          if (!date || !time) return null;
+
+          // date = "2025-12-27"
+          // time = "12:30"
+          return new Date(`${date}T${time}:00`).toISOString();
+        };
+
         const payload = {
           ...values,
           agentId: Number(values.agentId),
@@ -344,14 +366,17 @@ export function AddNewPackage({
           arrivalDate: values.arrivalDate
             ? new Date(values.arrivalDate).toISOString()
             : null,
-          departureTime: values.departureTime
-            ? new Date(values.departureTime).toISOString()
-            : null,
-          arrivalTime: values.arrivalTime
-            ? new Date(values.arrivalTime).toISOString()
-            : null,
+          departureTime: combineDateAndTime(
+            values.departureDate,
+            values.departureTime
+          ),
+          arrivalTime: combineDateAndTime(
+            values.arrivalDate,
+            values.arrivalTime
+          ),
         };
         let response;
+
         if (pkg) {
           // ---------------------------------
           //       UPDATE API (PUT)
@@ -367,6 +392,7 @@ export function AddNewPackage({
             }
           );
           setIsLoader(false);
+
           toast.success("Package updated successfully!");
         } else {
           // ---------------------------------
@@ -397,6 +423,17 @@ export function AddNewPackage({
       }
     },
   });
+
+  useEffect(() => {
+    if (formik.values.departureDate && formik.values.arrivalDate) {
+      const duration = calculateDurationInDays(
+        formik.values.departureDate,
+        formik.values.arrivalDate
+      );
+
+      formik.setFieldValue("duration", duration);
+    }
+  }, [formik.values.departureDate, formik.values.arrivalDate]);
 
   return (
     <div className="min-h-full rounded-lg border py-4 bg-background">
@@ -594,18 +631,6 @@ export function AddNewPackage({
                     </Select>
                   </div>
 
-                  {/* Trusted */}
-                  <div className="flex items-center pt-3 space-x-3">
-                    <Checkbox
-                      id="featured"
-                      checked={formik.values.featured}
-                      onCheckedChange={(v) =>
-                        formik.setFieldValue("featured", v)
-                      }
-                    />
-                    <Label htmlFor="featured">Featured Package</Label>
-                  </div>
-
                   {/* Description */}
                   <div className="grid gap-2 md:col-span-2">
                     <Label>Description</Label>
@@ -648,17 +673,6 @@ export function AddNewPackage({
                     />
                   </div>
 
-                  {/* Duration */}
-                  <div className="grid gap-2">
-                    <Label>Duration</Label>
-                    <Input
-                      name="duration"
-                      placeholder="45 Days"
-                      onChange={formik.handleChange}
-                      value={formik.values.duration}
-                    />
-                  </div>
-
                   {/* Departure Date */}
                   <div className="grid gap-2">
                     <Label>Departure Date</Label>
@@ -685,7 +699,7 @@ export function AddNewPackage({
                   <div className="grid gap-2">
                     <Label>Departure Time</Label>
                     <Input
-                      type="datetime-local"
+                      type="time"
                       name="departureTime"
                       onChange={formik.handleChange}
                       value={formik.values.departureTime}
@@ -696,31 +710,10 @@ export function AddNewPackage({
                   <div className="grid gap-2">
                     <Label>Arrival Time</Label>
                     <Input
-                      type="datetime-local"
+                      type="time"
                       name="arrivalTime"
                       onChange={formik.handleChange}
                       value={formik.values.arrivalTime}
-                    />
-                  </div>
-
-                  {/* Airlines */}
-                  <div className="grid gap-2">
-                    <Label>Departure Airlines</Label>
-                    <Input
-                      name="departureAirlines"
-                      placeholder="India Airlines"
-                      onChange={formik.handleChange}
-                      value={formik.values.departureAirlines}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label>Arrival Airlines</Label>
-                    <Input
-                      name="arrivalAirlines"
-                      placeholder="Saudi"
-                      onChange={formik.handleChange}
-                      value={formik.values.arrivalAirlines}
                     />
                   </div>
 

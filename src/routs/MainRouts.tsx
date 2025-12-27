@@ -27,6 +27,7 @@ import { DocumentsAgent } from "@/pages/agents/DocumentsAgent";
 import { ManageBookings } from "@/pages/agents/ManageBookings";
 import { BookingDetailsPage } from "@/pages/agents/BookingDetailsPage";
 import ForgotPassword from "@/pages/authentications/ForgotPassword";
+import ResetPassword from "@/pages/authentications/ResetPassword";
 
 const MainRouts = () => {
   const role = localStorage.getItem("role");
@@ -45,6 +46,7 @@ const MainRouts = () => {
           <Route path="/" element={<Home />} />
           <Route path="/auth" element={<MainAuth />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/agent" element={<SignUp />} />
           <Route path="/agent-registration" element={<AgentRegistration />} />
           <Route path="/search" element={<SearchResults />} />
