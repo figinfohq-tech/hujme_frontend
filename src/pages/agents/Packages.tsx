@@ -121,9 +121,9 @@ const Packages = () => {
 
     try {
       const token = localStorage.getItem("token");
-
+      const agentID = localStorage.getItem("agentID");
       const response = await axios.get(
-        `${baseURL}packages/byAgent/2`,
+        `${baseURL}packages/byAgent/${agentID}`,
         // byAgent
         {
           headers: {
@@ -243,7 +243,9 @@ const Packages = () => {
                         variant="outline"
                         size="sm"
                         // onClick={() => handleViewPackage(pkg)}
-                        onClick={() => navigate("/view-package", { state: { pkg } })}
+                        onClick={() =>
+                          navigate("/view-package", { state: { pkg } })
+                        }
                       >
                         <Eye className="w-4 h-4 mr-1" />
                         View

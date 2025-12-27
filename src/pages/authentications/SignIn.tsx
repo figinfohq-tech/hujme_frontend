@@ -131,6 +131,14 @@ const SignIn = ({ packageId }) => {
                 component="div"
                 className="text-red-500 text-sm mt-1"
               />
+              <div className="text-right mt-1">
+                <span
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-sm text-primary cursor-pointer hover:underline"
+                >
+                  Forgot password?
+                </span>
+              </div>
             </div>
 
             {/* Submit Button */}
