@@ -15,7 +15,6 @@ import { baseURL } from "@/utils/constant/url";
 
 const HeroSection = () => {
   const navigate = useNavigate();
-
   const [countries, setCountries] = useState([]);
   const [state, setState] = useState([]);
   const [cities, setCities] = useState([]);
@@ -24,6 +23,11 @@ const HeroSection = () => {
   const [selectedStateId, setSelectedStateId] = useState("");
   const [selectedCityId, setSelectedCityId] = useState<string>("");
   const [selectedTravelTypeId, setSelectedTravelTypeId] = useState<string>("");
+  const [detectedStateName, setDetectedStateName] = useState("");
+  const [errors, setErrors] = useState({
+    country: false,
+    state: false,
+  });
 
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -66,7 +70,9 @@ const HeroSection = () => {
 
   const fetchStates = async () => {
     try {
-      const response = await axios.get(`${baseURL}states/byCountry/${1}`);
+      const response = await axios.get(
+        `${baseURL}states/byCountry/${selectedCountryId}`
+      );
       setState(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -84,17 +90,17 @@ const HeroSection = () => {
   };
 
   const handleSearch = () => {
-    // validation
-    if (!selectedStateId) {
-      alert("Please select a state.");
+    const newErrors = {
+      country: !selectedCountryId,
+      state: !selectedStateId,
+    };
+
+    setErrors(newErrors);
+
+    if (newErrors.country || newErrors.state) {
       return;
     }
-    // if (!selectedCityId) {
-    //   alert("Please select a city.");
-    //   return;
-    // }
-    // travel type might be optional or mandatory; you said at least state & city are mandatory
-    // navigate with state
+
     if (role === "AGENT") {
       navigate("/dashboard/search", {
         state: {
@@ -122,9 +128,77 @@ const HeroSection = () => {
     }
   };
 
+  // user location fatching
+  const detectUserLocation = () => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        await getCountryStateFromLatLng(latitude, longitude);
+      },
+      (error) => {
+        console.error("Location access denied", error);
+      }
+    );
+  };
+
+  const getCountryStateFromLatLng = async (lat, lng) => {
+    try {
+      const res = await axios.get(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client`,
+        {
+          params: {
+            latitude: lat,
+            longitude: lng,
+            localityLanguage: "en",
+          },
+        }
+      );
+
+      const countryName = res.data.countryName;
+      const stateName = res.data.principalSubdivision;
+
+      autoSelectCountryState(countryName, stateName);
+    } catch (error) {
+      console.error("Reverse geocoding failed", error);
+    }
+  };
+
+  const autoSelectCountryState = (countryName, stateName) => {
+    const matchedCountry = countries.find(
+      (c) => c.countryName.toLowerCase() === countryName.toLowerCase()
+    );
+
+    if (matchedCountry) {
+      setSelectedCountryId(matchedCountry.countryId);
+      setDetectedStateName(stateName);
+      setErrors((prev) => ({ ...prev, country: false }));
+    }
+  };
+
+  useEffect(() => {
+    if (state.length > 0 && detectedStateName) {
+      const matchedState = state.find(
+        (s) => s.stateName.toLowerCase() === detectedStateName.toLowerCase()
+      );
+
+      if (matchedState) {
+        setSelectedStateId(matchedState.stateId);
+        setErrors((prev) => ({ ...prev, state: false }));
+      }
+    }
+  }, [state, detectedStateName]);
+
+  useEffect(() => {
+    if (countries.length > 0) {
+      detectUserLocation();
+    }
+  }, [countries]);
+
   return (
     <section className="relative min-h-[600px] flex items-center justify-center overflow-hidden">
-      {/* ✅ Background with overlay */}
+      {/*  Background with overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroImage})` }}
@@ -134,32 +208,43 @@ const HeroSection = () => {
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
         <div className="max-w-4xl mx-auto">
-          {/* ✅ Headline */}
+          {/*  Headline */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight drop-shadow-md">
             Find Trusted Travel Agents for Hajj & Umrah
           </h1>
 
-          {/* ✅ Subheading */}
+          {/*  Subheading */}
           <p className="text-base sm:text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
             Discover verified travel agents, compare packages, and book your
             spiritual journey with confidence.
           </p>
 
-          {/* ✅ Search Card */}
+          {/*  Search Card */}
           <div className="bg-background/95 backdrop-blur-sm rounded-2xl shadow-elegant p-6 md:p-8 max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               {/* State */}
               <div className="space-y-2 text-left">
                 <label className="text-sm font-medium text-gray-700 flex items-center">
                   <MapPin className="w-4 h-4 mr-2 text-green-700" />
-                  Countries
+                  Country
                 </label>
                 <Select
+                  value={selectedCountryId}
                   onValueChange={(value) => {
                     setSelectedCountryId(value);
+                    setErrors((prev) => ({
+                      ...prev,
+                      country: false,
+                    }));
                   }}
                 >
-                  <SelectTrigger className="w-full text-gray-700 border-gray-300 focus:ring-green-700 focus:border-green-700">
+                  <SelectTrigger
+                    className={`w-full text-gray-700 border ${
+                      errors.country
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300"
+                    }`}
+                  >
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>
@@ -176,6 +261,9 @@ const HeroSection = () => {
                     {/* <SelectItem value="delhi">Delhi</SelectItem> */}
                   </SelectContent>
                 </Select>
+                {errors.country && (
+                  <p className="text-xs text-red-500">Country is required</p>
+                )}
               </div>
               <div className="space-y-2 text-left">
                 <label className="text-sm font-medium text-gray-700 flex items-center">
@@ -183,13 +271,24 @@ const HeroSection = () => {
                   State
                 </label>
                 <Select
+                  value={selectedStateId}
                   onValueChange={(value) => {
                     setSelectedStateId(value);
                     // reset city when state changes
                     setSelectedCityId("");
+                    setErrors((prev) => ({
+                      ...prev,
+                      state: false,
+                    }));
                   }}
                 >
-                  <SelectTrigger className="w-full text-gray-700 border-gray-300 focus:ring-green-700 focus:border-green-700">
+                  <SelectTrigger
+                    className={`w-full text-gray-700 border ${
+                      errors.state
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300"
+                    }`}
+                  >
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>
@@ -203,6 +302,9 @@ const HeroSection = () => {
                     {/* <SelectItem value="delhi">Delhi</SelectItem> */}
                   </SelectContent>
                 </Select>
+                {errors.state && (
+                  <p className="text-xs text-red-500 mt-1">State is required</p>
+                )}
               </div>
 
               {/* Departure City */}
@@ -258,7 +360,7 @@ const HeroSection = () => {
               </div>
             </div>
 
-            {/* ✅ Search Button */}
+            {/*  Search Button */}
             <div className="flex justify-center">
               <Button
                 size="lg"

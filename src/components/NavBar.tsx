@@ -59,6 +59,8 @@ const NavBar = () => {
                 </span>
               </div>
             )}
+            {
+              !token ? (
             <Link to="/agent">
               <Button
                 size="sm"
@@ -67,6 +69,8 @@ const NavBar = () => {
                 Become an Agent
               </Button>
             </Link>
+              ):null
+            }
             {token ? <LogoutButton /> : ""}
           </div>
 
