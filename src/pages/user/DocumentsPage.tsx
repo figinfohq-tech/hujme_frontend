@@ -367,23 +367,36 @@ export const DocumentsPage = () => {
   const handleDownloadDocument = async (doc: Document) => {
     try {
       const token = localStorage.getItem("token");
+
       const response = await axios.get(
         `${baseURL}documents/view/${doc.backendId}?mode=download`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          responseType: "blob", // ✅ IMPORTANT
+          responseType: "blob",
         }
       );
 
-      // 🔽 Create downloadable file
-      const blob = new Blob([response.data]);
+      //  Get content-type from backend response
+      const contentType =
+        response.headers["content-type"] || "application/octet-stream";
+
+      //  Create blob with correct MIME type
+      const blob = new Blob([response.data], { type: contentType });
+
       const url = window.URL.createObjectURL(blob);
+
+      //  Ensure proper filename with extension
+      const fileName =
+        doc.file?.name ||
+        doc.name ||
+        `document.${contentType.split("/")[1] || "bin"}`;
 
       const link = document.createElement("a");
       link.href = url;
-      link.download = doc.file?.name || doc.name || "document";
+      link.download = fileName;
+
       document.body.appendChild(link);
       link.click();
 
@@ -391,7 +404,7 @@ export const DocumentsPage = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
 
-      toast.success(`${doc.name} downloaded successfully`);
+      toast.success(`${fileName} downloaded successfully`);
     } catch (error) {
       console.error("Download error:", error);
       toast.error("Failed to download document");
