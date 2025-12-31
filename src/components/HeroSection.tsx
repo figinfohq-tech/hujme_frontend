@@ -245,7 +245,7 @@ const HeroSection = () => {
                         : "border-gray-300"
                     }`}
                   >
-                    <SelectValue placeholder="Select state" />
+                    <SelectValue placeholder="Select Country" />
                   </SelectTrigger>
                   <SelectContent>
                     {countries.map((items) => {

@@ -108,6 +108,7 @@ export function AddNewPackage({
   const [selectdCitiesId, setSelectedCitiesId] = useState("");
   const [selectedCountryId, setSelectedCountryId] = useState("");
   const [isLoader, setIsLoader] = useState(false);
+  const [isDuration, setIsDuration] = useState<Number>();
 
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -122,8 +123,24 @@ export function AddNewPackage({
     const diffTime = end.getTime() - start.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    return diffDays > 0 ? `${diffDays} Days` : "";
+    return diffDays > 0 ? diffDays : "";
   };
+  // without time
+  //   const calculateDurationInDays = (startDate, endDate) => {
+  //   if (!startDate || !endDate) return "";
+
+  //   const start = new Date(startDate);
+  //   const end = new Date(endDate);
+
+  //   // Time reset to avoid timezone issues
+  //   start.setHours(0, 0, 0, 0);
+  //   end.setHours(0, 0, 0, 0);
+
+  //   const diffTime = end.getTime() - start.getTime();
+  //   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+  //   return diffDays > 0 ? `${diffDays} Days` : "";
+  // };
 
   const extractTime = (isoString: any) => {
     if (!isoString) return "";
@@ -374,6 +391,7 @@ export function AddNewPackage({
             values.arrivalDate,
             values.arrivalTime
           ),
+          duration: Number(values.duration),
         };
         let response;
 
@@ -430,7 +448,7 @@ export function AddNewPackage({
         formik.values.departureDate,
         formik.values.arrivalDate
       );
-
+      setIsDuration(duration);
       formik.setFieldValue("duration", duration);
     }
   }, [formik.values.departureDate, formik.values.arrivalDate]);
@@ -514,7 +532,7 @@ export function AddNewPackage({
                       </SelectTrigger>
 
                       <SelectContent>
-                        {travelType.map((items) => {
+                        {travelType.slice(0, 2).map((items) => {
                           return (
                             <SelectItem value={items.lookupName}>
                               {items.lookupName}
@@ -692,6 +710,17 @@ export function AddNewPackage({
                       name="arrivalDate"
                       onChange={formik.handleChange}
                       value={formik.values.arrivalDate}
+                    />
+                  </div>
+
+                  {/* Package Duration (Auto Calculated) */}
+                  <div className="grid gap-2">
+                    <Label>Package Duration</Label>
+                    <Input
+                      value={`${isDuration} Days`}
+                      disabled
+                      className="bg-muted cursor-not-allowed"
+                      placeholder="Auto calculated from dates"
                     />
                   </div>
 

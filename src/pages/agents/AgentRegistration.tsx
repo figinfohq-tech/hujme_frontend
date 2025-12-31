@@ -32,6 +32,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { baseURL } from "@/utils/constant/url";
 // import Header from "@/components/Header";
 
 const AgentRegistration = () => {
@@ -87,6 +88,28 @@ const AgentRegistration = () => {
       console.error("Error fetching Cities:", error);
     }
   };
+
+  const uploadAgentLogo = async (agentId: any, file: any) => {
+    if (!file) return;
+
+    const token = localStorage.getItem("token");
+
+    const formData = new FormData();
+    formData.append("agentId", agentId);
+    formData.append("file", file);
+
+    const response = await axios.post(
+      `${baseURL}agents/upload-logo`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+  };
+
   // countries, cities and states api calling
 
   // ------------------------ FORM VALIDATION ------------------------
@@ -111,18 +134,29 @@ const AgentRegistration = () => {
     },
 
     validationSchema: Yup.object({
-      agencyName: Yup.string().required("Required"),
-      contactPerson: Yup.string().required("Required"),
+      agencyName: Yup.string()
+        .min(5, "Minimum 5 characters")
+        .max(100, "Maximum 100 characters")
+        .required("Required"),
+      contactPerson: Yup.string().min(3).max(60).required("Required"),
       email: Yup.string().email("Invalid email").required("Required"),
-      phone: Yup.string().required("Required"),
-      address: Yup.string().required("Required"),
+      phone: Yup.string()
+        .matches(/^[6-9]\d{9}$/, "Enter a valid 10-digit mobile number")
+        .required("Phone number is required"),
+      address: Yup.string()
+        .min(10, "Address too short")
+        .max(500, "Maximum 500 characters")
+        .required("Required"),
       city: Yup.string().required("Required"),
       state: Yup.string().required("Required"),
       experience: Yup.string().required("Required"),
-      license: Yup.string().required("Required"),
-      speciality: Yup.string().required("Required"),
-      totalPackages: Yup.number().required("Required"),
-      certificate: Yup.string().required("Certificate required"),
+      certificate: Yup.string()
+        .min(5, "Too short")
+        .max(30, "Too long")
+        .required("Certificate required"),
+      description: Yup.string()
+        .min(10, "Minimum 10 characters")
+        .max(500, "Maximum 500 characters"),
       termsAccepted: Yup.bool().oneOf([true], "You must accept T&C"),
     }),
     onSubmit: async (values) => {
@@ -134,22 +168,19 @@ const AgentRegistration = () => {
           userId: Number(userId),
           agencyName: values.agencyName,
           contactPerson: values.contactPerson,
+          agencyEmail: values.email,
+          agencyPhone: values.phone,
           address: values.address,
           stateId: Number(selectedStateId),
           cityId: Number(selectdCitiesId),
           experience: values.experience,
-          license: values.license,
           description: values.description,
           certification: values.certificate,
-          speciality: values.speciality,
-          logo: values.logo ? values.logo.name : null, // <-- FIXED
           termsAccepted: values.termsAccepted,
-          totalPackages: Number(values.totalPackages),
-          trusted: values.trusted,
         };
 
         const response = await axios.post(
-          "http://31.97.205.55:8080/api/agents/register",
+          `${baseURL}agents/register`,
           payload,
           {
             headers: {
@@ -158,9 +189,14 @@ const AgentRegistration = () => {
             },
           }
         );
+        const agentId = response.data.agentId;
+        localStorage.setItem("agentId", agentId);
 
-        localStorage.setItem("agentId", response.data.agentId);
-        
+        //  Upload Logo (ONLY if selected)
+        if (values.logo) {
+          await uploadAgentLogo(agentId, values.logo);
+        }
+
         toast.success("Agent Registration Successful!");
         navigate("/");
       } catch (error) {
@@ -303,7 +339,7 @@ const AgentRegistration = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <div className="flex">
-                            <Label>Email Address</Label>
+                            <Label>Agency Email Address</Label>
                             <span className="text-red-500">*</span>
                           </div>
                           <Input
@@ -320,12 +356,23 @@ const AgentRegistration = () => {
 
                         <div className="space-y-2">
                           <div className="flex">
-                            <Label>Phone Number</Label>
+                            <Label>Agency Phone Number</Label>
                             <span className="text-red-500">*</span>
                           </div>
                           <Input
-                            {...formik.getFieldProps("phone")}
+                            name="phone"
                             placeholder="Enter phone number"
+                            maxLength={10}
+                            value={formik.values.phone}
+                            inputMode="numeric"
+                            onChange={(e) => {
+                              const onlyNumbers = e.target.value.replace(
+                                /\D/g,
+                                ""
+                              );
+                              formik.setFieldValue("phone", onlyNumbers);
+                            }}
+                            onBlur={formik.handleBlur}
                           />
                           {formik.touched.phone && formik.errors.phone && (
                             <p className="text-red-600 text-sm">
@@ -406,7 +453,7 @@ const AgentRegistration = () => {
                             }}
                           >
                             <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select state" />
+                              <SelectValue placeholder="Select city" />
                             </SelectTrigger>
                             <SelectContent>
                               {cities.map((items) => {
@@ -466,15 +513,22 @@ const AgentRegistration = () => {
                             )}
                         </div>
 
+                        {/* Certificate (Text Input) */}
                         <div className="space-y-2">
                           <div className="flex">
-                            <Label>License Number</Label>
+                            <Label>IATA / HJTC Certificate</Label>
                             <span className="text-red-500">*</span>
                           </div>
                           <Input
-                            {...formik.getFieldProps("license")}
-                            placeholder="Enter license number"
+                            {...formik.getFieldProps("certificate")}
+                            placeholder="Enter certificate number"
                           />
+                          {formik.touched.certificate &&
+                            formik.errors.certificate && (
+                              <p className="text-red-600 text-sm">
+                                {formik.errors.certificate}
+                              </p>
+                            )}
                         </div>
                       </div>
 
@@ -485,80 +539,17 @@ const AgentRegistration = () => {
                           placeholder="Describe your agency..."
                           rows={4}
                         />
+                        {formik.touched.description &&
+                          formik.errors.description && (
+                            <p className="text-red-600 text-sm">
+                              {formik.errors.description}
+                            </p>
+                          )}
                       </div>
                     </div>
 
                     {/* ------------------ ADDITIONAL FIELDS ------------------ */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-semibold flex items-center">
-                        <Star className="w-5 h-5 mr-2 text-green-700" />
-                        Additional Information
-                      </h3>
-
-                      {/* Speciality */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <div className="flex">
-                            <Label>Speciality</Label>
-                            <span className="text-red-500">*</span>
-                          </div>
-                          <Select
-                            onValueChange={(v) =>
-                              formik.setFieldValue("speciality", v)
-                            }
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select speciality" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="luxury">
-                                Luxury Umrah Packages
-                              </SelectItem>
-                              <SelectItem value="normal">
-                                Normal Umrah Packages
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          {formik.touched.speciality &&
-                            formik.errors.speciality && (
-                              <p className="text-red-600 text-sm">
-                                {formik.errors.speciality}
-                              </p>
-                            )}
-                        </div>
-
-                        {/* Total Packages */}
-                        <div className="space-y-2">
-                          <div className="flex">
-                            <Label>Total Packages</Label>
-                            <span className="text-red-500">*</span>
-                          </div>
-                          <Input
-                            type="number"
-                            {...formik.getFieldProps("totalPackages")}
-                            placeholder="Total packages count"
-                          />
-                          {formik.touched.totalPackages &&
-                            formik.errors.totalPackages && (
-                              <p className="text-red-600 text-sm">
-                                {formik.errors.totalPackages}
-                              </p>
-                            )}
-                        </div>
-                      </div>
-
-                      {/* Trusted */}
-                      <div className="flex items-center space-x-3">
-                        <Checkbox
-                          id="trusted"
-                          checked={formik.values.trusted}
-                          onCheckedChange={(v) =>
-                            formik.setFieldValue("trusted", v)
-                          }
-                        />
-                        <Label htmlFor="trusted">Trusted Agency</Label>
-                      </div>
-
                       {/* Logo Upload */}
                       <div className="space-y-2">
                         <Label>Upload Agency Logo</Label>
@@ -586,24 +577,6 @@ const AgentRegistration = () => {
                             />
                           )}
                         </div>
-                      </div>
-
-                      {/* Certificate (Text Input) */}
-                      <div className="space-y-2">
-                        <div className="flex">
-                          <Label>IATA / HJTC Certificate</Label>
-                          <span className="text-red-500">*</span>
-                        </div>
-                        <Input
-                          {...formik.getFieldProps("certificate")}
-                          placeholder="Enter certificate number"
-                        />
-                        {formik.touched.certificate &&
-                          formik.errors.certificate && (
-                            <p className="text-red-600 text-sm">
-                              {formik.errors.certificate}
-                            </p>
-                          )}
                       </div>
                     </div>
 

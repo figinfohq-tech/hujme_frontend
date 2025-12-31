@@ -166,14 +166,6 @@ const Packages = () => {
         <hr className="border border-gray-300 mb-2" />
 
         <div className="flex justify-end mb-3 items-center">
-          {/* <h2 className="text-2xl font-semibold">My Packages</h2> */}
-          {/* <Button
-            onClick={handleAddPackage}
-            className="bg-primary text-primary-foreground"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add New Package
-          </Button> */}
           <Button
             onClick={() => navigate("/add-package")}
             className="bg-primary text-primary-foreground"
@@ -194,10 +186,6 @@ const Packages = () => {
             <p className="text-muted-foreground mb-4">
               Create your first package to get started
             </p>
-            <Button onClick={handleAddPackage}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add New Package
-            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -220,7 +208,7 @@ const Packages = () => {
                         ₹{pkg.price.toLocaleString()}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {pkg.duration}
+                        {`${pkg.duration} Days`}
                       </p>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">

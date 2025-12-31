@@ -7,6 +7,8 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { baseURL } from "@/utils/constant/url";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle, Shield } from "lucide-react";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -74,8 +76,67 @@ const SignUp = () => {
       </div>
 
       {/* Main Form Card */}
-      <div className="flex flex-col items-center justify-center flex-grow px-4">
-        <div className="w-full max-w-md bg-white rounded-2xl m-10 shadow-lg p-6 sm:p-8">
+      <div className="max-w-4xl mx-auto">
+         <div className="text-center">
+            <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+              Join as Travel Agent
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Partner with us to offer your Hajj & Umrah packages to thousands
+              of pilgrims
+            </p>
+          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 my-4">
+          <div className="lg:col-span-1">
+              <Card className="sticky top-18">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Shield className="w-5 h-5 mr-2 text-primary" />
+                    Why Join Us?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Reach More Customers</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Access thousands of potential pilgrims
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Easy Management</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Simple dashboard to manage packages
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Secure Payments</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Safe and secure payment processing
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">24/7 Support</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Dedicated support for agents
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="lg:col-span-2">
+        <Card className="w-full p-6 sm:p-8">
           <div className="text-center mb-6">
             <h3 className="text-2xl font-semibold text-gray-800">Welcome</h3>
           </div>
@@ -271,6 +332,8 @@ const SignUp = () => {
               </Form>
             )}
           </Formik>
+        </Card>
+        </div>
         </div>
       </div>
     </div>

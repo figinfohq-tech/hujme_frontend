@@ -77,6 +77,14 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     try {
       const response = await axios.get(`${baseURL}countries`);
       setCountries(response.data || []);
+      const data = response.data || [];
+
+      // Default Saudi select
+      const saudiExists = data.some((c: any) => String(c.countryId) === "5");
+
+      if (saudiExists) {
+        setSelectedCountry("5");
+      }
     } catch (error) {
       console.error("Error fetching countries:", error);
     }
@@ -371,12 +379,11 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       setIsLoader(true);
       const token = localStorage.getItem("token");
       if (!pkg) {
-              if (!packageId) {
-                toast.error("package missing — once please create package");
-                return;
-              }
-              
-            }
+        if (!packageId) {
+          toast.error("package missing — once please create package");
+          return;
+        }
+      }
       for (const hotel of addedHotels) {
         const payload = {
           packageId: packageId,
