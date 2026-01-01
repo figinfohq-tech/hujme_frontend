@@ -50,6 +50,33 @@ const PackageBasicView = ({ packageId }) => {
     <div className="p-5 min-h-screen">
       {/* Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Seat Information */}
+        <Card className="shadow-lg rounded-xl lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center text-primary gap-2 text-xl">
+              <Info className="w-5 h-5 text-primary" />
+              Seat Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-5 text-gray-700">
+            <div className="p-4 bg-white rounded-xl shadow-sm border">
+              <span className="font-semibold text-primary">Total Seats : </span>{" "}
+              <br /> {basicDetails.totalSeats}
+            </div>
+            <div className="p-4 bg-white rounded-xl shadow-sm border">
+              <span className="font-semibold text-primary">
+                Booked Seats :{" "}
+              </span>{" "}
+              <br /> {basicDetails.bookedSeats}
+            </div>
+            <div className="p-4 bg-white rounded-xl shadow-sm border">
+              <span className="font-semibold text-primary">
+                Available Seats :{" "}
+              </span>{" "}
+              <br /> {basicDetails.availableSeats}
+            </div>
+          </CardContent>
+        </Card>
         {/* Basic Details */}
         <div className="shadow-md rounded-xl border border-gray-200 p-4">
           {/* Title */}
@@ -81,13 +108,15 @@ const PackageBasicView = ({ packageId }) => {
 
             <div className="flex">
               <span className="font-semibold text-primary w-50">Duration:</span>
-              <span>{basicDetails.duration} Days</span>
+              <span>
+                {basicDetails.duration ? `${basicDetails.duration} Days` : null}
+              </span>
             </div>
 
-            <div className="flex items-center">
+            {/* <div className="flex items-center">
               <span className="font-semibold text-primary w-50">Status:</span>
               <Badge>{basicDetails.featured ? "Featured" : "Regular"}</Badge>
-            </div>
+            </div> */}
 
             <div className="flex flex-col">
               <span className="font-semibold text-primary">Description:</span>
@@ -139,20 +168,6 @@ const PackageBasicView = ({ packageId }) => {
 
           {/* Content */}
           <div className="text-gray-700 text-sm mt-2 space-y-2">
-            <div className="flex">
-              <span className="font-semibold text-primary w-50">
-                Departure Airline:{" "}
-              </span>
-              {basicDetails.departureAirlines}
-            </div>
-
-            <div className="flex">
-              <span className="font-semibold text-primary w-50">
-                Return Airline:{" "}
-              </span>
-              {basicDetails.arrivalAirlines}
-            </div>
-
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-primary" />
               <span className="font-semibold text-primary w-40">
@@ -213,34 +228,6 @@ const PackageBasicView = ({ packageId }) => {
             </div>
           </div>
         </div>
-
-        {/* Seat Information */}
-        <Card className="shadow-lg rounded-xl lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center text-primary gap-2 text-xl">
-              <Info className="w-5 h-5 text-primary" />
-              Seat Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-5 text-gray-700">
-            <div className="p-4 bg-white rounded-xl shadow-sm border">
-              <span className="font-semibold text-primary">Total Seats : </span>{" "}
-              <br /> {basicDetails.totalSeats}
-            </div>
-            <div className="p-4 bg-white rounded-xl shadow-sm border">
-              <span className="font-semibold text-primary">
-                Booked Seats :{" "}
-              </span>{" "}
-              <br /> {basicDetails.bookedSeats}
-            </div>
-            <div className="p-4 bg-white rounded-xl shadow-sm border">
-              <span className="font-semibold text-primary">
-                Available Seats :{" "}
-              </span>{" "}
-              <br /> {basicDetails.availableSeats}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

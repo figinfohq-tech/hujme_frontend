@@ -66,7 +66,7 @@ const FlightViewDetails = ({ packageId }) => {
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
                       <PlaneTakeoff className="text-primary" />
-                      Flight Code: {item.airlineDetails.flightCode}
+                      Flight Number: {item.airlineDetails.flightCode}
                     </div>
                     <div className="ml-7">
                       {item.airlineDetails.isActive ? (
@@ -153,14 +153,6 @@ const FlightViewDetails = ({ packageId }) => {
                     </p>
                   </div>
                 </div>
-
-                {/* Notes */}
-                {item.notes && (
-                  <div className="flex items-start gap-2 bg-gray-100 p-3 rounded-lg">
-                    <StickyNote size={18} className="text-yellow-600" />
-                    <p className="text-gray-700">{item.notes}</p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           ))}

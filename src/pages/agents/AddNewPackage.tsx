@@ -167,9 +167,7 @@ export function AddNewPackage({
         departureTime: extractTime(pkg.departureTime),
         arrivalTime: extractTime(pkg.arrivalTime),
         flightStops: pkg.flightStops || "",
-        bookedSeats: pkg.bookedSeats || "",
         totalSeats: pkg.totalSeats || "",
-        availableSeats: pkg.availableSeats || "",
         notes: pkg.notes || "",
       });
 
@@ -337,9 +335,7 @@ export function AddNewPackage({
       departureTime: "",
       arrivalTime: "",
       flightStops: "",
-      bookedSeats: "",
       totalSeats: "",
-      availableSeats: "",
       notes: "",
     },
 
@@ -373,9 +369,7 @@ export function AddNewPackage({
           travelType: String(values.travelType),
           price: Number(values.price),
           originalPrice: Number(values.originalPrice),
-          bookedSeats: Number(values.bookedSeats),
           totalSeats: Number(values.totalSeats),
-          availableSeats: Number(values.availableSeats),
           // Convert date inputs into ISO format
           departureDate: values.departureDate
             ? new Date(values.departureDate).toISOString()
@@ -717,10 +711,10 @@ export function AddNewPackage({
                   <div className="grid gap-2">
                     <Label>Package Duration</Label>
                     <Input
-                      value={`${isDuration} Days`}
+                      value={isDuration ? `${isDuration} Days` : ""}
                       disabled
                       className="bg-muted cursor-not-allowed"
-                      placeholder="Auto calculated from dates"
+                      placeholder="Package duration"
                     />
                   </div>
 
@@ -755,28 +749,6 @@ export function AddNewPackage({
                       placeholder="350"
                       onChange={formik.handleChange}
                       value={formik.values.totalSeats}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label>Booked Seats</Label>
-                    <Input
-                      type="number"
-                      name="bookedSeats"
-                      placeholder="200"
-                      onChange={formik.handleChange}
-                      value={formik.values.bookedSeats}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label>Available Seats</Label>
-                    <Input
-                      type="number"
-                      name="availableSeats"
-                      placeholder="50"
-                      onChange={formik.handleChange}
-                      value={formik.values.availableSeats}
                     />
                   </div>
 

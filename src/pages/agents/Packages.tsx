@@ -132,7 +132,8 @@ const Packages = () => {
           },
         }
       );
-
+      console.log("packages----->", response.data);
+      
       setPackages(response.data);
       setIsLoading(false);
     } catch (error) {
@@ -194,21 +195,21 @@ const Packages = () => {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-lg line-clamp-2">
-                      {pkg.name}
+                      {pkg.packageName}
                     </CardTitle>
-                    <Badge variant={pkg.is_active ? "default" : "secondary"}>
-                      {pkg.is_active ? "Active" : "Inactive"}
+                    <Badge variant={pkg.packageStatus ? "default" : "secondary"}>
+                      {pkg.packageStatus ? "Active" : "Inactive"}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   <div className="space-y-3">
                     <div>
                       <p className="text-2xl font-bold text-primary">
                         ₹{pkg.price.toLocaleString()}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {`${pkg.duration} Days`}
+                        {pkg.duration?`${pkg.duration} Days`:null}
                       </p>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">

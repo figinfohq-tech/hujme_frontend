@@ -23,6 +23,7 @@ import {
 // import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import axios from "axios";
+import image from "../../public/placeholder.svg";
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -79,6 +80,7 @@ const SearchResults = () => {
           params: params,
         }
       );
+
       setPackages(response.data);
       // handle response.data
     } catch (error) {
@@ -246,17 +248,17 @@ const SearchResults = () => {
                   </p>
                 </Card>
               ) : (
-                filteredResults?.map((result) => (
+                filteredResults?.map((result: any) => (
                   <Card
                     key={result.id}
-                    className="overflow-hidden hover:shadow-elegant transition-smooth"
+                    className="overflow-hidden hover:shadow-elegant py-0 transition-smooth"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
                       {/* Package Image */}
                       <div className="md:col-span-1">
                         <div
                           className="h-48 md:h-full bg-cover bg-center"
-                          style={{ backgroundImage: `url(${result.image})` }}
+                          style={{ backgroundImage: `url(/placeholder.svg)` }}
                         />
                       </div>
 
@@ -268,7 +270,7 @@ const SearchResults = () => {
                               {result.packageName}
                             </h3>
                             <p className="text-muted-foreground text-sm mb-2">
-                              by {result.agentName}
+                              By {result.agentName}
                             </p>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                               <span className="flex items-center">
@@ -277,7 +279,7 @@ const SearchResults = () => {
                               </span>
                               <span className="flex items-center">
                                 <Calendar className="w-4 h-4 mr-1" />
-                                {result.duration}
+                                {result.duration + " " + "Days"}
                               </span>
                             </div>
                           </div>
@@ -323,6 +325,33 @@ const SearchResults = () => {
                             </div>
                             <p className="text-xs text-muted-foreground">
                               Per person (all inclusive)
+                            </p>
+
+                            {/* Seats Info */}
+                            <p className="text-xs mt-1">
+                              <span className="text-muted-foreground">
+                                Total Seats:
+                              </span>{" "}
+                              <span className="font-medium">
+                                {result.totalSeats}
+                              </span>{" "}
+                              •{" "}
+                              {result.availableSeats === 0 ||
+                              result.availableSeats === null ? (
+                                <span className="text-gray-500 font-medium">
+                                  Closed
+                                </span>
+                              ) : (
+                                <span
+                                  className={
+                                    result.availableSeats <= 5
+                                      ? "text-red-600 font-medium"
+                                      : "text-green-600 font-medium"
+                                  }
+                                >
+                                  {result.availableSeats} Available
+                                </span>
+                              )}
                             </p>
                           </div>
                           <div className="flex gap-2">

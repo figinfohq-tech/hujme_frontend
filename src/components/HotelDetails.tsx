@@ -458,6 +458,17 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     (h) => String(h.hotelId) === String(selectedHotel)
   );
 
+  useEffect(() => {
+    if (checkInDate && checkOutDate && checkOutDate <= checkInDate) {
+      setCheckOutDate(undefined);
+    }
+  }, [checkInDate]);
+
+  const calculatedDays =
+    checkInDate && checkOutDate
+      ? calculateDaysStay(checkInDate, checkOutDate)
+      : "";
+
   return (
     <>
       {/* Added Hotels List */}
@@ -760,6 +771,9 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                   mode="single"
                   selected={checkOutDate}
                   onSelect={setCheckOutDate}
+                  disabled={(date) =>
+                    checkInDate ? date <= checkInDate : false
+                  }
                   initialFocus
                   className="pointer-events-auto"
                 />
@@ -774,6 +788,15 @@ const HotelDetails = ({ pkg, packageId }: any) => {
             {errors.checkOutDate && (
               <p className="text-red-500 text-xs mt-1">{errors.checkOutDate}</p>
             )}
+          </div>
+          <div className="grid gap-2">
+            <FormLabel>Total Stay (Days)</FormLabel>
+            <Input
+              value={calculatedDays ? `${calculatedDays} Days` : ""}
+              disabled
+              placeholder="Auto calculated from dates"
+              className="bg-muted cursor-not-allowed"
+            />
           </div>
         </div>
 

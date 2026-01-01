@@ -92,31 +92,29 @@ const FacilitiesViewDetails = ({ packageId }) => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[80px]">ID</TableHead>
+                      <TableHead className="w-[80px]">Sr.No</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Description</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Updated</TableHead>
                     </TableRow>
                   </TableHeader>
 
                   <TableBody>
-                    {groupedFacilities[category].map((item: any) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">
-                          {item.facilityDetails?.facilityId}
-                        </TableCell>
+                    {groupedFacilities[category].map(
+                      (item: any, index: any) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">
+                            {index + 1}
+                          </TableCell>
 
-                        <TableCell>
-                          {item.facilityDetails?.facilityName}
-                        </TableCell>
+                          <TableCell>
+                            {item.facilityDetails?.facilityName}
+                          </TableCell>
 
-                        <TableCell className="max-w-[250px] truncate">
-                          {item.facilityDetails?.description}
-                        </TableCell>
+                          <TableCell className="max-w-[250px] truncate">
+                            {item.facilityDetails?.description}
+                          </TableCell>
 
-                        <TableCell>
+                          {/* <TableCell>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${
                               item.facilityDetails?.isActive
@@ -128,17 +126,10 @@ const FacilitiesViewDetails = ({ packageId }) => {
                               ? "Active"
                               : "Inactive"}
                           </span>
-                        </TableCell>
-
-                        <TableCell>
-                          {item.facilityDetails?.createdAt?.split("T")[0]}
-                        </TableCell>
-
-                        <TableCell>
-                          {item.facilityDetails?.updatedAt?.split("T")[0]}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                        </TableCell> */}
+                        </TableRow>
+                      )
+                    )}
                   </TableBody>
                 </Table>
               </AccordionContent>

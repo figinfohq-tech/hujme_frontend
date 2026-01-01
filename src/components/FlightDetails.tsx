@@ -324,13 +324,12 @@ const FlightDetails = ({ pkg, packageId }) => {
       }
 
       if (!pkg) {
-              if (!packageId) {
-                toast.error("package missing — once please create package");
-                return;
-              }
-              
-            }
-            
+        if (!packageId) {
+          toast.error("package missing — once please create package");
+          return;
+        }
+      }
+
       for (const flight of addedFlights) {
         const payload = {
           packageId: packageId,
@@ -410,6 +409,16 @@ const FlightDetails = ({ pkg, packageId }) => {
     });
   };
 
+  useEffect(() => {
+  const dep = formik.values.departureDate;
+  const arr = formik.values.arrivalDate;
+
+  if (dep && arr && arr <= dep) {
+    formik.setFieldValue("arrivalDate", undefined);
+  }
+}, [formik.values.departureDate]);
+
+
   return (
     <>
       {/* Added Flights List */}
@@ -478,14 +487,6 @@ const FlightDetails = ({ pkg, packageId }) => {
         <div className="grid grid-cols-2 gap-4">
           <FormItem>
             <FormLabel>Airline</FormLabel>
-            {/* <FormControl>
-              <Input
-                name="airline"
-                placeholder="e.g., Saudi Airlines"
-                value={formik.values.airline}
-                onChange={formik.handleChange}
-              />
-            </FormControl> */}
             <Select
               value={formik.values.airline}
               onValueChange={(value) => {
@@ -525,7 +526,7 @@ const FlightDetails = ({ pkg, packageId }) => {
         {/* City Selection */}
         <div className="grid grid-cols-2 gap-4">
           <FormItem>
-            <FormLabel>Departure Countries</FormLabel>
+            <FormLabel>Departure Country</FormLabel>
             <Select
               value={formik.values.departureCountries}
               onValueChange={(value) => {
@@ -550,7 +551,7 @@ const FlightDetails = ({ pkg, packageId }) => {
           </FormItem>
 
           <FormItem>
-            <FormLabel>Departure States</FormLabel>
+            <FormLabel>Departure State</FormLabel>
             <Select
               value={formik.values.departureState}
               onValueChange={(value) => {
@@ -727,6 +728,11 @@ const FlightDetails = ({ pkg, packageId }) => {
                   mode="single"
                   selected={formik.values.arrivalDate}
                   onSelect={(val) => formik.setFieldValue("arrivalDate", val)}
+                  disabled={(date) =>
+                    formik.values.departureDate
+                      ? date <= (formik.values.departureDate as Date)
+                      : false
+                  }
                 />
               </PopoverContent>
             </Popover>

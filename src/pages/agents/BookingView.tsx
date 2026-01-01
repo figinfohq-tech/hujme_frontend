@@ -52,7 +52,7 @@ const BookingViewPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { booking, myPackage, bookingUser } = location.state || {};
   const selectedBooking = booking;
-  
+
   const fetchTravelersByID = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -68,10 +68,13 @@ const BookingViewPage = () => {
   const fetchDetailByAgentID = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${baseURL}agents/contact/${myPackage?.agentId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setDetails(response.data)
+      const response = await axios.get(
+        `${baseURL}agents/contact/${myPackage?.agentId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setDetails(response.data);
     } catch (error) {
       console.error("Package Fetch Error:", error);
     }
@@ -982,9 +985,7 @@ const BookingViewPage = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <h4 className="font-medium">
-                        {details.agencyName}
-                      </h4>
+                      <h4 className="font-medium">{details.agencyName}</h4>
                       <p className="text-sm text-muted-foreground">
                         Travel Agent
                       </p>
