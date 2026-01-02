@@ -19,11 +19,14 @@ import {
   Phone,
   Mail,
   Filter,
+  CalendarDays,
 } from "lucide-react";
 // import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import axios from "axios";
 import image from "../../public/placeholder.svg";
+import { baseURL } from "@/utils/constant/url";
+import { format } from "date-fns";
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -36,6 +39,8 @@ const SearchResults = () => {
   const [packageTypeFilter, setPackageTypeFilter] = useState<string>("");
   const [compareList, setCompareList] = useState<string[]>([]);
   const [packages, setPackages] = useState<any>([]);
+  const [agentLogos, setAgentLogos] = useState<{ [key: string]: string }>({});
+  const [packageFacilities, setPackageFacilities] = useState({});
 
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -82,15 +87,86 @@ const SearchResults = () => {
       );
 
       setPackages(response.data);
-      // handle response.data
+      fetchAgentLogos(response.data);
+      fetchFacilitiesForPackages(response.data);
     } catch (error) {
       console.error("Error fetching search results:", error);
     }
   };
 
+  // fetching logo
+  const fetchAgentLogos = async (packagesData: any[]) => {
+    try {
+      const agentIds = [
+        ...new Set(packagesData.map((pkg) => pkg.agentId).filter(Boolean)),
+      ];
+
+      const logoRequests = agentIds.map(async (agentId) => {
+        try {
+          const res = await axios.get(`${baseURL}agents/get-logo/${agentId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            responseType: "blob",
+          });
+
+          const imageUrl = URL.createObjectURL(res.data);
+
+          return { agentId, logo: imageUrl };
+        } catch (err) {
+          return { agentId, logo: null };
+        }
+      });
+
+      const logos = await Promise.all(logoRequests);
+
+      const logoMap: any = {};
+      logos.forEach(({ agentId, logo }) => {
+        if (logo) {
+          logoMap[agentId] = logo;
+        }
+      });
+
+      setAgentLogos(logoMap);
+    } catch (error) {
+      console.error("Error fetching agent logos:", error);
+    }
+  };
+
+  const fetchFacilitiesForPackages = async (packagesData) => {
+    try {
+      const facilitiesMap = {};
+
+      await Promise.all(
+        packagesData.map(async (pkg) => {
+          if (!pkg.packageId) return;
+
+          const res = await axios.get(
+            `${baseURL}package-facilities/byPackage/${pkg.packageId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          // ONLY featured facilities
+          const featuredFacilities = res.data
+            .filter((item) => item.featured === true)
+            .map((item) => item.facilityDetails?.facilityName)
+            .filter(Boolean);
+
+          facilitiesMap[pkg.packageId] = featuredFacilities;
+        })
+      );
+
+      setPackageFacilities(facilitiesMap);
+    } catch (error) {
+      console.error("Error fetching facilities:", error);
+    }
+  };
+
   // Filter function
   const getFilteredResults = () => {
-    return packages.filter((result) => {
+    return packages.filter((result: any) => {
       // Price filter
       if (result.price < priceRange[0] || result.price > priceRange[1]) {
         return false;
@@ -254,46 +330,121 @@ const SearchResults = () => {
                     className="overflow-hidden hover:shadow-elegant py-0 transition-smooth"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-                      {/* Package Image */}
+                      {/* agency logo */}
                       <div className="md:col-span-1">
-                        <div
-                          className="h-48 md:h-full bg-cover bg-center"
-                          style={{ backgroundImage: `url(/placeholder.svg)` }}
-                        />
+                        <a
+                          href={result.website || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={
+                            result.website
+                              ? "cursor-pointer"
+                              : "pointer-events-none"
+                          }
+                        >
+                          <div
+                            className="h-48 md:h-full bg-contain bg-center bg-no-repeat"
+                            style={{
+                              backgroundImage: `url(${
+                                agentLogos[result.agentId]
+                                  ? agentLogos[result.agentId]
+                                  : "/placeholder.svg"
+                              })`,
+                            }}
+                          />
+                        </a>
                       </div>
 
                       {/* Package Details */}
-                      <div className="md:col-span-2 p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="text-xl font-semibold text-foreground mb-1">
+                      <div className="md:col-span-2 p-3">
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
+                          {/* LEFT CONTENT */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg md:text-xl font-semibold text-foreground mb-1 break-words">
                               {result.packageName}
                             </h3>
-                            <p className="text-muted-foreground text-sm mb-2">
-                              By {result.agentName}
+
+                            <p className="text-muted-foreground text-sm mb-2 truncate">
+                              <a
+                                href={result.website || "#"}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={
+                                  result.website
+                                    ? "cursor-pointer hover:underline"
+                                    : "pointer-events-none"
+                                }
+                              >
+                                By {result.agentName}
+                              </a>
                             </p>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                              <span className="flex items-center">
-                                <MapPin className="w-4 h-4 mr-1" />
+
+                            {/* LOCATION & DURATION */}
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mb-3">
+                              <span className="flex items-center whitespace-nowrap">
+                                <MapPin className="w-4 h-4 mr-1 shrink-0" />
                                 {result.cityName}, {result.stateName}
                               </span>
-                              <span className="flex items-center">
-                                <Calendar className="w-4 h-4 mr-1" />
-                                {result.duration + " " + "Days"}
+
+                              <span className="flex items-center whitespace-nowrap">
+                                <Calendar className="w-4 h-4 mr-1 shrink-0" />
+                                {result.duration} Days
                               </span>
                             </div>
+
+                            {/* DATES */}
+                            {result.departureDate && result.arrivalDate && (
+                              <div className="flex items-center text-sm text-muted-foreground mb-3 flex-wrap">
+                                <CalendarDays className="w-4 h-4 mr-1 shrink-0" />
+                                <span className="break-words">
+                                  {format(
+                                    new Date(result.departureDate),
+                                    "dd MMM yyyy"
+                                  )}
+                                  {" – "}
+                                  {format(
+                                    new Date(result.arrivalDate),
+                                    "dd MMM yyyy"
+                                  )}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* FACILITIES */}
+                            {packageFacilities[result.packageId]?.length >
+                              0 && (
+                              <div className="flex flex-wrap gap-2">
+                                {packageFacilities[result.packageId].map(
+                                  (facility, index) => (
+                                    <Badge
+                                      key={index}
+                                      variant="outline"
+                                      className="text-xs whitespace-nowrap"
+                                    >
+                                      {facility}
+                                    </Badge>
+                                  )
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <div className="text-right">
-                            <div className="flex items-center gap-1 mb-1">
+
+                          {/* RIGHT CONTENT */}
+                          <div className="flex md:flex-col items-start md:items-end justify-between md:justify-start gap-2 md:text-right shrink-0">
+                            <div className="flex items-center gap-1">
                               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                               <span className="font-medium">
                                 {result.rating}
                               </span>
-                              <span className="text-sm text-muted-foreground">
+                              <span className="text-sm text-muted-foreground whitespace-nowrap">
                                 ({result.reviews} reviews)
                               </span>
                             </div>
-                            <Badge variant="secondary" className="text-xs">
+
+                            <Badge
+                              variant="secondary"
+                              className="text-xs w-fit"
+                            >
                               {result.packageType}
                             </Badge>
                           </div>

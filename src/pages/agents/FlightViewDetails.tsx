@@ -46,9 +46,9 @@ const FlightViewDetails = ({ packageId }) => {
     return <Loader />;
   }
   return (
-    <div className="w-full px-4">
+    <div className="w-full px-3 sm:px-4">
       {/* Title */}
-      <h1 className="text-2xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
+      <h1 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
         <PlaneTakeoff className="text-primary" /> Flight Details
       </h1>
 
@@ -58,17 +58,23 @@ const FlightViewDetails = ({ packageId }) => {
           No Flight Details Found.
         </p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {basicFlightsDetails?.map((item: any, index: number) => (
-            <Card key={index} className="shadow-md border rounded-xl">
+            <Card
+              key={index}
+              className="shadow-md border rounded-xl flex flex-col h-full"
+            >
               <CardHeader>
-                <CardTitle className="flex flex-col gap-2 text-lg">
-                  <div className="flex justify-between">
+                <CardTitle className="flex flex-col gap-2 text-base sm:text-lg">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                     <div className="flex items-center gap-2">
                       <PlaneTakeoff className="text-primary" />
-                      Flight Number: {item.airlineDetails.flightCode}
+                      <span className="break-all">
+                        Flight Number: {item.airlineDetails.flightCode}
+                      </span>
                     </div>
-                    <div className="ml-7">
+
+                    <div>
                       {item.airlineDetails.isActive ? (
                         <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">
                           Active
@@ -82,26 +88,26 @@ const FlightViewDetails = ({ packageId }) => {
                   </div>
 
                   {/* Flight Name */}
-                  <div className="text-sm text-gray-600 ml-7">
+                  <div className="text-sm text-gray-600 sm:ml-7">
                     <span className="font-medium">Flight Name:</span>{" "}
                     {item.airlineDetails.flightName}
                   </div>
                 </CardTitle>
               </CardHeader>
 
-              <CardContent className="space-y-3 text-sm">
-                {/* Description Section */}
-                <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+              <CardContent className="space-y-4 text-sm flex-1">
+                {/* Description */}
+                <div className="bg-green-50 border border-green-200 p-3 sm:p-4 rounded-lg">
                   <h3 className="text-primary font-medium mb-1">
                     Description:
                   </h3>
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 leading-relaxed">
                     {item.airlineDetails.description}
                   </p>
                 </div>
 
                 {/* Departure */}
-                <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
+                <div className="border rounded-lg p-3 sm:p-4 bg-gray-50 space-y-2">
                   <h3 className="font-medium flex items-center gap-2 text-primary">
                     <PlaneTakeoff size={18} />
                     Departure Details
@@ -128,7 +134,7 @@ const FlightViewDetails = ({ packageId }) => {
                 </div>
 
                 {/* Arrival */}
-                <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
+                <div className="border rounded-lg p-3 sm:p-4 bg-gray-50 space-y-2">
                   <h3 className="font-medium flex items-center gap-2 text-primary">
                     <PlaneLanding size={18} />
                     Arrival Details

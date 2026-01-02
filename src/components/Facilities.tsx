@@ -32,6 +32,7 @@ const Facilities = ({ pkg, packageId }) => {
   const [search, setSearch] = useState("");
   const [isLoader, setIsLoader] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [featuredFacilities, setFeaturedFacilities] = useState([]);
 
   const navigate = useNavigate();
   const id = pkg?.packageId;
@@ -85,7 +86,12 @@ const Facilities = ({ pkg, packageId }) => {
         (item) => item.facilityDetails?.facilityId
       );
 
+      const preFeatured = facilitiesDetails
+        .filter((item) => item.featured === true)
+        .map((item) => item.facilityDetails?.facilityId);
+
       setSelectedFacilities(preselected);
+      setFeaturedFacilities(preFeatured);
     }
   }, [facilitiesDetails]);
 
@@ -145,11 +151,12 @@ const Facilities = ({ pkg, packageId }) => {
       // If pkg = true → only POST new additions
       if (pkg) {
         for (const facilityId of newFacilityIds) {
-          await axios.post(
+          const response = await axios.post(
             `${baseURL}package-facilities`,
             {
               packageId: id, // pkg update ke time packageId = id
               facilityId,
+              featured: featuredFacilities.includes(facilityId),
             },
             {
               headers: {
@@ -167,11 +174,12 @@ const Facilities = ({ pkg, packageId }) => {
 
       // NEW package create
       for (const facilityId of selectedFacilities) {
-        await axios.post(
+        const response = await axios.post(
           `${baseURL}package-facilities`,
           {
             packageId: packageId,
             facilityId,
+            featured: featuredFacilities.includes(facilityId),
           },
           {
             headers: {
@@ -183,7 +191,7 @@ const Facilities = ({ pkg, packageId }) => {
       }
 
       toast.success("Facilities submitted successfully!");
-      navigate("/packages");
+      // navigate("/packages");
     } catch (error) {
       console.error(error);
       toast.error("Failed to process facilities");
@@ -247,6 +255,7 @@ const Facilities = ({ pkg, packageId }) => {
                         <TableHead className="w-10">Select</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Description</TableHead>
+                        <TableHead>Key Facility</TableHead>
                       </TableRow>
                     </TableHeader>
 
@@ -270,6 +279,35 @@ const Facilities = ({ pkg, packageId }) => {
 
                           <TableCell className="text-sm text-muted-foreground">
                             {fItem.description}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <TableCell className="text-center">
+                              <Checkbox
+                                checked={featuredFacilities.includes(
+                                  fItem.facilityId
+                                )}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    if (featuredFacilities.length >= 4) {
+                                      toast.error(
+                                        "Only 4 key facilities are allowed"
+                                      );
+                                      return;
+                                    }
+                                    setFeaturedFacilities((prev) => [
+                                      ...prev,
+                                      fItem.facilityId,
+                                    ]);
+                                  } else {
+                                    setFeaturedFacilities((prev) =>
+                                      prev.filter(
+                                        (id) => id !== fItem.facilityId
+                                      )
+                                    );
+                                  }
+                                }}
+                              />
+                            </TableCell>
                           </TableCell>
                         </TableRow>
                       ))}

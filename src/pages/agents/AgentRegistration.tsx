@@ -130,6 +130,7 @@ const AgentRegistration = () => {
       trusted: false,
       logo: null,
       certificate: "",
+      website: "",
       termsAccepted: false,
     },
 
@@ -158,6 +159,9 @@ const AgentRegistration = () => {
         .min(10, "Minimum 10 characters")
         .max(500, "Maximum 500 characters"),
       termsAccepted: Yup.bool().oneOf([true], "You must accept T&C"),
+      website: Yup.string()
+        .url("Enter a valid website URL (https://...)")
+        .nullable(),
     }),
     onSubmit: async (values) => {
       try {
@@ -176,6 +180,7 @@ const AgentRegistration = () => {
           experience: values.experience,
           description: values.description,
           certification: values.certificate,
+          website: values.website,
           termsAccepted: values.termsAccepted,
         };
 
@@ -529,6 +534,21 @@ const AgentRegistration = () => {
                                 {formik.errors.certificate}
                               </p>
                             )}
+                        </div>
+
+                        {/* Website */}
+                        <div className="space-y-2">
+                          <Label>Agency Website</Label>
+                          <Input
+                            type="url"
+                            placeholder="https://www.youragency.com"
+                            {...formik.getFieldProps("website")}
+                          />
+                          {formik.touched.website && formik.errors.website && (
+                            <p className="text-red-600 text-sm">
+                              {formik.errors.website}
+                            </p>
+                          )}
                         </div>
                       </div>
 

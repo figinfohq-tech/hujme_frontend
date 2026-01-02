@@ -25,6 +25,7 @@ import DeleteModal from "@/components/DeleteModal";
 import { toast } from "react-toastify";
 import { baseURL } from "@/utils/constant/url";
 import { useNavigate } from "react-router";
+import { Switch } from "@/components/ui/switch";
 
 const Packages = () => {
   const [packages, setPackages] = useState<any[]>([]);
@@ -35,6 +36,7 @@ const Packages = () => {
   const [selectedPkg, setSelectedPkg] = useState<any>(false);
   const [agentId, setAgentId] = useState<any>("");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
 
   const navigate = useNavigate();
 
@@ -132,13 +134,88 @@ const Packages = () => {
           },
         }
       );
-      console.log("packages----->", response.data);
-      
+
       setPackages(response.data);
       setIsLoading(false);
     } catch (error) {
       console.error("Package Fetch Error:", error);
       setIsLoading(false);
+    }
+  };
+
+  const togglePackageStatus = async (pkg: any) => {
+    const token = localStorage.getItem("token");
+
+    const updatedStatus =
+      pkg.packageStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+
+    // optimistic UI update
+    setPackages((prev) =>
+      prev.map((p) =>
+        p.packageId === pkg.packageId
+          ? { ...p, packageStatus: updatedStatus }
+          : p
+      )
+    );
+
+    setUpdatingId(pkg.packageId);
+
+    try {
+      const payload = {
+        agentId: pkg.agentId,
+        countryId: pkg.countryId,
+        stateId: pkg.stateId,
+        cityId: pkg.cityId,
+        packageName: pkg.packageName,
+        packageType: pkg.packageType,
+        travelType: pkg.travelType,
+        description: pkg.description,
+        price: pkg.price,
+        originalPrice: pkg.originalPrice,
+        duration: pkg.duration,
+        departureDate: pkg.departureDate,
+        arrivalDate: pkg.arrivalDate,
+        departureTime: pkg.departureTime,
+        arrivalTime: pkg.arrivalTime,
+        flightStops: pkg.flightStops,
+        departureAirlines: pkg.departureAirlines,
+        arrivalAirlines: pkg.arrivalAirlines,
+        bookedSeats: pkg.bookedSeats,
+        totalSeats: pkg.totalSeats,
+        availableSeats: pkg.availableSeats,
+        featured: pkg.featured,
+        notes: pkg.notes,
+        packageStatus: updatedStatus, // ONLY CHANGE
+      };
+
+      const response = await axios.put(
+        `${baseURL}packages/${pkg.packageId}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      toast.success(
+        `Package ${updatedStatus === "ACTIVE" ? "Activated" : "Deactivated"}`
+      );
+    } catch (error) {
+      // rollback
+      setPackages((prev) =>
+        prev.map((p) =>
+          p.packageId === pkg.packageId
+            ? { ...p, packageStatus: pkg.packageStatus }
+            : p
+        )
+      );
+
+      toast.error("Failed to update package status");
+      fetchPackages();
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -197,9 +274,23 @@ const Packages = () => {
                     <CardTitle className="text-lg line-clamp-2">
                       {pkg.packageName}
                     </CardTitle>
-                    <Badge variant={pkg.packageStatus ? "default" : "secondary"}>
-                      {pkg.packageStatus ? "Active" : "Inactive"}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={
+                          pkg.packageStatus === "ACTIVE"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
+                        {pkg.packageStatus === "ACTIVE" ? "Active" : "Inactive"}
+                      </Badge>
+
+                      <Switch
+                        checked={pkg.packageStatus === "ACTIVE"}
+                        disabled={updatingId === pkg.packageId}
+                        onCheckedChange={() => togglePackageStatus(pkg)}
+                      />
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
@@ -209,7 +300,7 @@ const Packages = () => {
                         ₹{pkg.price.toLocaleString()}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {pkg.duration?`${pkg.duration} Days`:null}
+                        {pkg.duration ? `${pkg.duration} Days` : null}
                       </p>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">
