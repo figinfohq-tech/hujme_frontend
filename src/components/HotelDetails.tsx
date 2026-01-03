@@ -21,6 +21,7 @@ import {
 import { calculateDaysStay, cn, convertToISO } from "@/lib/utils";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
+import { useNavigate } from "react-router";
 
 interface SelectedHotel {
   id: string;
@@ -71,6 +72,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
   });
 
   const id = pkg?.packageId;
+  const navigate = useNavigate();
 
   // Fetch lists
   const fetchCountries = async () => {
@@ -384,9 +386,10 @@ const HotelDetails = ({ pkg, packageId }: any) => {
           return;
         }
       }
+
       for (const hotel of addedHotels) {
         const payload = {
-          packageId: packageId,
+          packageId: id ?? packageId,
           hotelId: Number(hotel.hotelId),
           checkinDate: convertToISO(hotel.checkInDate, hotel.checkInTime),
           checkoutDate: convertToISO(hotel.checkOutDate, hotel.checkOutTime),
@@ -397,45 +400,17 @@ const HotelDetails = ({ pkg, packageId }: any) => {
           updatedBy: 0,
         };
 
-        if (pkg) {
-          // Update existing record
-
-          const response = await axios.put(
+        if (hotel.packageHotelId) {
+          // ✅ UPDATE only edited/existing records
+          await axios.put(
             `${baseURL}package-hotels/${hotel.packageHotelId}`,
-            {
-              packageId: Number(id),
-              hotelId: Number(hotel.hotelId),
-              checkinDate: convertToISO(hotel.checkInDate, hotel.checkInTime),
-              checkoutDate: convertToISO(
-                hotel.checkOutDate,
-                hotel.checkOutTime
-              ),
-              checkinTime: convertToISO(hotel.checkInDate, hotel.checkInTime),
-              checkoutTime: convertToISO(
-                hotel.checkOutDate,
-                hotel.checkOutTime
-              ),
-              daysStay: calculateDaysStay(
-                hotel.checkInDate,
-                hotel.checkOutDate
-              ),
-              createdBy: 0,
-              updatedBy: 0,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
+            payload,
+            { headers: { Authorization: `Bearer ${token}` } }
           );
         } else {
-          // Create new record
+          // ✅ CREATE only new records
           await axios.post(`${baseURL}package-hotels`, payload, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+            headers: { Authorization: `Bearer ${token}` },
           });
         }
       }
@@ -444,8 +419,8 @@ const HotelDetails = ({ pkg, packageId }: any) => {
         pkg ? "Hotels updated successfully!" : "All hotels added successfully!"
       );
       // after saving, refetch to sync server ids and data
-      if (id) await getPackagesByID();
-      else setAddedHotels([]);
+       getPackagesByID();
+      // setAddedHotels([]);
     } catch (err) {
       console.error(err);
       toast.error("Failed to submit package");
@@ -803,25 +778,27 @@ const HotelDetails = ({ pkg, packageId }: any) => {
         <div className="flex gap-2">
           <Button
             type="button"
-            onClick={pkg ? updateHotel : handleAddHotel}
+            onClick={editIndex !== null ? updateHotel : handleAddHotel}
             variant="secondary"
             className="w-full"
           >
-            {pkg ? "Update Hotel" : "Add Hotel to Package"}
+            {editIndex !== null ? "Update Hotel" : "Add Hotel to Package"}
           </Button>
           {/* small helper to add quickly without switching */}
         </div>
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline">Cancel</Button>
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          Cancel
+        </Button>
         <Button onClick={handleSubmitHotels}>
           {isLoader
-            ? pkg
+            ? editIndex !== null
               ? "Updating..."
               : "Saving..."
             : pkg
-            ? "Update Package"
+            ? "Save Package"
             : "Create Package"}
         </Button>
       </div>

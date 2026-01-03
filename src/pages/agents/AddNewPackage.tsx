@@ -147,7 +147,6 @@ export function AddNewPackage({
     const date = new Date(isoString);
     return date.toISOString().slice(11, 16); // HH:mm
   };
-
   useEffect(() => {
     if (pkg) {
       formik.setValues({
@@ -766,7 +765,7 @@ export function AddNewPackage({
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline">Cancel</Button>
+                  <Button variant="outline" onClick={()=>navigate(-1)}>Cancel</Button>
                   {pkg ? (
                     <Button type="submit">
                       {isLoader ? "Updating..." : "Update Package"}

@@ -352,7 +352,7 @@ const Facilities = ({ pkg, packageId }) => {
         </Button>
       </div>
       <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline">Cancel</Button>
+        <Button variant="outline" onClick={()=>navigate(-1)}>Cancel</Button>
         {pkg ? (
           <Button onClick={handleCreatePackage}>
             {isLoading ? "Updating..." : "Update Package"}

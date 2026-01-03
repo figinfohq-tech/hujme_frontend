@@ -47,6 +47,7 @@ interface FlightSegment {
 const validationSchema = yup.object({
   airline: yup.string().required("Airline is required"),
   flightNumber: yup.string().required("Flight number is required"),
+  flightClass: yup.string().required("Flight class is required"),
   departureCountries: yup.string().required("Departure country is required"),
   departureState: yup.string().required("Departure state is required"),
   departureCity: yup.string().required("Departure city is required"),
@@ -86,6 +87,8 @@ const FlightDetails = ({ pkg, packageId }) => {
   const [selectedStateId2, setSelectedStateId2] = useState("");
   const [selectdCitiesId2, setSelectedCitiesId2] = useState("");
   const [editIndex, setEditIndex] = useState(null);
+  const [flightClass, setFlightClass] = useState<any>([]);
+  const [selectedFlightClass, setSelectedFlightClass] = useState<any>([]);
 
   const id = pkg?.packageId;
 
@@ -106,6 +109,20 @@ const FlightDetails = ({ pkg, packageId }) => {
         },
       });
       setAirlines(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchAirlinesType = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${baseURL}lookups/FLIGHT_CLASS`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setFlightClass(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
@@ -205,6 +222,7 @@ const FlightDetails = ({ pkg, packageId }) => {
   useEffect(() => {
     fetchCountries();
     fetchAirlines();
+    fetchAirlinesType();
   }, []);
 
   useEffect(() => {
@@ -237,13 +255,13 @@ const FlightDetails = ({ pkg, packageId }) => {
 
     const mapped = flightDetails.map((item: any) => {
       return {
-        id: String(item.id),
+        id: String(item.id), // DB id
         flightId: item.id,
         airlineId: item.airlineDetails?.airlineId,
         airline: item.airlineDetails?.flightName,
         flightNumber: item.airlineDetails?.flightCode,
+        flightClass: item.flightClass,
 
-        // location fields (IMPORTANT for edit)
         departureCountries: item.departureCountryId,
         departureState: item.departureStateId,
         departureCity: item.departureCityId,
@@ -258,6 +276,9 @@ const FlightDetails = ({ pkg, packageId }) => {
 
         departureTime: item.departureTime?.slice(11, 16),
         arrivalTime: item.arrivalTime?.slice(11, 16),
+
+        isExisting: true, // ✅ VERY IMPORTANT
+        isEdited: false,
       };
     });
 
@@ -268,6 +289,7 @@ const FlightDetails = ({ pkg, packageId }) => {
     initialValues: {
       airline: "",
       flightNumber: "",
+      flightClass: "",
       departureCountries: "",
       departureState: "",
       departureCity: "",
@@ -284,6 +306,9 @@ const FlightDetails = ({ pkg, packageId }) => {
       const newFlight = {
         id: editIndex !== null ? addedFlights[editIndex].id : `${Date.now()}`,
         ...values,
+        isExisting:
+          editIndex !== null ? addedFlights[editIndex].isExisting : false, // ✅ NEW flight
+        isEdited: editIndex !== null,
       };
 
       if (editIndex !== null) {
@@ -303,6 +328,8 @@ const FlightDetails = ({ pkg, packageId }) => {
     },
   });
 
+  const isEditMode = editIndex !== null;
+
   const handleRemoveFlight = (flightId: string) => {
     setAddedFlights(addedFlights.filter((f) => f.id !== flightId));
     toast.success("Flight removed");
@@ -316,37 +343,13 @@ const FlightDetails = ({ pkg, packageId }) => {
 
     try {
       setIsLoader(true);
-
       const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("Token missing — login again");
-        return;
-      }
-
-      if (!pkg) {
-        if (!packageId) {
-          toast.error("package missing — once please create package");
-          return;
-        }
-      }
 
       for (const flight of addedFlights) {
         const payload = {
-          packageId: packageId,
+          packageId: id ?? packageId,
           airlineId: Number(flight.airline),
-          departureDate: new Date(flight.departureDate).toISOString(),
-          departureTime: new Date(
-            `1970-01-01T${flight.departureTime}:00`
-          ).toISOString(),
-          arrivalDate: new Date(flight.arrivalDate).toISOString(),
-          arrivalTime: new Date(
-            `1970-01-01T${flight.arrivalTime}:00`
-          ).toISOString(),
-          notes: "Flight segment added",
-        };
-        const payload1 = {
-          packageId: id,
-          airlineId: Number(flight.airline),
+          flightClass: flight.flightClass,
           departureDate: new Date(flight.departureDate).toISOString(),
           departureTime: new Date(
             `1970-01-01T${flight.departureTime}:00`
@@ -358,19 +361,18 @@ const FlightDetails = ({ pkg, packageId }) => {
           notes: "Flight segment added",
         };
 
-        if (pkg) {
-          await axios.put(
-            `${baseURL}package-airlines/${Number(flight.id)}`,
-            payload1,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          getFlightByID();
-        } else {
+        // ✅ ONLY UPDATE IF EXISTING + EDITED
+        if (flight.isExisting && flight.isEdited) {
+          await axios.put(`${baseURL}package-airlines/${flight.id}`, payload, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+        }
+
+        // ✅ ONLY CREATE IF NEW
+        if (!flight.isExisting) {
           await axios.post(`${baseURL}package-airlines`, payload, {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -379,12 +381,14 @@ const FlightDetails = ({ pkg, packageId }) => {
           });
         }
       }
-      toast.success("All flights submitted successfully!");
-      setAddedFlights([]);
+
+      toast.success("Flights saved successfully!");
+      getFlightByID(); // refresh
+      // setAddedFlights([]);
       formik.resetForm();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to create package");
+      toast.error("Failed to save flights");
     } finally {
       setIsLoader(false);
     }
@@ -396,6 +400,7 @@ const FlightDetails = ({ pkg, packageId }) => {
     formik.setValues({
       airline: String(flight.airlineId ?? flight.airline),
       flightNumber: flight.flightNumber,
+      flightClass: String(flight.flightClass),
       departureCountries: String(flight.departureCountries),
       departureState: String(flight.departureState),
       departureCity: String(flight.departureCity),
@@ -410,14 +415,13 @@ const FlightDetails = ({ pkg, packageId }) => {
   };
 
   useEffect(() => {
-  const dep = formik.values.departureDate;
-  const arr = formik.values.arrivalDate;
+    const dep = formik.values.departureDate;
+    const arr = formik.values.arrivalDate;
 
-  if (dep && arr && arr <= dep) {
-    formik.setFieldValue("arrivalDate", undefined);
-  }
-}, [formik.values.departureDate]);
-
+    if (dep && arr && arr <= dep) {
+      formik.setFieldValue("arrivalDate", undefined);
+    }
+  }, [formik.values.departureDate]);
 
   return (
     <>
@@ -520,6 +524,33 @@ const FlightDetails = ({ pkg, packageId }) => {
               />
             </FormControl>
             <FormMessage>{formik.errors.flightNumber}</FormMessage>
+          </FormItem>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormItem>
+            <FormLabel>Flight Class</FormLabel>
+            <Select
+              value={formik.values.flightClass}
+              onValueChange={(value) => {
+                formik.setFieldValue("flightClass", value);
+                setSelectedFlightClass(value);
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select flight class" />
+              </SelectTrigger>
+              <SelectContent>
+                {flightClass.map((items: any) => {
+                  return (
+                    <SelectItem value={String(items.lookupName)}>
+                      {items.lookupName}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            <FormMessage>{formik.errors.flightClass}</FormMessage>
           </FormItem>
         </div>
 
@@ -749,17 +780,14 @@ const FlightDetails = ({ pkg, packageId }) => {
         </div>
 
         <Button type="submit" variant="secondary" className="w-full">
-          {pkg ? "Update Flight Package" : "Add Flight to Package"}
+          {isEditMode ? "Update Flight" : "Add Flight to Package"}
         </Button>
+
         <div className="flex justify-end gap-2 pt-4">
           <Button variant="outline">Cancel</Button>
-          {pkg ? (
+          {!isEditMode && (
             <Button onClick={handleCreatePackage}>
-              {isLoader ? "Updating..." : "Update Package"}
-            </Button>
-          ) : (
-            <Button onClick={handleCreatePackage}>
-              {isLoader ? "Creating..." : "Create Package"}
+              {isLoader ? "Saving..." : "Save Package"}
             </Button>
           )}
         </div>
