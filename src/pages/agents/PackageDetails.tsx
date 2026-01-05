@@ -242,7 +242,7 @@ const PackageDetails = () => {
             </div>
 
             {/* Tabs */}
-            <Tabs defaultValue="overview" className="w-full">
+            <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="basic">Basic View</TabsTrigger>
                 <TabsTrigger value="hotel">Hotel View</TabsTrigger>
@@ -426,32 +426,7 @@ const PackageDetails = () => {
                     className="w-full bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth"
                   >
                     Book Now
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    Add to Compare
-                  </Button>
-                  <Button variant="ghost" className="w-full">
-                    Contact Agent
-                  </Button>
-                </div>
-
-                <div className="space-y-3 text-sm border-t border-border pt-4">
-                  <div className="flex items-center gap-2">
-                    <Plane className="w-4 h-4 text-muted-foreground" />
-                    <span>Direct flights included</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Hotel className="w-4 h-4 text-muted-foreground" />
-                    <span>5-star accommodation</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Car className="w-4 h-4 text-muted-foreground" />
-                    <span>All transfers included</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Utensils className="w-4 h-4 text-muted-foreground" />
-                    <span>All meals provided</span>
-                  </div>
+                  </Button>      
                 </div>
               </CardContent>
             </Card>

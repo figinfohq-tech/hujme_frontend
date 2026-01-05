@@ -225,12 +225,9 @@ export function AddNewPackage({
     fetchCountries();
     fetchPackageType();
     fetchTravelType();
+    fetchStates();
   }, []);
-  useEffect(() => {
-    if (selectedCountryId) {
-      fetchStates();
-    }
-  }, [selectedCountryId]);
+ 
 
   useEffect(() => {
     if (selectedStateId) {
@@ -251,7 +248,7 @@ export function AddNewPackage({
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<StateType[]>(
-        `http://31.97.205.55:8080/api/states/byCountry/${selectedCountryId}`,
+        `http://31.97.205.55:8080/api/states/byCountry/${1}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -342,6 +339,8 @@ export function AddNewPackage({
       packageName: Yup.string().required("Package name is required"),
       travelType: Yup.string().required("Travel type required"),
       price: Yup.number().required("Price is required"),
+      description: Yup.string()
+    .max(100, "Description can be maximum 100 characters")
     }),
 
     onSubmit: async (values, { resetForm }) => {
@@ -361,7 +360,7 @@ export function AddNewPackage({
         const payload = {
           ...values,
           agentId: Number(values.agentId),
-          countryId: Number(values.countryId),
+          countryId: Number(1),
           stateId: Number(values.stateId),
           cityId: Number(values.cityId),
           packageType: String(values.packageType),
@@ -544,7 +543,9 @@ export function AddNewPackage({
                   <div className="grid gap-2">
                     <Label>Select Country *</Label>
                     <Select
-                      value={formik.values.countryId}
+                      value={"1"}
+                      // value={formik.values.countryId}
+                      disabled
                       onValueChange={(value) => {
                         formik.setFieldValue("countryId", value);
                         setSelectedCountryId(value);
@@ -649,10 +650,16 @@ export function AddNewPackage({
                       name="description"
                       className="border p-2 rounded-md"
                       placeholder="Description..."
-                      rows={3}
+                      maxLength={101}
+                      rows={2}
                       onChange={formik.handleChange}
                       value={formik.values.description}
                     />
+                    {formik.errors.description && (
+                      <span className="text-red-500">
+                        {formik.errors.description}
+                      </span>
+                    )}
                   </div>
 
                   {/* Price */}
@@ -684,19 +691,32 @@ export function AddNewPackage({
                     />
                   </div>
 
-                  {/* Departure Date */}
-                  <div className="grid gap-2">
-                    <Label>Departure Date</Label>
-                    <Input
-                      type="date"
-                      name="departureDate"
-                      onChange={formik.handleChange}
-                      value={formik.values.departureDate}
-                    />
+                  {/* Departure Date & Time */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label>Departure Date</Label>
+                      <Input
+                        type="date"
+                        name="departureDate"
+                        onChange={formik.handleChange}
+                        value={formik.values.departureDate}
+                      />
+                    </div>
+                       {/* Departure Time */}
+                    <div className="grid gap-2">
+                      <Label>Departure Time</Label>
+                      <Input
+                        type="time"
+                        name="departureTime"
+                        onChange={formik.handleChange}
+                        value={formik.values.departureTime}
+                      />
+                    </div>
                   </div>
 
                   {/* Arrival Date */}
-                  <div className="grid gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
                     <Label>Arrival Date</Label>
                     <Input
                       type="date"
@@ -704,6 +724,17 @@ export function AddNewPackage({
                       onChange={formik.handleChange}
                       value={formik.values.arrivalDate}
                     />
+                    </div>
+                     {/* Arrival Time */}
+                  <div className="grid gap-2">
+                    <Label>Arrival Time</Label>
+                    <Input
+                      type="time"
+                      name="arrivalTime"
+                      onChange={formik.handleChange}
+                      value={formik.values.arrivalTime}
+                    />
+                  </div>
                   </div>
 
                   {/* Package Duration (Auto Calculated) */}
@@ -714,28 +745,6 @@ export function AddNewPackage({
                       disabled
                       className="bg-muted cursor-not-allowed"
                       placeholder="Package duration"
-                    />
-                  </div>
-
-                  {/* Departure Time */}
-                  <div className="grid gap-2">
-                    <Label>Departure Time</Label>
-                    <Input
-                      type="time"
-                      name="departureTime"
-                      onChange={formik.handleChange}
-                      value={formik.values.departureTime}
-                    />
-                  </div>
-
-                  {/* Arrival Time */}
-                  <div className="grid gap-2">
-                    <Label>Arrival Time</Label>
-                    <Input
-                      type="time"
-                      name="arrivalTime"
-                      onChange={formik.handleChange}
-                      value={formik.values.arrivalTime}
                     />
                   </div>
 
@@ -753,7 +762,12 @@ export function AddNewPackage({
 
                   {/* Notes */}
                   <div className="grid gap-2 md:col-span-2">
-                    <Label>Notes</Label>
+                    <div className="flex items-center gap-1">
+                      <Label>Notes</Label>
+                      <span className="text-sm text-muted-foreground">
+                        (For internal use)
+                      </span>
+                    </div>
                     <textarea
                       name="notes"
                       placeholder="Notes..."
@@ -765,7 +779,9 @@ export function AddNewPackage({
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={()=>navigate(-1)}>Cancel</Button>
+                  <Button variant="outline" onClick={() => navigate(-1)}>
+                    Cancel
+                  </Button>
                   {pkg ? (
                     <Button type="submit">
                       {isLoader ? "Updating..." : "Update Package"}

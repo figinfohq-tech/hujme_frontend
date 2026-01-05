@@ -133,65 +133,40 @@ const Facilities = ({ pkg, packageId }) => {
         return;
       }
 
-      if (!pkg && !packageId) {
+      const finalPackageId = pkg ? id : packageId;
+
+      if (!finalPackageId) {
         toast.error("Package missing — please create package first");
         return;
       }
 
-      // OLD facilityIds from DB
-      const oldFacilityIds = facilitiesDetails.map(
-        (item) => item.facilityDetails?.facilityId
-      );
-
-      // ONLY NEW facilities selected now
-      const newFacilityIds = selectedFacilities.filter(
-        (id) => !oldFacilityIds.includes(id)
-      );
-
-      // If pkg = true → only POST new additions
-      if (pkg) {
-        for (const facilityId of newFacilityIds) {
-          const response = await axios.post(
-            `${baseURL}package-facilities`,
-            {
-              packageId: id, // pkg update ke time packageId = id
-              facilityId,
-              featured: featuredFacilities.includes(facilityId),
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-        }
-
-        toast.success("Facilities updated successfully!");
-        getFacilitiesPackageByID();
+      if (selectedFacilities.length === 0) {
+        toast.error("Please select at least one facility");
         return;
       }
 
-      // NEW package create
-      for (const facilityId of selectedFacilities) {
-        const response = await axios.post(
-          `${baseURL}package-facilities`,
-          {
-            packageId: packageId,
-            facilityId,
-            featured: featuredFacilities.includes(facilityId),
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      }
+      // ✅ Convert arrays → comma separated strings
+      const facilityIds = selectedFacilities.join(",");
+      const featuredFacilitiesStr = featuredFacilities.join(",");
 
-      toast.success("Facilities submitted successfully!");
-      // navigate("/packages");
+      await axios.post(`${baseURL}package-facilities/bulk-create`, null, {
+        params: {
+          packageId: finalPackageId,
+          facilityIds,
+          featuredFacilities: featuredFacilitiesStr,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success(
+        pkg
+          ? "Facilities updated successfully!"
+          : "Facilities created successfully!"
+      );
+
+      getFacilitiesPackageByID();
     } catch (error) {
       console.error(error);
       toast.error("Failed to process facilities");
@@ -352,10 +327,12 @@ const Facilities = ({ pkg, packageId }) => {
         </Button>
       </div>
       <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={()=>navigate(-1)}>Cancel</Button>
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          Cancel
+        </Button>
         {pkg ? (
           <Button onClick={handleCreatePackage}>
-            {isLoading ? "Updating..." : "Update Package"}
+            {isLoading ? "Updating..." : "Save Package"}
           </Button>
         ) : (
           <Button onClick={handleCreatePackage}>

@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { CalendarIcon, MapPin, Star, X } from "lucide-react";
+import { CalendarIcon, Globe, MapPin, Star, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
@@ -22,6 +22,7 @@ import { calculateDaysStay, cn, convertToISO } from "@/lib/utils";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
 import { useNavigate } from "react-router";
+import { Label } from "./ui/label";
 
 interface SelectedHotel {
   id: string;
@@ -39,6 +40,7 @@ interface SelectedHotel {
   checkInTime?: string;
   checkOutDate?: Date;
   checkOutTime?: string;
+  daysStay?: string;
 }
 
 const HotelDetails = ({ pkg, packageId }: any) => {
@@ -70,6 +72,9 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     country: "",
     state: "",
   });
+  const [currentPackageId, setCurrentPackageId] = useState<number | null>(
+    pkg?.packageId ?? packageId ?? null
+  );
 
   const id = pkg?.packageId;
   const navigate = useNavigate();
@@ -161,16 +166,19 @@ const HotelDetails = ({ pkg, packageId }: any) => {
   }, [selectedState]);
 
   // GET package hotels
-  const getPackagesByID = async () => {
+  const getPackagesByID = async (pkgId?: number) => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem("token");
+
+      const finalId = pkgId ?? currentPackageId;
+      if (!finalId) return;
+
       const response = await axios.get(
-        `${baseURL}package-hotels/byPackage/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `${baseURL}package-hotels/byPackage/${finalId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
       setBasicHotelDetails(response.data || []);
     } catch (error) {
       console.error("GET API Error:", error);
@@ -226,6 +234,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
             ? item.checkoutTime.slice(11, 16)
             : item.checkoutTime
           : "12:00",
+        daysStay: item.daysStay,
       } as SelectedHotel;
     });
 
@@ -235,9 +244,6 @@ const HotelDetails = ({ pkg, packageId }: any) => {
   // Add new hotel (local)
   const handleAddHotel = () => {
     const newErrors: any = {};
-    if (!selectedCountry) newErrors.country = "Country is required";
-    if (!selectedState) newErrors.state = "State is required";
-    if (!selectedCity) newErrors.city = "City is required";
     if (!selectedHotel) newErrors.hotel = "Hotel is required";
     if (!checkInDate) newErrors.checkInDate = "Check-in date is required";
     if (!checkOutDate) newErrors.checkOutDate = "Check-out date is required";
@@ -401,17 +407,29 @@ const HotelDetails = ({ pkg, packageId }: any) => {
         };
 
         if (hotel.packageHotelId) {
-          // ✅ UPDATE only edited/existing records
+          //  UPDATE only edited/existing records
           await axios.put(
             `${baseURL}package-hotels/${hotel.packageHotelId}`,
             payload,
             { headers: { Authorization: `Bearer ${token}` } }
           );
         } else {
-          // ✅ CREATE only new records
-          await axios.post(`${baseURL}package-hotels`, payload, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          // CREATE only new records
+          const response = await axios.post(
+            `${baseURL}package-hotels`,
+            payload,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          const newPackageId =
+            response.data?.packageId || response.data?.package?.packageId;
+
+          if (newPackageId) {
+            setCurrentPackageId(newPackageId);
+          }
+
+          getPackagesByID(newPackageId);
         }
       }
 
@@ -419,7 +437,6 @@ const HotelDetails = ({ pkg, packageId }: any) => {
         pkg ? "Hotels updated successfully!" : "All hotels added successfully!"
       );
       // after saving, refetch to sync server ids and data
-       getPackagesByID();
       // setAddedHotels([]);
     } catch (err) {
       console.error(err);
@@ -474,7 +491,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                         <div className="flex items-start gap-2">
                           <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
                           <span className="text-xs text-muted-foreground">
-                            {hotel.address}
+                            {`${hotel.address}, ${hotel.cityId}, ${hotel.stateId}, ${hotel.countryId}`}
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -507,6 +524,10 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                             ? format(hotel.checkOutDate, "PPP")
                             : "-"}{" "}
                           at {hotel.checkOutTime}
+                        </div>
+                        <div>
+                          <span className="font-medium">Days Stay:</span>{" "}
+                          {hotel.daysStay}
                         </div>
                       </div>
                     </div>
@@ -545,82 +566,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       <div className="space-y-4 pt-4 border-t">
         <h4 className="text-sm font-semibold text-foreground">Add Hotel</h4>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <FormLabel>Select Country</FormLabel>
-            <Select
-              value={selectedCountry}
-              onValueChange={(value) => {
-                setSelectedCountry(value);
-                setErrors({ ...errors, country: "" });
-              }}
-            >
-              <SelectTrigger className="w-full mt-2">
-                <SelectValue placeholder="Select country" />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map((c) => (
-                  <SelectItem key={c.countryId} value={String(c.countryId)}>
-                    {c.countryName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.country && (
-              <p className="text-red-500 text-xs mt-1">{errors.country}</p>
-            )}
-          </div>
-
-          <div>
-            <FormLabel>Select State</FormLabel>
-            <Select
-              value={selectedState}
-              onValueChange={(value) => {
-                setSelectedState(value);
-                setErrors({ ...errors, state: "" });
-              }}
-            >
-              <SelectTrigger className="w-full mt-2">
-                <SelectValue placeholder="Select state" />
-              </SelectTrigger>
-              <SelectContent>
-                {states.map((s) => (
-                  <SelectItem key={s.stateId} value={String(s.stateId)}>
-                    {s.stateName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.state && (
-              <p className="text-red-500 text-xs mt-1">{errors.state}</p>
-            )}
-          </div>
-
-          <div>
-            <FormLabel>Select City</FormLabel>
-            <Select
-              value={selectedCity}
-              onValueChange={(value) => {
-                setSelectedCity(value);
-                setErrors({ ...errors, city: "" });
-              }}
-            >
-              <SelectTrigger className="w-full mt-2">
-                <SelectValue placeholder="Select city" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map((c) => (
-                  <SelectItem key={c.cityId} value={String(c.cityId)}>
-                    {c.cityName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.city && (
-              <p className="text-red-500 text-xs mt-1">{errors.city}</p>
-            )}
-          </div>
-
+        <div className="grid grid-cols-1 gap-4">
           <div>
             <FormLabel>Select Hotel</FormLabel>
             <Select
@@ -628,6 +574,16 @@ const HotelDetails = ({ pkg, packageId }: any) => {
               onValueChange={(value) => {
                 setSelectedHotel(value);
                 setErrors({ ...errors, hotel: "" });
+
+                const hotelData = hotels.find(
+                  (h) => String(h.hotelId) === String(value)
+                );
+
+                if (hotelData) {
+                  setSelectedCountry(String(hotelData.countryId ?? ""));
+                  setSelectedState(String(hotelData.stateId ?? ""));
+                  setSelectedCity(String(hotelData.cityId ?? ""));
+                }
               }}
             >
               <SelectTrigger className="w-full mt-2">
@@ -656,16 +612,35 @@ const HotelDetails = ({ pkg, packageId }: any) => {
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <span className="text-muted-foreground">
-                  {selectedHotelData.address}
+                  {`${selectedHotelData.address} ${selectedHotelData?.cityId}, ${selectedHotelData?.stateId}, ${selectedHotelData?.countryId}`}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                <span className="text-foreground font-medium">
-                  {selectedHotelData.starRating ?? selectedHotelData.rating}{" "}
-                  Star Hotel
-                </span>
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* Rating */}
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                  <span className="text-sm font-medium text-foreground">
+                    {selectedHotelData.starRating ?? selectedHotelData.rating}{" "}
+                    Star Hotel
+                  </span>
+                </div>
+
+                <span className="text-muted-foreground">•</span>
+
+                {/* Website */}
+                {selectedHotelData.website && (
+                  <a
+                    href={selectedHotelData.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+                  >
+                    <Globe className="h-4 w-4" />
+                    Website
+                  </a>
+                )}
               </div>
+
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="text-foreground">
@@ -679,91 +654,62 @@ const HotelDetails = ({ pkg, packageId }: any) => {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <FormLabel>Check-in Date & Time</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !checkInDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {checkInDate ? (
-                    format(checkInDate, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={checkInDate}
-                  onSelect={setCheckInDate}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Check-in Date */}
+          <div className="grid gap-2">
+            <FormLabel>Check-in Date</FormLabel>
+            <Input
+              type="date"
+              value={checkInDate ? format(checkInDate, "yyyy-MM-dd") : ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                setCheckInDate(value ? new Date(value) : null);
+              }}
+            />
+            {errors.checkInDate && (
+              <p className="text-red-500 text-xs">{errors.checkInDate}</p>
+            )}
+          </div>
+
+          {/* Check-in Time */}
+          <div className="grid gap-2">
+            <FormLabel>Check-in Time</FormLabel>
             <Input
               type="time"
               value={checkInTime}
               onChange={(e) => setCheckInTime(e.target.value)}
-              className="w-full"
             />
-            {errors.checkInDate && (
-              <p className="text-red-500 text-xs mt-1">{errors.checkInDate}</p>
+          </div>
+
+          {/* Check-out Date */}
+          <div className="grid gap-2">
+            <FormLabel>Check-out Date</FormLabel>
+            <Input
+              type="date"
+              value={checkOutDate ? format(checkOutDate, "yyyy-MM-dd") : ""}
+              min={checkInDate ? format(checkInDate, "yyyy-MM-dd") : undefined}
+              onChange={(e) => {
+                const value = e.target.value;
+                setCheckOutDate(value ? new Date(value) : null);
+              }}
+            />
+            {errors.checkOutDate && (
+              <p className="text-red-500 text-xs">{errors.checkOutDate}</p>
             )}
           </div>
 
-          <div className="space-y-2">
-            <FormLabel>Check-out Date & Time</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !checkOutDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {checkOutDate ? (
-                    format(checkOutDate, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={checkOutDate}
-                  onSelect={setCheckOutDate}
-                  disabled={(date) =>
-                    checkInDate ? date <= checkInDate : false
-                  }
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
+          {/* Check-out Time */}
+          <div className="grid gap-2">
+            <FormLabel>Check-out Time</FormLabel>
             <Input
               type="time"
               value={checkOutTime}
               onChange={(e) => setCheckOutTime(e.target.value)}
-              className="w-full"
             />
-            {errors.checkOutDate && (
-              <p className="text-red-500 text-xs mt-1">{errors.checkOutDate}</p>
-            )}
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <FormLabel>Total Stay (Days)</FormLabel>
             <Input

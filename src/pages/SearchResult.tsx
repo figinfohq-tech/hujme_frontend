@@ -20,6 +20,7 @@ import {
   Mail,
   Filter,
   CalendarDays,
+  ArrowUpDown,
 } from "lucide-react";
 // import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -41,6 +42,8 @@ const SearchResults = () => {
   const [packages, setPackages] = useState<any>([]);
   const [agentLogos, setAgentLogos] = useState<{ [key: string]: string }>({});
   const [packageFacilities, setPackageFacilities] = useState({});
+  const [sortBy, setSortBy] = useState<string>("rating");
+  const [sortOrder, setSortOrder] = useState<string>("desc");
 
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -164,9 +167,33 @@ const SearchResults = () => {
     }
   };
 
-  // Filter function
+  // Filter functions
+  const parseDuration = (duration: any): number => {
+    if (!duration) return 0;
+
+    // If already a number
+    if (typeof duration === "number") {
+      return duration;
+    }
+
+    // If string like "7 Days", "10 Days"
+    if (typeof duration === "string") {
+      const match = duration.match(/\d+/);
+      return match ? Number(match[0]) : 0;
+    }
+
+    return 0;
+  };
+
+  const parseDate = (date: any): number => {
+    if (!date) return 0;
+
+    const parsed = new Date(date);
+    return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+  };
+
   const getFilteredResults = () => {
-    return packages.filter((result: any) => {
+    const filtered = packages.filter((result: any) => {
       // Price filter
       if (result.price < priceRange[0] || result.price > priceRange[1]) {
         return false;
@@ -177,13 +204,12 @@ const SearchResults = () => {
         return false;
       }
 
-      // Duration filter
-      if (
-        durationFilter &&
-        durationFilter !== "all" &&
-        !result.duration.includes(durationFilter)
-      ) {
-        return false;
+      // Duration filter (safe)
+      if (durationFilter && durationFilter !== "all") {
+        const durationValue = parseDuration(result.duration);
+        if (durationValue !== Number(durationFilter)) {
+          return false;
+        }
       }
 
       // Package type filter
@@ -199,6 +225,34 @@ const SearchResults = () => {
       }
 
       return true;
+    });
+
+    // Sort the filtered results
+    return filtered.sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case "rating":
+          comparison = a.rating - b.rating;
+          break;
+
+        case "price":
+          comparison = a.price - b.price;
+          break;
+
+        case "duration":
+          comparison = parseDuration(a.duration) - parseDuration(b.duration);
+          break;
+
+        case "departureDate":
+          comparison = parseDate(a.departureDate) - parseDate(b.departureDate);
+          break;
+
+        default:
+          comparison = 0;
+      }
+
+      return sortOrder === "asc" ? comparison : -comparison;
     });
   };
 
@@ -315,6 +369,34 @@ const SearchResults = () => {
 
           {/* Search Results */}
           <div className="lg:col-span-3">
+            {/* --------------------------------------- */}
+            <div className="flex items-center gap-4 mb-6 p-4 bg-card border border-border rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <ArrowUpDown className="w-4 h-4" />
+                <span>Sort by:</span>
+              </div>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rating">Customer Rating</SelectItem>
+                  <SelectItem value="price">Package Price</SelectItem>
+                  <SelectItem value="duration">Duration</SelectItem>
+                  <SelectItem value="departureDate">Departure Date</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortOrder} onValueChange={setSortOrder}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Order" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="desc">High to Low</SelectItem>
+                  <SelectItem value="asc">Low to High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* --------------------------------------- */}
             <div className="space-y-6">
               {filteredResults.length === 0 ? (
                 <Card className="p-8 text-center">
@@ -331,26 +413,25 @@ const SearchResults = () => {
                   >
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
                       {/* agency logo */}
-                      <div className="md:col-span-1">
+                      <div className="md:col-span-1 h-48 md:h-full flex items-center justify-center bg-white border-r border-border">
                         <a
                           href={result.website || "#"}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={
+                          className={`w-full h-full flex items-center justify-center transition ${
                             result.website
-                              ? "cursor-pointer"
+                              ? "hover:opacity-90"
                               : "pointer-events-none"
-                          }
+                          }`}
                         >
-                          <div
-                            className="h-48 md:h-full bg-contain bg-center bg-no-repeat"
-                            style={{
-                              backgroundImage: `url(${
-                                agentLogos[result.agentId]
-                                  ? agentLogos[result.agentId]
-                                  : "/placeholder.svg"
-                              })`,
-                            }}
+                          <img
+                            src={
+                              agentLogos[result.agentId]
+                                ? agentLogos[result.agentId]
+                                : "/placeholder.svg"
+                            }
+                            alt="Agent Logo"
+                            className="max-w-[90%] max-h-[90%] object-contain transition-transform duration-300 ease-in-out hover:scale-105 drop-shadow-sm"
                           />
                         </a>
                       </div>

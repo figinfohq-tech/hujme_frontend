@@ -15,8 +15,9 @@ const SignUp = () => {
       .min(2, "Last name must be at least 2 characters")
       .required("Last name is required"),
     email: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
+      .trim()
+      .email("Please enter a valid email address (e.g. name@example.com)")
+      .required("Email address is required"),
     mobile: Yup.string()
       .matches(/^[0-9]{10}$/, "Enter a valid 10-digit mobile number")
       .required("Mobile number is required"),
@@ -50,7 +51,7 @@ const SignUp = () => {
         }
       );
 
-      toast.success("Sign up successful!");      
+      toast.success("Sign up successful!");
       resetForm();
     } catch (error) {
       console.error("❌ Error during sign up:", error.response?.data || error);
@@ -169,13 +170,33 @@ const SignUp = () => {
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
                   <FaPhone />
                 </span>
-                <Field
-                  type="text"
-                  id="mobile"
-                  name="mobile"
-                  placeholder="Enter your mobile number"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-700 focus:border-green-900 outline-none transition-all"
-                />
+                <Field name="mobile">
+                  {({ field, form }) => (
+                    <input
+                      {...field}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={10}
+                      placeholder="Enter your mobile number"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-700 focus:border-green-900 outline-none transition-all"
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, ""); // remove non-numeric
+                        if (value.length <= 10) {
+                          form.setFieldValue("mobile", value);
+                        }
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = e.clipboardData
+                          .getData("text")
+                          .replace(/\D/g, "")
+                          .slice(0, 10);
+                        form.setFieldValue("mobile", pasted);
+                      }}
+                    />
+                  )}
+                </Field>
               </div>
               <ErrorMessage
                 name="mobile"

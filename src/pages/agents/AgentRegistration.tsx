@@ -140,14 +140,19 @@ const AgentRegistration = () => {
         .max(100, "Maximum 100 characters")
         .required("Required"),
       contactPerson: Yup.string().min(3).max(60).required("Required"),
-      email: Yup.string().email("Invalid email").required("Required"),
+      email: Yup.string()
+        .trim()
+        .email("Please enter a valid email address (e.g. name@example.com)")
+        .required("Email address is required"),
+
       phone: Yup.string()
         .matches(/^[6-9]\d{9}$/, "Enter a valid 10-digit mobile number")
         .required("Phone number is required"),
       address: Yup.string()
-        .min(10, "Address too short")
-        .max(500, "Maximum 500 characters")
-        .required("Required"),
+        .min(10, "Address must be at least 10 characters long")
+        .max(500, "Address cannot exceed 500 characters")
+        .required("Address is required"),
+
       city: Yup.string().required("Required"),
       state: Yup.string().required("Required"),
       experience: Yup.string().required("Required"),
@@ -157,7 +162,7 @@ const AgentRegistration = () => {
         .required("Certificate required"),
       description: Yup.string()
         .min(10, "Minimum 10 characters")
-        .max(500, "Maximum 500 characters"),
+        .max(100, "Maximum 100 characters"),
       termsAccepted: Yup.bool().oneOf([true], "You must accept T&C"),
       website: Yup.string()
         .url("Enter a valid website URL (https://...)")
@@ -558,6 +563,7 @@ const AgentRegistration = () => {
                           {...formik.getFieldProps("description")}
                           placeholder="Describe your agency..."
                           rows={4}
+                          maxLength={101}
                         />
                         {formik.touched.description &&
                           formik.errors.description && (

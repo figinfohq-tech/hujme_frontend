@@ -89,6 +89,9 @@ const FlightDetails = ({ pkg, packageId }) => {
   const [editIndex, setEditIndex] = useState(null);
   const [flightClass, setFlightClass] = useState<any>([]);
   const [selectedFlightClass, setSelectedFlightClass] = useState<any>([]);
+  const [currentPackageId, setCurrentPackageId] = useState<number | null>(
+    pkg?.packageId ?? packageId ?? null
+  );
 
   const id = pkg?.packageId;
 
@@ -196,16 +199,21 @@ const FlightDetails = ({ pkg, packageId }) => {
     }
   };
 
-  const getFlightByID = async () => {
+  const getFlightByID = async (pkgId?: number) => {
     try {
       setIsLoader(true);
       const token = localStorage.getItem("token");
+
+      const finalId = pkgId ?? currentPackageId;
+      if (!finalId) return;
+
       const response = await axios.get(
-        `${baseURL}package-airlines/byPackage/${id}`,
+        `${baseURL}package-airlines/byPackage/${finalId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       setFlightDetails(response.data || []);
     } catch (error) {
       console.error("GET API Error:", error);
@@ -213,11 +221,12 @@ const FlightDetails = ({ pkg, packageId }) => {
       setIsLoader(false);
     }
   };
+
   useEffect(() => {
-    if (id) {
-      getFlightByID();
+    if (currentPackageId) {
+      getFlightByID(currentPackageId);
     }
-  }, [id]);
+  }, [currentPackageId]);
 
   useEffect(() => {
     fetchCountries();
@@ -349,6 +358,7 @@ const FlightDetails = ({ pkg, packageId }) => {
         const payload = {
           packageId: id ?? packageId,
           airlineId: Number(flight.airline),
+          flightNumber: flight.flightNumber,
           flightClass: flight.flightClass,
           departureDate: new Date(flight.departureDate).toISOString(),
           departureTime: new Date(
@@ -363,27 +373,41 @@ const FlightDetails = ({ pkg, packageId }) => {
 
         // ✅ ONLY UPDATE IF EXISTING + EDITED
         if (flight.isExisting && flight.isEdited) {
-          await axios.put(`${baseURL}package-airlines/${flight.id}`, payload, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
+          const response = await axios.put(
+            `${baseURL}package-airlines/${flight.id}`,
+            payload,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
         }
 
         // ✅ ONLY CREATE IF NEW
         if (!flight.isExisting) {
-          await axios.post(`${baseURL}package-airlines`, payload, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
+          const response = await axios.post(
+            `${baseURL}package-airlines`,
+            payload,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          const newPackageId =
+            response.data?.packageId || response.data?.package?.packageId;
+
+          if (newPackageId) {
+            setCurrentPackageId(newPackageId);
+            getFlightByID(newPackageId); // ✅ immediate refetch with correct ID
+          }
         }
       }
 
       toast.success("Flights saved successfully!");
-      getFlightByID(); // refresh
       // setAddedFlights([]);
       formik.resetForm();
     } catch (error) {
@@ -395,7 +419,7 @@ const FlightDetails = ({ pkg, packageId }) => {
   };
 
   const handleEditFlight = (flight, index) => {
-    setEditIndex(index); // <-- yaad rakhe kis card ko update karna hai
+    setEditIndex(index);
 
     formik.setValues({
       airline: String(flight.airlineId ?? flight.airline),
@@ -556,227 +580,246 @@ const FlightDetails = ({ pkg, packageId }) => {
 
         {/* City Selection */}
         <div className="grid grid-cols-2 gap-4">
-          <FormItem>
-            <FormLabel>Departure Country</FormLabel>
-            <Select
-              value={formik.values.departureCountries}
-              onValueChange={(value) => {
-                formik.setFieldValue("departureCountries", value);
-                setSelectedCountryId(value);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select departure country" />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map((items) => {
-                  return (
-                    <SelectItem value={String(items.countryId)}>
-                      {items.countryName}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            <FormMessage>{formik.errors.departureCountries}</FormMessage>
-          </FormItem>
+          <div className="grid gap-4">
+            <FormItem>
+              <FormLabel>Departure Country</FormLabel>
+              <Select
+                value={formik.values.departureCountries}
+                onValueChange={(value) => {
+                  formik.setFieldValue("departureCountries", value);
+                  setSelectedCountryId(value);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select departure country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((items) => {
+                    return (
+                      <SelectItem value={String(items.countryId)}>
+                        {items.countryName}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <FormMessage>{formik.errors.departureCountries}</FormMessage>
+            </FormItem>
 
-          <FormItem>
-            <FormLabel>Departure State</FormLabel>
-            <Select
-              value={formik.values.departureState}
-              onValueChange={(value) => {
-                formik.setFieldValue("departureState", value);
-                setSelectedStateId(value);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select departure state" />
-              </SelectTrigger>
-              <SelectContent>
-                {state.map((items) => {
-                  return (
-                    <SelectItem value={String(items.stateId)}>
-                      {items.stateName}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            <FormMessage>{formik.errors.departureState}</FormMessage>
-          </FormItem>
+            {/* State     */}
+            <FormItem>
+              <FormLabel>Departure State</FormLabel>
+              <Select
+                value={formik.values.departureState}
+                onValueChange={(value) => {
+                  formik.setFieldValue("departureState", value);
+                  setSelectedStateId(value);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select departure state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {state.map((items) => {
+                    return (
+                      <SelectItem value={String(items.stateId)}>
+                        {items.stateName}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <FormMessage>{formik.errors.departureState}</FormMessage>
+            </FormItem>
 
-          <FormItem>
-            <FormLabel>Departure City</FormLabel>
-            <Select
-              value={formik.values.departureCity}
-              onValueChange={(value) => {
-                formik.setFieldValue("departureCity", value);
-                setSelectedCitiesId(value);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select departure city" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map((items) => {
-                  return (
-                    <SelectItem key={items.cityId} value={String(items.cityId)}>
-                      {items.cityName}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            <FormMessage>{formik.errors.departureCity}</FormMessage>
-          </FormItem>
+            {/* city */}
+            <FormItem>
+              <FormLabel>Departure City</FormLabel>
+              <Select
+                value={formik.values.departureCity}
+                onValueChange={(value) => {
+                  formik.setFieldValue("departureCity", value);
+                  setSelectedCitiesId(value);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select departure city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cities.map((items) => {
+                    return (
+                      <SelectItem
+                        key={items.cityId}
+                        value={String(items.cityId)}
+                      >
+                        {items.cityName}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <FormMessage>{formik.errors.departureCity}</FormMessage>
+            </FormItem>
 
-          <FormItem>
-            <FormLabel>Arrival Countries</FormLabel>
-            <Select
-              value={formik.values.arrivalCountries}
-              onValueChange={(value) => {
-                formik.setFieldValue("arrivalCountries", value);
-                setSelectedCountryId2(value);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select arrival country" />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map((items) => {
-                  return (
-                    <SelectItem value={String(items.countryId)}>
-                      {items.countryName}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            <FormMessage>{formik.errors.arrivalCountries}</FormMessage>
-          </FormItem>
-
-          <FormItem>
-            <FormLabel>Arrival States</FormLabel>
-            <Select
-              value={formik.values.arrivalState}
-              onValueChange={(value) => {
-                formik.setFieldValue("arrivalState", value);
-                setSelectedStateId2(value);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select arrival state" />
-              </SelectTrigger>
-              <SelectContent>
-                {state2.map((items) => {
-                  return (
-                    <SelectItem value={String(items.stateId)}>
-                      {items.stateName}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            <FormMessage>{formik.errors.arrivalState}</FormMessage>
-          </FormItem>
-
-          <FormItem>
-            <FormLabel>Arrival City</FormLabel>
-            <Select
-              value={formik.values.arrivalCity}
-              onValueChange={(value) => {
-                formik.setFieldValue("arrivalCity", value);
-                setSelectedCitiesId2(value);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select arrival city" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities2.map((items) => {
-                  return (
-                    <SelectItem key={items.cityId} value={String(items.cityId)}>
-                      {items.cityName}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            <FormMessage>{formik.errors.arrivalCity}</FormMessage>
-          </FormItem>
-        </div>
-
-        {/* Dates */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Departure Date */}
-          <FormItem className="space-y-2">
-            <FormLabel>Departure Date</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formik.values.departureDate
-                    ? format(formik.values.departureDate, "PPP")
-                    : "Pick date"}
-                </Button>
-              </PopoverTrigger>
-
-              <PopoverContent align="start">
-                <Calendar
-                  mode="single"
-                  selected={formik.values.departureDate}
-                  onSelect={(val) => formik.setFieldValue("departureDate", val)}
-                />
-              </PopoverContent>
-            </Popover>
-            <FormMessage>{formik.errors.departureDate}</FormMessage>
-
-            <Input
-              type="time"
-              name="departureTime"
-              value={formik.values.departureTime}
-              onChange={formik.handleChange}
-            />
-            <FormMessage>{formik.errors.departureTime}</FormMessage>
-          </FormItem>
-
-          {/* Arrival Date */}
-          <FormItem className="space-y-2">
-            <FormLabel>Arrival Date</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formik.values.arrivalDate
-                    ? format(formik.values.arrivalDate, "PPP")
-                    : "Pick date"}
-                </Button>
-              </PopoverTrigger>
-
-              <PopoverContent align="start">
-                <Calendar
-                  mode="single"
-                  selected={formik.values.arrivalDate}
-                  onSelect={(val) => formik.setFieldValue("arrivalDate", val)}
-                  disabled={(date) =>
+            {/* date & time */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Departure Date */}
+              <FormItem className="">
+                <FormLabel>Departure Date</FormLabel>
+                <Input
+                  type="date"
+                  name="departureDate"
+                  value={
                     formik.values.departureDate
-                      ? date <= (formik.values.departureDate as Date)
-                      : false
+                      ? format(formik.values.departureDate, "yyyy-MM-dd")
+                      : ""
                   }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    formik.setFieldValue(
+                      "departureDate",
+                      value ? new Date(value) : null
+                    );
+                  }}
                 />
-              </PopoverContent>
-            </Popover>
-            <FormMessage>{formik.errors.arrivalDate}</FormMessage>
+                <FormMessage>{formik.errors.departureDate}</FormMessage>
+              </FormItem>
 
-            <Input
-              type="time"
-              name="arrivalTime"
-              value={formik.values.arrivalTime}
-              onChange={formik.handleChange}
-            />
-            <FormMessage>{formik.errors.arrivalTime}</FormMessage>
-          </FormItem>
+              {/* Departure Time */}
+              <FormItem className="">
+                <FormLabel>Departure Time</FormLabel>
+                <Input
+                  type="time"
+                  name="departureTime"
+                  value={formik.values.departureTime}
+                  onChange={formik.handleChange}
+                />
+                <FormMessage>{formik.errors.departureTime}</FormMessage>
+              </FormItem>
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            <FormItem>
+              <FormLabel>Arrival Countries</FormLabel>
+              <Select
+                value={formik.values.arrivalCountries}
+                onValueChange={(value) => {
+                  formik.setFieldValue("arrivalCountries", value);
+                  setSelectedCountryId2(value);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select arrival country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((items) => {
+                    return (
+                      <SelectItem value={String(items.countryId)}>
+                        {items.countryName}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <FormMessage>{formik.errors.arrivalCountries}</FormMessage>
+            </FormItem>
+
+            <FormItem>
+              <FormLabel>Arrival States</FormLabel>
+              <Select
+                value={formik.values.arrivalState}
+                onValueChange={(value) => {
+                  formik.setFieldValue("arrivalState", value);
+                  setSelectedStateId2(value);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select arrival state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {state2.map((items) => {
+                    return (
+                      <SelectItem value={String(items.stateId)}>
+                        {items.stateName}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <FormMessage>{formik.errors.arrivalState}</FormMessage>
+            </FormItem>
+
+            <FormItem>
+              <FormLabel>Arrival City</FormLabel>
+              <Select
+                value={formik.values.arrivalCity}
+                onValueChange={(value) => {
+                  formik.setFieldValue("arrivalCity", value);
+                  setSelectedCitiesId2(value);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select arrival city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cities2.map((items) => {
+                    return (
+                      <SelectItem
+                        key={items.cityId}
+                        value={String(items.cityId)}
+                      >
+                        {items.cityName}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <FormMessage>{formik.errors.arrivalCity}</FormMessage>
+            </FormItem>
+
+            {/* date & time */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Arrival Date */}
+              <FormItem className="">
+                <FormLabel>Arrival Date</FormLabel>
+                <Input
+                  type="date"
+                  name="arrivalDate"
+                  value={
+                    formik.values.arrivalDate
+                      ? format(formik.values.arrivalDate, "yyyy-MM-dd")
+                      : ""
+                  }
+                  min={
+                    formik.values.departureDate
+                      ? format(formik.values.departureDate, "yyyy-MM-dd")
+                      : undefined
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    formik.setFieldValue(
+                      "arrivalDate",
+                      value ? new Date(value) : null
+                    );
+                  }}
+                />
+                <FormMessage>{formik.errors.arrivalDate}</FormMessage>
+              </FormItem>
+
+              {/* Arrival Time */}
+              <FormItem className="">
+                <FormLabel>Arrival Time</FormLabel>
+                <Input
+                  type="time"
+                  name="arrivalTime"
+                  value={formik.values.arrivalTime}
+                  onChange={formik.handleChange}
+                />
+                <FormMessage>{formik.errors.arrivalTime}</FormMessage>
+              </FormItem>
+            </div>
+          </div>
         </div>
 
         <Button type="submit" variant="secondary" className="w-full">
