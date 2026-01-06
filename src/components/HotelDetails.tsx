@@ -12,6 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { FormLabel } from "@/components/ui/form";
 import {
   Popover,
@@ -74,6 +82,10 @@ const HotelDetails = ({ pkg, packageId }: any) => {
   });
   const [currentPackageId, setCurrentPackageId] = useState<number | null>(
     pkg?.packageId ?? packageId ?? null
+  );
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [hotelToDelete, setHotelToDelete] = useState<SelectedHotel | null>(
+    null
   );
 
   const id = pkg?.packageId;
@@ -380,7 +392,43 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     toast.success("Hotel updated locally");
   };
 
-  // Submit handler: loop & POST or PUT based on packageHotelId presence
+  const confirmDeleteHotel = async () => {
+    if (!hotelToDelete) return;
+
+    try {
+      setIsLoader(true);
+
+      // Existing backend hotel → DELETE API
+      if (hotelToDelete.packageHotelId) {
+        await deleteHotelFromBackend(hotelToDelete.packageHotelId);
+      }
+
+      // Remove from UI (both cases)
+      setAddedHotels((prev) => prev.filter((h) => h.id !== hotelToDelete.id));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoader(false);
+      setOpenDeleteDialog(false);
+      setHotelToDelete(null);
+    }
+  };
+
+  const deleteHotelFromBackend = async (packageHotelId: string | number) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.delete(`${baseURL}package-hotels/${packageHotelId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      toast.success("Hotel deleted successfully");
+    } catch (error) {
+      console.error("Hotel delete API error:", error);
+      toast.error("Failed to delete hotel");
+      throw error;
+    }
+  };
 
   const handleSubmitHotels = async () => {
     try {
@@ -548,7 +596,10 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRemoveHotel(hotel.id)}
+                        onClick={() => {
+                          setHotelToDelete(hotel);
+                          setOpenDeleteDialog(true);
+                        }}
                         className="text-destructive hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
@@ -748,6 +799,43 @@ const HotelDetails = ({ pkg, packageId }: any) => {
             : "Create Package"}
         </Button>
       </div>
+
+      <Dialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Remove Hotel</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove this hotel from the package?
+              <br />
+              <span className="font-medium text-foreground">
+                {hotelToDelete?.hotelName}
+              </span>
+              <br />
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setOpenDeleteDialog(false);
+                setHotelToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteHotel}
+              disabled={isLoader}
+            >
+              {isLoader ? "Deleting..." : "OK, Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

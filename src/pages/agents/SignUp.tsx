@@ -1,358 +1,835 @@
-import React from "react";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { useEffect, useState } from "react";
+import { useFormik } from "formik";
 import * as Yup from "yup";
-import { FaUser, FaEnvelope, FaLock, FaPhone } from "react-icons/fa";
-import { Link, useNavigate } from "react-router";
-import { IoMdArrowRoundBack } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+// import { toast } from "sonner";
+// import { supabase } from "@/integrations/supabase/client";
+import {
+  Building,
+  Mail,
+  Phone,
+  MapPin,
+  FileText,
+  Upload,
+  Shield,
+  Star,
+  Image as ImageIcon,
+  CheckCircle,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { baseURL } from "@/utils/constant/url";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Shield } from "lucide-react";
+// import Header from "@/components/Header";
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const [logoPreview, setLogoPreview] = useState(null);
 
-  const validationSchema = Yup.object({
-    firstName: Yup.string()
-      .min(2, "First name must be at least 2 characters")
-      .required("First name is required"),
-    lastName: Yup.string()
-      .min(2, "Last name must be at least 2 characters")
-      .required("Last name is required"),
-     email: Yup.string()
-            .trim()
-            .email("Please enter a valid email address (e.g. name@example.com)")
-            .required("Email address is required"),
-    mobile: Yup.string()
-      .matches(/^[0-9]{10}$/, "Enter a valid 10-digit mobile number")
-      .required("Mobile number is required"),
-    password: Yup.string()
-      .min(6, "Password must be at least 6 characters")
-      .required("Password is required"),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref("password"), null], "Passwords must match")
-      .required("Confirm password is required"),
-  });
+  // countries, cities and states api calling
+  const [state, setState] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [selectedStateId, setSelectedStateId] = useState("");
+  const [selectdCitiesId, setSelectedCitiesId] = useState("");
 
-  const handleSubmit = async (values, { resetForm, setSubmitting }) => {
+  useEffect(() => {
+    fetchStates();
+  }, []);
+
+  useEffect(() => {
+    if (selectedStateId) {
+      fetchCities();
+    }
+  }, [selectedStateId]);
+
+  const fetchStates = async () => {
     try {
-      const payload = {
-        firstName: values.firstName,
-        lastName: values.lastName,
-        email: values.email,
-        phone: values.mobile,
-        password: values.password,
-        role: "AGENT", // fixed value as per your API
-      };
-
-      const response = await axios.post(`${baseURL}auth/signup`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      toast.success("Sign up successful!");
-      navigate("/auth");
-      resetForm();
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://31.97.205.55:8080/api/states/byCountry/${1}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setState(response.data);
     } catch (error) {
-      console.error("❌ Error during sign up:", error.response?.data || error);
-      toast.error(error.response?.data?.message || "Sign up failed!");
-    } finally {
-      setSubmitting(false);
+      console.error("Error fetching products:", error);
     }
   };
 
+  const fetchCities = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://31.97.205.55:8080/api/cities/byState/${selectedStateId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setCities(response.data);
+    } catch (error) {
+      console.error("Error fetching Cities:", error);
+    }
+  };
+
+  const uploadAgentLogo = async (agentId: any, file: any) => {
+    if (!file) return;
+
+    const token = localStorage.getItem("token");
+
+    const formData = new FormData();
+    formData.append("agentId", agentId);
+    formData.append("file", file);
+
+    const response = await axios.post(
+      `${baseURL}agents/upload-logo`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+  };
+
+  // countries, cities and states api calling
+
+  // ------------------------ FORM VALIDATION ------------------------
+  const formik = useFormik({
+    initialValues: {
+      firstName: "",
+      lastName: "",
+      userEmail: "",
+      mobileNumber: "",
+      password: "",
+      confirmPassword: "",
+
+      agencyName: "",
+      contactPerson: "",
+      email: "",
+      phone: "",
+      address: "",
+      city: "",
+      state: "",
+      experience: "",
+      license: "",
+      description: "",
+      speciality: "",
+      totalPackages: "",
+      trusted: false,
+      logo: null,
+      certificate: "",
+      website: "",
+      termsAccepted: false,
+    },
+
+    validationSchema: Yup.object({
+      /* ---------- USER DETAILS ---------- */
+      firstName: Yup.string()
+        .min(2, "First name must be at least 2 characters")
+        .required("First name is required"),
+
+      lastName: Yup.string()
+        .min(2, "Last name must be at least 2 characters")
+        .required("Last name is required"),
+
+      userEmail: Yup.string()
+        .email("Please enter a valid email address")
+        .required("Email address is required"),
+
+      mobileNumber: Yup.string()
+        .matches(/^[0-9]{10}$/, "Enter a valid 10-digit mobile number")
+        .required("Mobile number is required"),
+
+      password: Yup.string()
+        .min(6, "Password must be at least 6 characters")
+        .required("Password is required"),
+
+      confirmPassword: Yup.string()
+        .oneOf([Yup.ref("password")], "Passwords do not match")
+        .required("Confirm password is required"),
+
+      /* ---------- EXISTING VALIDATION ---------- */
+      agencyName: Yup.string()
+        .min(5, "Minimum 5 characters")
+        .max(100, "Maximum 100 characters")
+        .required("Required"),
+      contactPerson: Yup.string().min(3).max(60).required("Required"),
+      email: Yup.string()
+        .trim()
+        .email("Please enter a valid email address (e.g. name@example.com)")
+        .required("Email address is required"),
+
+      phone: Yup.string()
+        .matches(/^[6-9]\d{9}$/, "Enter a valid 10-digit mobile number")
+        .required("Phone number is required"),
+      address: Yup.string()
+        .min(10, "Address must be at least 10 characters long")
+        .max(100, "Address cannot exceed 100 characters")
+        .required("Address is required"),
+
+      city: Yup.string().required("Required"),
+      state: Yup.string().required("Required"),
+      experience: Yup.string().required("Required"),
+      certificate: Yup.string()
+        .min(5, "Too short")
+        .max(30, "Too long")
+        .required("Certificate required"),
+      description: Yup.string()
+        .min(10, "Minimum 10 characters")
+        .max(100, "Maximum 100 characters"),
+      termsAccepted: Yup.bool().oneOf([true], "You must accept T&C"),
+      website: Yup.string()
+        .url("Enter a valid website URL (https://...)")
+        .nullable(),
+    }),
+   onSubmit: async (values) => {
+  try {
+    /* ===================== 1️⃣ SIGNUP API ===================== */
+    const signupPayload = {
+      firstName: values.firstName,
+      lastName: values.lastName,
+      email: values.userEmail,
+      phone: values.mobileNumber,
+      password: values.password,
+      role: "AGENT",
+    };
+
+    const signupRes = await axios.post(
+      `${baseURL}auth/signup`,
+      signupPayload,
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    const { userId, token } = signupRes.data;
+
+    // save token & userId
+    localStorage.setItem("token", token);
+    localStorage.setItem("userId", userId);
+
+    /* ===================== 2️⃣ AGENT REGISTER API ===================== */
+    const agentPayload = {
+      userId: Number(userId),
+      agencyName: values.agencyName,
+      contactPerson: values.contactPerson,
+      agencyEmail: values.email,
+      agencyPhone: values.phone,
+      address: values.address,
+      stateId: Number(selectedStateId),
+      cityId: Number(selectdCitiesId),
+      experience: values.experience,
+      description: values.description,
+      certification: values.certificate,
+      website: values.website,
+      termsAccepted: values.termsAccepted,
+    };
+
+    const agentRes = await axios.post(
+      `${baseURL}agents/register`,
+      agentPayload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const agentId = agentRes.data.agentId;
+    localStorage.setItem("agentId", agentId);
+
+    /* ===================== 3️⃣ LOGO UPLOAD (OPTIONAL) ===================== */
+    if (values.logo) {
+      await uploadAgentLogo(agentId, values.logo);
+    }
+
+    toast.success("Signup & Agent Registration Successful");
+    navigate("/");
+
+  } catch (error) {
+    console.error("API Error:", error.response?.data || error);
+    toast.error(
+      error.response?.data?.message || "Registration failed. Please try again."
+    );
+  }
+},
+
+  });
+
+  // Logo Image Handler
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    formik.setFieldValue("logo", file);
+
+    const imgUrl = URL.createObjectURL(file);
+    setLogoPreview(imgUrl);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Back Link */}
-      <div className="p-6">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-green-900 font-semibold text-lg transition hover:text-green-700"
-        >
-          <IoMdArrowRoundBack size={25} />
-          <span>Back to Home</span>
-        </Link>
-      </div>
-
-      {/* Main Form Card */}
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">
-            Join as Travel Agent
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Partner with us to offer your Hajj & Umrah packages to thousands of
-            pilgrims
-          </p>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 my-4">
-          <div className="lg:col-span-1">
-            <Card className="sticky top-18">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Shield className="w-5 h-5 mr-2 text-primary" />
-                  Why Join Us?
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium">Reach More Customers</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Access thousands of potential pilgrims
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium">Easy Management</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Simple dashboard to manage packages
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium">Secure Payments</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Safe and secure payment processing
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium">24/7 Support</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Dedicated support for agents
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+    <div className="min-h-screen bg-background">
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+              Join as Travel Agent
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Partner with us to offer your Hajj & Umrah packages to thousands
+              of pilgrims
+            </p>
           </div>
-          <div className="lg:col-span-2">
-            <Card className="w-full p-6 sm:p-8">
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-semibold text-gray-800">
-                  Welcome
-                </h3>
-              </div>
 
-              <Formik
-                initialValues={{
-                  firstName: "",
-                  lastName: "",
-                  email: "",
-                  mobile: "",
-                  password: "",
-                  confirmPassword: "",
-                }}
-                validationSchema={validationSchema}
-                onSubmit={handleSubmit}
-              >
-                {({ isSubmitting }) => (
-                  <Form className="space-y-4">
-                    {/* Name Fields */}
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="flex-1">
-                        <label
-                          htmlFor="firstName"
-                          className="block text-gray-700 font-medium mb-1"
-                        >
-                          First Name <span className="text-red-500">*</span>
-                        </label>
-                        <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-gray-50">
-                          <span className="px-3 text-gray-500">
-                            <FaUser />
-                          </span>
-                          <Field
-                            type="text"
-                            id="firstName"
-                            name="firstName"
-                            className="w-full px-3 py-2 outline-none bg-gray-50"
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Benefits */}
+            <div className="lg:col-span-1">
+              <Card className="sticky top-4">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Shield className="w-5 h-5 mr-2 text-primary" />
+                    Why Join Us?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Reach More Customers</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Access thousands of potential pilgrims
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Easy Management</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Simple dashboard to manage packages
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Secure Payments</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Safe and secure payment processing
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">24/7 Support</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Dedicated support for agents
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Registration Form */}
+            {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6"> */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">
+                    Agent Registration Form
+                  </CardTitle>
+                </CardHeader>
+
+                <CardContent>
+                  <form onSubmit={formik.handleSubmit} className="space-y-6">
+                    {/* ------------------ USER DETAILS ------------------ */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center">
+                        <Shield className="w-5 h-5 mr-2 text-green-700" />
+                        Account Details
+                      </h3>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* First Name */}
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>First Name</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Input
+                            {...formik.getFieldProps("firstName")}
                             placeholder="Enter your first name"
                           />
+                          {formik.touched.firstName &&
+                            formik.errors.firstName && (
+                              <p className="text-red-600 text-sm">
+                                {formik.errors.firstName}
+                              </p>
+                            )}
                         </div>
-                        <ErrorMessage
-                          name="firstName"
-                          component="div"
-                          className="text-red-500 text-sm mt-1"
-                        />
-                      </div>
 
-                      <div className="flex-1">
-                        <label
-                          htmlFor="lastName"
-                          className="block text-gray-700 font-medium mb-1"
-                        >
-                          Last Name <span className="text-red-500">*</span>
-                        </label>
-                        <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-gray-50">
-                          <Field
-                            type="text"
-                            id="lastName"
-                            name="lastName"
-                            className="w-full px-3 py-2 outline-none bg-gray-50"
+                        {/* Last Name */}
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>Last Name</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Input
+                            {...formik.getFieldProps("lastName")}
                             placeholder="Enter your last name"
                           />
+                          {formik.touched.lastName &&
+                            formik.errors.lastName && (
+                              <p className="text-red-600 text-sm">
+                                {formik.errors.lastName}
+                              </p>
+                            )}
                         </div>
-                        <ErrorMessage
-                          name="lastName"
-                          component="div"
-                          className="text-red-500 text-sm mt-1"
-                        />
+
+                        {/* Email */}
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>Email Address</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Input
+                            type="email"
+                            {...formik.getFieldProps("userEmail")}
+                            placeholder="Enter your email"
+                          />
+                          {formik.touched.userEmail &&
+                            formik.errors.userEmail && (
+                              <p className="text-red-600 text-sm">
+                                {formik.errors.userEmail}
+                              </p>
+                            )}
+                        </div>
+
+                        {/* Mobile */}
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>Mobile Number</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Input
+                            maxLength={10}
+                            inputMode="numeric"
+                            placeholder="Enter your mobile number"
+                            value={formik.values.mobileNumber}
+                            onChange={(e) =>
+                              formik.setFieldValue(
+                                "mobileNumber",
+                                e.target.value.replace(/\D/g, "")
+                              )
+                            }
+                          />
+                          {formik.touched.mobileNumber &&
+                            formik.errors.mobileNumber && (
+                              <p className="text-red-600 text-sm">
+                                {formik.errors.mobileNumber}
+                              </p>
+                            )}
+                        </div>
+
+                        {/* Password */}
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>Password</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Input
+                            type="password"
+                            {...formik.getFieldProps("password")}
+                            placeholder="Enter your password"
+                          />
+                          {formik.touched.password &&
+                            formik.errors.password && (
+                              <p className="text-red-600 text-sm">
+                                {formik.errors.password}
+                              </p>
+                            )}
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>Confirm Password</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Input
+                            type="password"
+                            {...formik.getFieldProps("confirmPassword")}
+                            placeholder="Re-enter your password"
+                          />
+                          {formik.touched.confirmPassword &&
+                            formik.errors.confirmPassword && (
+                              <p className="text-red-600 text-sm">
+                                {formik.errors.confirmPassword}
+                              </p>
+                            )}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Email */}
-                    <div>
-                      <label
-                        htmlFor="email"
-                        className="block text-gray-700 font-medium mb-1"
-                      >
-                        Email Address <span className="text-red-500">*</span>
-                      </label>
-                      <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-gray-50">
-                        <span className="px-3 text-gray-500">
-                          <FaEnvelope />
-                        </span>
-                        <Field
-                          type="email"
-                          id="email"
-                          name="email"
-                          className="w-full px-3 py-2 outline-none bg-gray-50"
-                          placeholder="Enter your email"
-                        />
+                    {/* ------------------ AGENCY INFORMATION ------------------ */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center">
+                        <Building className="w-5 h-5 mr-2 text-green-700" />
+                        Agency Information
+                      </h3>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>Agency Name</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Input
+                            {...formik.getFieldProps("agencyName")}
+                            placeholder="Enter agency name"
+                          />
+
+                          {formik.touched.agencyName &&
+                            formik.errors.agencyName && (
+                              <p className="text-red-600 text-sm">
+                                {formik.errors.agencyName}
+                              </p>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>Contact Person</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Input
+                            {...formik.getFieldProps("contactPerson")}
+                            placeholder="Enter contact person name"
+                          />
+                          {formik.touched.contactPerson &&
+                            formik.errors.contactPerson && (
+                              <p className="text-red-600 text-sm">
+                                {formik.errors.contactPerson}
+                              </p>
+                            )}
+                        </div>
                       </div>
-                      <ErrorMessage
-                        name="email"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>Agency Email Address</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Input
+                            type="email"
+                            {...formik.getFieldProps("email")}
+                            placeholder="Enter email"
+                          />
+                          {formik.touched.email && formik.errors.email && (
+                            <p className="text-red-600 text-sm">
+                              {formik.errors.email}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>Agency Phone Number</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Input
+                            name="phone"
+                            placeholder="Enter phone number"
+                            maxLength={10}
+                            value={formik.values.phone}
+                            inputMode="numeric"
+                            onChange={(e) => {
+                              const onlyNumbers = e.target.value.replace(
+                                /\D/g,
+                                ""
+                              );
+                              formik.setFieldValue("phone", onlyNumbers);
+                            }}
+                            onBlur={formik.handleBlur}
+                          />
+                          {formik.touched.phone && formik.errors.phone && (
+                            <p className="text-red-600 text-sm">
+                              {formik.errors.phone}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Mobile */}
-                    <div>
-                      <label
-                        htmlFor="mobile"
-                        className="block text-gray-700 font-medium mb-1"
-                      >
-                        Mobile Number <span className="text-red-500">*</span>
-                      </label>
-                      <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-gray-50">
-                        <span className="px-3 text-gray-500">
-                          <FaPhone />
-                        </span>
-                        <Field name="mobile">
-                          {({ field, form }: any) => (
-                            <input
-                              {...field}
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              maxLength={10}
-                              className="w-full px-3 py-2 outline-none bg-gray-50"
-                              placeholder="Enter your mobile number"
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/\D/g, ""); // remove non-numeric
-                                form.setFieldValue(
-                                  "mobile",
-                                  value.slice(0, 10)
+                    {/* ------------------ LOCATION ------------------ */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex">
+                          <Label>Business Address </Label>
+                          <span className="text-red-500">*</span>
+                        </div>
+                        <Textarea
+                          {...formik.getFieldProps("address")}
+                          placeholder="Enter business address"
+                          maxLength={101}
+                        />
+                        {formik.touched.address && formik.errors.address && (
+                          <p className="text-red-600 text-sm">
+                            {formik.errors.address}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>State</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Select
+                            onValueChange={(value) => {
+                              formik.setFieldValue("state", value);
+                              setSelectedStateId(value);
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select state" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {state.map((items) => {
+                                return (
+                                  <SelectItem
+                                    key={items.stateId}
+                                    value={String(items.stateId)}
+                                  >
+                                    {items.stateName}
+                                  </SelectItem>
                                 );
-                              }}
+                              })}
+                            </SelectContent>
+                          </Select>
+                          {formik.touched.state && formik.errors.state && (
+                            <p className="text-red-600 text-sm">
+                              {formik.errors.state}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>City</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Select
+                            onValueChange={(value) => {
+                              formik.setFieldValue("city", value);
+                              setSelectedCitiesId(value);
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select city" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {cities.map((items) => {
+                                return (
+                                  <SelectItem
+                                    key={items.cityId}
+                                    value={String(items.cityId)}
+                                  >
+                                    {items.cityName}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                          {formik.touched.city && formik.errors.city && (
+                            <p className="text-red-600 text-sm">
+                              {formik.errors.city}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ------------------ BUSINESS DETAILS ------------------ */}
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>Experience</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Select
+                            onValueChange={(v) =>
+                              formik.setFieldValue("experience", v)
+                            }
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Years of experience" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1-2">1-2 Years</SelectItem>
+                              <SelectItem value="3-5">3-5 Years</SelectItem>
+                              <SelectItem value="6-10">6-10 Years</SelectItem>
+                              <SelectItem value="10+">10+ Years</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {formik.touched.experience &&
+                            formik.errors.experience && (
+                              <p className="text-red-600 text-sm">
+                                {formik.errors.experience}
+                              </p>
+                            )}
+                        </div>
+
+                        {/* Certificate (Text Input) */}
+                        <div className="space-y-2">
+                          <div className="flex">
+                            <Label>IATA / HJTC Certificate</Label>
+                            <span className="text-red-500">*</span>
+                          </div>
+                          <Input
+                            {...formik.getFieldProps("certificate")}
+                            placeholder="Enter certificate number"
+                          />
+                          {formik.touched.certificate &&
+                            formik.errors.certificate && (
+                              <p className="text-red-600 text-sm">
+                                {formik.errors.certificate}
+                              </p>
+                            )}
+                        </div>
+
+                        {/* Website */}
+                        <div className="space-y-2">
+                          <Label>Agency Website</Label>
+                          <Input
+                            type="url"
+                            placeholder="https://www.youragency.com"
+                            {...formik.getFieldProps("website")}
+                          />
+                          {formik.touched.website && formik.errors.website && (
+                            <p className="text-red-600 text-sm">
+                              {formik.errors.website}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Description</Label>
+                        <Textarea
+                          {...formik.getFieldProps("description")}
+                          placeholder="Describe your agency..."
+                          rows={4}
+                          maxLength={101}
+                        />
+                        {formik.touched.description &&
+                          formik.errors.description && (
+                            <p className="text-red-600 text-sm">
+                              {formik.errors.description}
+                            </p>
+                          )}
+                      </div>
+                    </div>
+
+                    {/* ------------------ ADDITIONAL FIELDS ------------------ */}
+                    <div className="space-y-4">
+                      {/* Logo Upload */}
+                      <div className="space-y-2">
+                        <Label>Upload Agency Logo</Label>
+                        <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            id="logoUpload"
+                            onChange={handleLogoUpload}
+                          />
+                          <label
+                            htmlFor="logoUpload"
+                            className="cursor-pointer"
+                          >
+                            <ImageIcon className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                            Upload Logo
+                          </label>
+
+                          {logoPreview && (
+                            <img
+                              src={logoPreview}
+                              alt="Logo Preview"
+                              className="mx-auto mt-3 w-24 h-24 rounded object-cover"
                             />
                           )}
-                        </Field>
+                        </div>
                       </div>
-                      <ErrorMessage
-                        name="mobile"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
                     </div>
 
-                    {/* Password */}
+                    {/* ------------------ TERMS ------------------ */}
                     <div>
-                      <label
-                        htmlFor="password"
-                        className="block text-gray-700 font-medium mb-1"
-                      >
-                        Password <span className="text-red-500">*</span>
-                      </label>
-                      <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-gray-50">
-                        <span className="px-3 text-gray-500">
-                          <FaLock />
-                        </span>
-                        <Field
-                          type="password"
-                          id="password"
-                          name="password"
-                          className="w-full px-3 py-2 outline-none bg-gray-50"
-                          placeholder="Enter your password"
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="terms"
+                          checked={formik.values.termsAccepted}
+                          onCheckedChange={(v) =>
+                            formik.setFieldValue("termsAccepted", v)
+                          }
                         />
+                        <Label htmlFor="terms" className="text-sm">
+                          I agree to the{" "}
+                          <span className="text-primary underline cursor-pointer">
+                            Terms & Conditions
+                          </span>{" "}
+                          and{" "}
+                          <span className="text-primary underline cursor-pointer">
+                            Privacy Policy
+                          </span>
+                        </Label>
                       </div>
-                      <ErrorMessage
-                        name="password"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
+                      <div>
+                        {formik.touched.termsAccepted &&
+                          formik.errors.termsAccepted && (
+                            <p className="text-red-600 text-sm">
+                              {formik.errors.termsAccepted}
+                            </p>
+                          )}
+                      </div>
                     </div>
 
-                    {/* Confirm Password */}
-                    <div>
-                      <label
-                        htmlFor="confirmPassword"
-                        className="block text-gray-700 font-medium mb-1"
-                      >
-                        Confirm Password <span className="text-red-500">*</span>
-                      </label>
-                      <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-gray-50">
-                        <span className="px-3 text-gray-500">
-                          <FaLock />
-                        </span>
-                        <Field
-                          type="password"
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          className="w-full px-3 py-2 outline-none bg-gray-50"
-                          placeholder="Re-enter your password"
-                        />
-                      </div>
-                      <ErrorMessage
-                        name="confirmPassword"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
-                    </div>
-
-                    {/* Submit Button */}
-                    <button
+                    {/* ------------------ SUBMIT ------------------ */}
+                    <Button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="w-full bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth font-semibold py-2 rounded-lg transition mt-4"
+                      className="w-full bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth"
                     >
-                      {isSubmitting ? "Signing Up..." : "Sign Up"}
-                    </button>
-
-                    <p className="text-center text-gray-500 text-sm mt-3">
-                      By continuing, you agree to our{" "}
-                      <span className="text-green-900">Terms of Service</span>{" "}
-                      and <span className="text-green-900">Privacy Policy</span>
-                      .
-                    </p>
-                  </Form>
-                )}
-              </Formik>
-            </Card>
+                      Submit Registration
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+            {/* </div> */}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

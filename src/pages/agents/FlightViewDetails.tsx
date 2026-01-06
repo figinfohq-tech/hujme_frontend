@@ -7,12 +7,11 @@ import {
   PlaneLanding,
   Calendar,
   Clock,
-  StickyNote,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const FlightViewDetails = ({ packageId }) => {
-  const [basicFlightsDetails, setBasicFlightsDetails] = useState<any>([]);
+  const [basicFlightsDetails, setBasicFlightsDetails] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const getPackagesByID = async () => {
@@ -23,17 +22,13 @@ const FlightViewDetails = ({ packageId }) => {
       const response = await axios.get(
         `${baseURL}package-airlines/byPackage/${packageId}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       setBasicFlightsDetails(response.data);
-
-      setIsLoading(false);
     } catch (error) {
       console.error("GET API Error:", error);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -42,121 +37,124 @@ const FlightViewDetails = ({ packageId }) => {
     if (packageId) getPackagesByID();
   }, [packageId]);
 
-  if (isLoading) {
-    return <Loader />;
-  }
+  if (isLoading) return <Loader />;
+
   return (
     <div className="w-full px-3 sm:px-4">
       {/* Title */}
       <h1 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
-        <PlaneTakeoff className="text-primary" /> Flight Details
+        <PlaneTakeoff className="text-primary" />
+        Flight Details
       </h1>
 
       {/* No Data */}
-      {basicFlightsDetails?.length === 0 ? (
+      {basicFlightsDetails.length === 0 ? (
         <p className="text-gray-500 text-center py-10">
           No Flight Details Found.
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {basicFlightsDetails?.map((item: any, index: number) => (
+        <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 md:grid-cols-1 gap-5">
+          {basicFlightsDetails.map((item, index) => (
             <Card
               key={index}
-              className="shadow-md border rounded-xl flex flex-col h-full"
+              className="border rounded-xl shadow-md flex flex-col h-full"
             >
+              {/* Header */}
               <CardHeader>
-                <CardTitle className="flex flex-col gap-2 text-base sm:text-lg">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <CardTitle className="space-y-2 text-base sm:text-lg">
+                  <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <PlaneTakeoff className="text-primary" />
-                      <span className="break-all">
-                        Flight Number: {item.airlineDetails.flightCode}
-                      </span>
-                    </div>
-
-                    <div>
-                      {item.airlineDetails.isActive ? (
-                        <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700 font-medium">
-                          Inactive
+                      <span>Flight No: {item?.airlineDetails?.flightCode}</span>
+                      {/* Flight Class Badge */}
+                      {item.flightClass && (
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">
+                          {item.flightClass} Class
                         </span>
                       )}
                     </div>
+
+                    {item.airlineDetails.isActive ? (
+                      <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700">
+                        Active
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700">
+                        Inactive
+                      </span>
+                    )}
                   </div>
 
-                  {/* Flight Name */}
-                  <div className="text-sm text-gray-600 sm:ml-7">
+                  <p className="text-sm text-gray-600">
                     <span className="font-medium">Flight Name:</span>{" "}
                     {item.airlineDetails.flightName}
-                  </div>
+                  </p>
                 </CardTitle>
               </CardHeader>
 
-              <CardContent className="space-y-4 text-sm flex-1">
+              {/* Content */}
+              <CardContent className="flex-1 space-y-4 text-sm">
                 {/* Description */}
-                <div className="bg-green-50 border border-green-200 p-3 sm:p-4 rounded-lg">
-                  <h3 className="text-primary font-medium mb-1">
-                    Description:
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed">
+                <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                  <h3 className="font-medium text-primary mb-1">Description</h3>
+                  <p className="text-gray-700">
                     {item.airlineDetails.description}
                   </p>
                 </div>
 
-                {/* Departure */}
-                <div className="border rounded-lg p-3 sm:p-4 bg-gray-50 space-y-2">
-                  <h3 className="font-medium flex items-center gap-2 text-primary">
-                    <PlaneTakeoff size={18} />
-                    Departure Details
-                  </h3>
+                {/* Journey Sections */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Journey Start */}
+                  <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
+                    <h3 className="font-medium text-primary flex items-center gap-2">
+                      <PlaneTakeoff size={18} />
+                      Journey Start
+                    </h3>
 
-                  <div className="flex items-center gap-2">
-                    <Calendar size={16} className="text-gray-500" />
-                    <p>
-                      <span className="font-medium">Date:</span>{" "}
-                      {item.departureDate?.split("T")[0]}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} className="text-gray-500" />
+                      <span>
+                        <strong>Date:</strong>{" "}
+                        {item.departureDate?.split("T")[0]}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Clock size={16} className="text-gray-500" />
+                      <span>
+                        <strong>Time:</strong>{" "}
+                        {new Date(item.departureTime).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Clock size={16} className="text-gray-500" />
-                    <p>
-                      <span className="font-medium">Time:</span>{" "}
-                      {new Date(item.departureTime).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                </div>
+                  {/* Journey End */}
+                  <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
+                    <h3 className="font-medium text-primary flex items-center gap-2">
+                      <PlaneLanding size={18} />
+                      Journey End
+                    </h3>
 
-                {/* Arrival */}
-                <div className="border rounded-lg p-3 sm:p-4 bg-gray-50 space-y-2">
-                  <h3 className="font-medium flex items-center gap-2 text-primary">
-                    <PlaneLanding size={18} />
-                    Arrival Details
-                  </h3>
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} className="text-gray-500" />
+                      <span>
+                        <strong>Date:</strong> {item.arrivalDate?.split("T")[0]}
+                      </span>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    <Calendar size={16} className="text-gray-500" />
-                    <p>
-                      <span className="font-medium">Date:</span>{" "}
-                      {item.arrivalDate?.split("T")[0]}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Clock size={16} className="text-gray-500" />
-                    <p>
-                      <span className="font-medium">Time:</span>{" "}
-                      {new Date(item.arrivalTime).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <Clock size={16} className="text-gray-500" />
+                      <span>
+                        <strong>Time:</strong>{" "}
+                        {new Date(item.arrivalTime).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </CardContent>

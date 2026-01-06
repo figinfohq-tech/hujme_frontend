@@ -424,7 +424,7 @@ export function AddNewPackage({
           toast.success("Package created successfully!");
         }
 
-        resetForm();
+        // resetForm();
         // onOpenChange(false);
       } catch (error) {
         console.error("API Error:", error);

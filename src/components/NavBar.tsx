@@ -55,7 +55,7 @@ const NavBar = () => {
                 <User className={`w-4 h-4 `} />
                 <span className="font-semibold text-sm">
                   {" "}
-                  {`Welcome ${userDetails.firstName} ${userDetails.lastName}...`}
+                  {`Welcome ${userDetails?.firstName} ${userDetails?.lastName}...`}
                 </span>
               </div>
             )}

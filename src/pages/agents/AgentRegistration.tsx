@@ -150,7 +150,7 @@ const AgentRegistration = () => {
         .required("Phone number is required"),
       address: Yup.string()
         .min(10, "Address must be at least 10 characters long")
-        .max(500, "Address cannot exceed 500 characters")
+        .max(100, "Address cannot exceed 100 characters")
         .required("Address is required"),
 
       city: Yup.string().required("Required"),
@@ -408,6 +408,7 @@ const AgentRegistration = () => {
                         <Textarea
                           {...formik.getFieldProps("address")}
                           placeholder="Enter business address"
+                          maxLength={101}
                         />
                         {formik.touched.address && formik.errors.address && (
                           <p className="text-red-600 text-sm">
