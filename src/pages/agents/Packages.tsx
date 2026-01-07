@@ -16,6 +16,8 @@ import {
   Eye,
   UserCog,
   Delete,
+  MapPin,
+  CalendarDays,
 } from "lucide-react";
 import { PackageFormDialog } from "@/components/PackageFormDialog";
 import axios from "axios";
@@ -26,6 +28,7 @@ import { toast } from "react-toastify";
 import { baseURL } from "@/utils/constant/url";
 import { useNavigate } from "react-router";
 import { Switch } from "@/components/ui/switch";
+import { format } from "date-fns";
 
 const Packages = () => {
   const [packages, setPackages] = useState<any[]>([]);
@@ -35,8 +38,10 @@ const Packages = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedPkg, setSelectedPkg] = useState<any>(false);
   const [agentId, setAgentId] = useState<any>("");
+  const [agentLogos, setAgentLogos] = useState<{ [key: string]: string }>({});
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [packageFacilities, setPackageFacilities] = useState({});
 
   const navigate = useNavigate();
 
@@ -136,10 +141,84 @@ const Packages = () => {
       );
 
       setPackages(response.data);
+      fetchFacilitiesForPackages(response.data);
+      fetchAgentLogos(response.data);
       setIsLoading(false);
     } catch (error) {
       console.error("Package Fetch Error:", error);
       setIsLoading(false);
+    }
+  };
+
+  const fetchFacilitiesForPackages = async (packagesData) => {
+    const token = localStorage.getItem("token");
+    try {
+      const facilitiesMap = {};
+
+      await Promise.all(
+        packagesData.map(async (pkg) => {
+          if (!pkg.packageId) return;
+
+          const res = await axios.get(
+            `${baseURL}package-facilities/byPackage/${pkg.packageId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          // ONLY featured facilities
+          const featuredFacilities = res.data
+            .filter((item) => item.featured === true)
+            .map((item) => item.facilityDetails?.facilityName)
+            .filter(Boolean);
+
+          facilitiesMap[pkg.packageId] = featuredFacilities;
+        })
+      );
+
+      setPackageFacilities(facilitiesMap);
+    } catch (error) {
+      console.error("Error fetching facilities:", error);
+    }
+  };
+
+  // fetching logo
+  const fetchAgentLogos = async (packagesData: any[]) => {
+    const token = localStorage.getItem("token");
+    try {
+      const agentIds = [
+        ...new Set(packagesData.map((pkg) => pkg.agentId).filter(Boolean)),
+      ];
+
+      const logoRequests = agentIds.map(async (agentId) => {
+        try {
+          const res = await axios.get(`${baseURL}agents/get-logo/${agentId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            responseType: "blob",
+          });
+
+          const imageUrl = URL.createObjectURL(res.data);
+
+          return { agentId, logo: imageUrl };
+        } catch (err) {
+          return { agentId, logo: null };
+        }
+      });
+
+      const logos = await Promise.all(logoRequests);
+
+      const logoMap: any = {};
+      logos.forEach(({ agentId, logo }) => {
+        if (logo) {
+          logoMap[agentId] = logo;
+        }
+      });
+
+      setAgentLogos(logoMap);
+    } catch (error) {
+      console.error("Error fetching agent logos:", error);
     }
   };
 
@@ -266,82 +345,200 @@ const Packages = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6">
             {packages.map((pkg, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg line-clamp-2">
-                      {pkg.packageName}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={
-                          pkg.packageStatus === "ACTIVE"
-                            ? "default"
-                            : "secondary"
+              <Card className="overflow-hidden hover:shadow-elegant py-0 transition-smooth">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+                  {/* LEFT : IMAGE / LOGO */}
+                  <div className="md:col-span-1 h-48 md:h-full flex items-center justify-center bg-white border-r border-border">
+                    {/* agency logo */}
+                    <a
+                      href={pkg.website || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`w-full h-full flex items-center justify-center transition ${
+                        pkg.website ? "hover:opacity-90" : "pointer-events-none"
+                      }`}
+                    >
+                      <img
+                        src={
+                          agentLogos[pkg.agentId]
+                            ? agentLogos[pkg.agentId]
+                            : "/placeholder.svg"
                         }
-                      >
-                        {pkg.packageStatus === "ACTIVE" ? "Active" : "Inactive"}
-                      </Badge>
-
-                      <Switch
-                        checked={pkg.packageStatus === "ACTIVE"}
-                        disabled={updatingId === pkg.packageId}
-                        onCheckedChange={() => togglePackageStatus(pkg)}
+                        alt="Agent Logo"
+                        className="max-w-[90%] max-h-[90%] object-contain transition-transform duration-300 ease-in-out hover:scale-105 drop-shadow-sm"
                       />
+                    </a>
+                  </div>
+
+                  {/* RIGHT : DETAILS */}
+                  <div className="md:col-span-2 p-3">
+                    <div className="flex flex-col md:flex-row md:justify-between gap-4 mb-4">
+                      {/* LEFT CONTENT */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg md:text-xl font-semibold text-foreground  mb-1">
+                          {/* STATIC FALLBACK */}
+                          {pkg.packageName}
+                          <Badge variant="secondary" className="text-xs ms-3">
+                            {pkg?.packageType}
+                          </Badge>
+                        </h3>
+
+                        <p className="text-muted-foreground text-sm mb-2 truncate">
+                          <a
+                            href={pkg.website || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={
+                              pkg.website
+                                ? "cursor-pointer hover:underline"
+                                : "pointer-events-none"
+                            }
+                          >
+                            By {pkg.agentName}
+                          </a>
+                        </p>
+
+                        {/* LOCATION & DURATION */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mb-3">
+                          <span className="flex items-center">
+                            <MapPin className="w-4 h-4 mr-1" />
+                            {`${pkg?.cityName}, ${pkg?.stateName}`}
+                          </span>
+
+                          <span className="flex items-center">
+                            <Calendar className="w-4 h-4 mr-1" />
+                            {`${pkg.duration}`} Days
+                          </span>
+                        </div>
+                        {/* DATES */}
+                        {pkg.departureDate && pkg.arrivalDate && (
+                          <div className="flex items-center text-sm text-muted-foreground mb-3 flex-wrap">
+                            <CalendarDays className="w-4 h-4 mr-1 shrink-0" />
+                            <span className="break-words">
+                              {format(
+                                new Date(pkg.departureDate),
+                                "dd MMM yyyy"
+                              )}
+                              {" – "}
+                              {format(new Date(pkg.arrivalDate), "dd MMM yyyy")}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mb-3">
+                          {pkg?.description}
+                        </div>
+
+                        {/* FACILITIES (STATIC) */}
+                        <div className="flex flex-wrap gap-2">
+                          {/* FACILITIES */}
+                          {packageFacilities[pkg.packageId]?.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {packageFacilities[pkg.packageId].map(
+                                (facility, index) => (
+                                  <Badge
+                                    key={index}
+                                    variant="outline"
+                                    className="text-xs whitespace-nowrap"
+                                  >
+                                    {facility}
+                                  </Badge>
+                                )
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* RIGHT CONTENT */}
+                      <div className="flex md:flex-col items-start md:items-end gap-2 shrink-0">
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={
+                              pkg.packageStatus === "ACTIVE"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {pkg.packageStatus === "ACTIVE"
+                              ? "Active"
+                              : "Inactive"}
+                          </Badge>
+
+                          <Switch
+                            checked={pkg.packageStatus === "ACTIVE"}
+                            disabled={updatingId === pkg.packageId}
+                            onCheckedChange={() => togglePackageStatus(pkg)}
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-medium">4.8</span>
+                          <span className="text-sm text-muted-foreground">
+                            (120 reviews)
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* PRICE + ACTIONS */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold text-primary">
+                            ₹{pkg.price.toLocaleString()}
+                          </span>
+                          <span className="text-sm text-muted-foreground line-through">
+                            ₹{pkg.originalPrice.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Per person (all inclusive)
+                        </p>
+                      </div>
+
+                      {/* 🔥 EXISTING BUTTONS & LOGIC UNCHANGED */}
+                      <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            // onClick={() => handleEditPackage(pkg)}
+                            onClick={() =>
+                              navigate("/add-package", { state: { pkg } })
+                            }
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit
+                          </Button>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            // onClick={() => handleViewPackage(pkg)}
+                            onClick={() =>
+                              navigate("/view-package", { state: { pkg } })
+                            }
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            View
+                          </Button>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteViewPackage(pkg)}
+                          >
+                            <Delete className="w-4 h-4 mr-1" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-2xl font-bold text-primary">
-                        ₹{pkg.price.toLocaleString()}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {pkg.duration ? `${pkg.duration} Days` : null}
-                      </p>
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {pkg.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        // onClick={() => handleEditPackage(pkg)}
-                        onClick={() =>
-                          navigate("/add-package", { state: { pkg } })
-                        }
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        Edit
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        // onClick={() => handleViewPackage(pkg)}
-                        onClick={() =>
-                          navigate("/view-package", { state: { pkg } })
-                        }
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        View
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteViewPackage(pkg)}
-                      >
-                        <Delete className="w-4 h-4 mr-1" />
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
+                </div>
               </Card>
             ))}
           </div>

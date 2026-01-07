@@ -32,7 +32,7 @@ import { format } from "date-fns";
 const SearchResults = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { stateId, cityId, travelTypeId } = location.state || {};
+  const { countryId, stateId, cityId, travelTypeId } = location.state || {};
 
   const [priceRange, setPriceRange] = useState([50000, 500000]);
   const [ratingFilter, setRatingFilter] = useState([3]);
@@ -44,6 +44,8 @@ const SearchResults = () => {
   const [packageFacilities, setPackageFacilities] = useState({});
   const [sortBy, setSortBy] = useState<string>("rating");
   const [sortOrder, setSortOrder] = useState<string>("desc");
+  const [packageType, setPackageType] = useState<any>([]);
+  const [packageDay, setPackageDay] = useState<any>([]);
 
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -96,6 +98,60 @@ const SearchResults = () => {
       console.error("Error fetching search results:", error);
     }
   };
+
+  // fetching type
+  const fetchPackagesByType = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const params: any = {};
+
+      if (countryId) params.countryId = countryId;
+      if (stateId) params.stateId = stateId;
+      if (cityId) params.cityId = cityId;
+      if (travelTypeId) params.travelTypeId = travelTypeId;
+
+      const response = await axios.get(`${baseURL}packages/types`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: params,
+      });
+      setPackageType(response.data);
+    } catch (error) {
+      console.error("Error fetching packages by type:", error);
+    }
+  };
+  const fetchPackagesByDay = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const params: any = {};
+
+      if (countryId) params.countryId = countryId;
+      if (stateId) params.stateId = stateId;
+      if (cityId) params.cityId = cityId;
+      if (travelTypeId) params.travelTypeId = travelTypeId;
+
+      const response = await axios.get(`${baseURL}packages/durations`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: params,
+      });
+
+      setPackageDay(response.data);
+    } catch (error) {
+      console.error("Error fetching packages by type:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPackagesByType();
+    fetchPackagesByDay();
+  }, [countryId, stateId, cityId, travelTypeId]);
+
+  // fetching type
 
   // fetching logo
   const fetchAgentLogos = async (packagesData: any[]) => {
@@ -214,12 +270,7 @@ const SearchResults = () => {
 
       // Package type filter
       if (packageTypeFilter && packageTypeFilter !== "all") {
-        const filterMap: { [key: string]: string } = {
-          economy: "Economy",
-          deluxe: "Deluxe",
-          "super-deluxe": "Super Deluxe",
-        };
-        if (result.packageType !== filterMap[packageTypeFilter]) {
+        if (result.packageType !== packageTypeFilter) {
           return false;
         }
       }
@@ -298,11 +349,11 @@ const SearchResults = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Durations</SelectItem>
-                      <SelectItem value="7">7 Days</SelectItem>
-                      <SelectItem value="10">10 Days</SelectItem>
-                      <SelectItem value="15">15 Days</SelectItem>
-                      <SelectItem value="21">21 Days</SelectItem>
-                      <SelectItem value="30">30+ Days</SelectItem>
+                      {packageDay.map((item: any) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -321,9 +372,11 @@ const SearchResults = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="economy">Economy</SelectItem>
-                      <SelectItem value="deluxe">Deluxe</SelectItem>
-                      <SelectItem value="super-deluxe">Super Deluxe</SelectItem>
+                      {packageType.map((item: any) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

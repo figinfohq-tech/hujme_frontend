@@ -1,7 +1,7 @@
 import { baseURL } from "@/utils/constant/url";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { ListChecks } from "lucide-react";
+import { ListChecks, Star } from "lucide-react";
 import Loader from "@/components/Loader";
 import {
   Accordion,
@@ -110,8 +110,19 @@ const FacilitiesViewDetails = ({ packageId }) => {
                             {item.facilityDetails?.facilityName}
                           </TableCell>
 
-                          <TableCell className="max-w-[250px] truncate">
+                          <TableCell>
                             {item.facilityDetails?.description}
+                          </TableCell>
+                          <TableCell className="flex items-center gap-2">
+                            {item.featured && (
+                              <span
+                                className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700"
+                                title="Featured Facility"
+                              >
+                                <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                                Featured
+                              </span>
+                            )}
                           </TableCell>
 
                           {/* <TableCell>

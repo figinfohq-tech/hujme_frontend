@@ -34,10 +34,6 @@ export const NotificationDialog = ({
   const [sending, setSending] = useState(false);
   const { toast } = useToast();
 
-
-  console.log("packages----->", pkg);
-  
-
   const handleSend = async () => {
     if (!title.trim() || !message.trim()) {
       toast({
@@ -50,17 +46,17 @@ export const NotificationDialog = ({
 
     try {
       setSending(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase
-        .from("package_notifications")
-        .insert({
-          package_id: pkg.package_id,
-          agent_id: user.id,
-          title,
-          message,
-        });
+      const { error } = await supabase.from("package_notifications").insert({
+        package_id: pkg.package_id,
+        agent_id: user.id,
+        title,
+        message,
+      });
 
       if (error) throw error;
 

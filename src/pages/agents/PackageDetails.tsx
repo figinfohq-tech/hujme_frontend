@@ -41,6 +41,7 @@ const PackageDetails = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [packageDetail, setPackageDetail] = useState();
+  const [packageFacilities, setPackageFacilities] = useState<any[]>([]);
 
   // Mock package data - in real app, fetch based on id
   const packageData = {
@@ -110,6 +111,7 @@ const PackageDetails = () => {
   };
   useEffect(() => {
     fetchPackages();
+    fetchPackagesFacilities();
   }, []);
 
   //   fetch package details
@@ -126,6 +128,23 @@ const PackageDetails = () => {
     }
   };
   //   fetch package details
+
+  //   fetch package faciliteis
+  const fetchPackagesFacilities = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        `${baseURL}package-facilities/byPackage/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setPackageFacilities(response.data || []);
+    } catch (error) {
+      console.error("Package Fetch Error:", error);
+    }
+  };
 
   const handleBookingComplete = (completedBookingId: string) => {
     setBookingId(completedBookingId);
@@ -211,7 +230,7 @@ const PackageDetails = () => {
                     </span>
                     <span className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1" />
-                      {packageDetail?.duration}
+                      {`${packageDetail?.duration} days`}
                     </span>
                     <Badge variant="secondary">
                       {packageDetail?.packageType}
@@ -233,11 +252,13 @@ const PackageDetails = () => {
 
               {/* Features */}
               <div className="flex flex-wrap gap-2 mb-6">
-                {packageData.features.map((feature, index) => (
-                  <Badge key={index} variant="outline">
-                    {feature}
-                  </Badge>
-                ))}
+                {packageFacilities
+                  ?.filter((feature) => feature.featured === true)
+                  .map((feature, index) => (
+                    <Badge key={index} variant="outline">
+                      {feature.facilityDetails.facilityName}
+                    </Badge>
+                  ))}
               </div>
             </div>
 
@@ -426,7 +447,7 @@ const PackageDetails = () => {
                     className="w-full bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth"
                   >
                     Book Now
-                  </Button>      
+                  </Button>
                 </div>
               </CardContent>
             </Card>

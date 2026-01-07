@@ -104,6 +104,7 @@ const HeroSection = () => {
     if (role === "AGENT") {
       navigate("/dashboard/search", {
         state: {
+          countryId:selectedCountryId,
           stateId: selectedStateId,
           cityId: selectedCityId,
           travelTypeId: selectedTravelTypeId,
@@ -111,15 +112,16 @@ const HeroSection = () => {
       });
     } else {
       token
-        ? navigate("/costomer/search", {
-            state: {
-              stateId: selectedStateId,
-              cityId: selectedCityId,
-              travelTypeId: selectedTravelTypeId,
-            },
-          })
-        : navigate("/search", {
-            state: {
+      ? navigate("/costomer/search", {
+        state: {
+          stateId: selectedStateId,
+          cityId: selectedCityId,
+          travelTypeId: selectedTravelTypeId,
+        },
+      })
+      : navigate("/search", {
+        state: {
+              countryId:selectedCountryId,
               stateId: selectedStateId,
               cityId: selectedCityId,
               travelTypeId: selectedTravelTypeId,
