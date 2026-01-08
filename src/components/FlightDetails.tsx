@@ -327,6 +327,8 @@ const FlightDetails = ({ pkg, packageId }) => {
       arrivalTime: "12:00",
     },
     validationSchema,
+    validateOnChange: false,   
+  validateOnBlur: true,    
     onSubmit: (values, { resetForm }) => {
       const newFlight = {
         id: editIndex !== null ? addedFlights[editIndex].id : `${Date.now()}`,

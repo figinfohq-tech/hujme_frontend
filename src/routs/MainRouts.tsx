@@ -28,6 +28,7 @@ import { ManageBookings } from "@/pages/agents/ManageBookings";
 import { BookingDetailsPage } from "@/pages/agents/BookingDetailsPage";
 import ForgotPassword from "@/pages/authentications/ForgotPassword";
 import ResetPassword from "@/pages/authentications/ResetPassword";
+import { ReviewsPage } from "@/pages/agents/ReviewsPage";
 
 const MainRouts = () => {
   const role = localStorage.getItem("role");
@@ -110,6 +111,7 @@ const MainRouts = () => {
               <Route path="booking-view" element={<BookingViewPage />} />
               <Route path="profiles" element={<h1>Profiles Page</h1>} />
               <Route path="analytics" element={<h1>Analytics Page</h1>} />
+              <Route path="reviews" element={<ReviewsPage />} />
             </Route>
           ) : (
             <Route path="*" element={<Navigate to="/auth" replace />} />

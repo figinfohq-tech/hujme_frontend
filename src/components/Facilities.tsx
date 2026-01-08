@@ -107,9 +107,19 @@ const Facilities = ({ pkg, packageId }) => {
 
   // Toggle checkbox
   const toggleFacility = (id) => {
-    setSelectedFacilities((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    setSelectedFacilities((prev) => {
+      const isSelected = prev.includes(id);
+
+      // Agar unselect ho rahi hai → featured se bhi hatao
+      if (isSelected) {
+        setFeaturedFacilities((prevFeatured) =>
+          prevFeatured.filter((fId) => fId !== id)
+        );
+        return prev.filter((item) => item !== id);
+      }
+
+      return [...prev, id];
+    });
   };
 
   // -----------------------------
@@ -230,7 +240,7 @@ const Facilities = ({ pkg, packageId }) => {
                         <TableHead className="w-10">Select</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Description</TableHead>
-                        <TableHead>Key Facility</TableHead>
+                        <TableHead>Featured</TableHead>
                       </TableRow>
                     </TableHeader>
 
@@ -258,9 +268,15 @@ const Facilities = ({ pkg, packageId }) => {
                           <TableCell className="text-center">
                             <TableCell className="text-center">
                               <Checkbox
-                                checked={featuredFacilities.includes(
-                                  fItem.facilityId
-                                )}
+                                disabled={
+                                  !selectedFacilities.includes(fItem.facilityId)
+                                }
+                                checked={
+                                  selectedFacilities.includes(
+                                    fItem.facilityId
+                                  ) &&
+                                  featuredFacilities.includes(fItem.facilityId)
+                                }
                                 onCheckedChange={(checked) => {
                                   if (checked) {
                                     if (featuredFacilities.length >= 4) {

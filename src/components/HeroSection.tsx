@@ -34,15 +34,9 @@ const HeroSection = () => {
 
   useEffect(() => {
     fetchCountries();
-    // fetchStates();
+    fetchStates();
     fetchTravelType();
   }, []);
-
-  useEffect(() => {
-    if (selectedCountryId) {
-      fetchStates();
-    }
-  }, [selectedCountryId]);
 
   useEffect(() => {
     if (selectedStateId) {
@@ -71,7 +65,7 @@ const HeroSection = () => {
   const fetchStates = async () => {
     try {
       const response = await axios.get(
-        `${baseURL}states/byCountry/${selectedCountryId}`
+        `${baseURL}states/byCountry/${1}`
       );
       setState(response.data);
     } catch (error) {
@@ -223,9 +217,9 @@ const HeroSection = () => {
 
           {/*  Search Card */}
           <div className="bg-background/95 backdrop-blur-sm rounded-2xl shadow-elegant p-6 md:p-8 max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {/* State */}
-              <div className="space-y-2 text-left">
+              {/* <div className="space-y-2 text-left">
                 <label className="text-sm font-medium text-gray-700 flex items-center">
                   <MapPin className="w-4 h-4 mr-2 text-green-700" />
                   Country
@@ -261,12 +255,12 @@ const HeroSection = () => {
                       );
                     })}
                     {/* <SelectItem value="delhi">Delhi</SelectItem> */}
-                  </SelectContent>
+                  {/* </SelectContent>
                 </Select>
                 {errors.country && (
                   <p className="text-xs text-red-500">Country is required</p>
                 )}
-              </div>
+              </div> */} 
               <div className="space-y-2 text-left">
                 <label className="text-sm font-medium text-gray-700 flex items-center">
                   <MapPin className="w-4 h-4 mr-2 text-green-700" />

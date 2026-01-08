@@ -176,6 +176,15 @@ export function AddNewPackage({
     }
   }, [pkg]);
 
+  const isArrivalAfterDeparture = (depDate, depTime, arrDate, arrTime) => {
+    if (!depDate || !depTime || !arrDate || !arrTime) return true;
+
+    const departure = new Date(`${depDate}T${depTime}:00`);
+    const arrival = new Date(`${arrDate}T${arrTime}:00`);
+
+    return arrival > departure;
+  };
+
   // ⭐ FIX FOR ALL 5 DROPDOWNS ⭐
   useEffect(() => {
     if (
@@ -227,7 +236,6 @@ export function AddNewPackage({
     fetchTravelType();
     fetchStates();
   }, []);
- 
 
   useEffect(() => {
     if (selectedStateId) {
@@ -248,7 +256,7 @@ export function AddNewPackage({
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<StateType[]>(
-        `http://31.97.205.55:8080/api/states/byCountry/${1}`,
+        `${baseURL}states/byCountry/${1}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -265,7 +273,7 @@ export function AddNewPackage({
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<CityType[]>(
-        `http://31.97.205.55:8080/api/cities/byState/${selectedStateId}`,
+        `${baseURL}cities/byState/${selectedStateId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -283,7 +291,7 @@ export function AddNewPackage({
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<LookupType[]>(
-        "http://31.97.205.55:8080/api/lookups/TRAVEL_TYPE",
+        `${baseURL}lookups/TRAVEL_TYPE`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -299,14 +307,11 @@ export function AddNewPackage({
   const fetchPackageType = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://31.97.205.55:8080/api/lookups/PACKAGE_TYPE",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get(`${baseURL}lookups/PACKAGE_TYPE`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setPackageType(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -339,8 +344,10 @@ export function AddNewPackage({
       packageName: Yup.string().required("Package name is required"),
       travelType: Yup.string().required("Travel type required"),
       price: Yup.number().required("Price is required"),
-      description: Yup.string()
-    .max(100, "Description can be maximum 100 characters")
+      description: Yup.string().max(
+        100,
+        "Description can be maximum 100 characters"
+      ),
     }),
 
     onSubmit: async (values, { resetForm }) => {
@@ -392,7 +399,7 @@ export function AddNewPackage({
           //       UPDATE API (PUT)
           // ---------------------------------
           response = await axios.put(
-            `http://31.97.205.55:8080/api/packages/${pkg.packageId}`,
+            `${baseURL}packages/${pkg.packageId}`,
             payload,
             {
               headers: {
@@ -408,16 +415,13 @@ export function AddNewPackage({
           // ---------------------------------
           //       CREATE API (POST)
           // ---------------------------------
-          response = await axios.post(
-            "http://31.97.205.55:8080/api/packages/create",
-            payload,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          response = await axios.post(`${baseURL}packages/create`, payload, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
           setIsLoader(false);
           setPackagesData(response.data);
 
@@ -702,7 +706,7 @@ export function AddNewPackage({
                         value={formik.values.departureDate}
                       />
                     </div>
-                       {/* Departure Time */}
+                    {/* Departure Time */}
                     <div className="grid gap-2">
                       <Label>Departure Time</Label>
                       <Input
@@ -717,24 +721,25 @@ export function AddNewPackage({
                   {/* Arrival Date */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                    <Label>Arrival Date</Label>
-                    <Input
-                      type="date"
-                      name="arrivalDate"
-                      onChange={formik.handleChange}
-                      value={formik.values.arrivalDate}
-                    />
+                      <Label>Arrival Date</Label>
+                      <Input
+                        type="date"
+                        name="arrivalDate"
+                        min={formik.values.departureDate || undefined}
+                        onChange={formik.handleChange}
+                        value={formik.values.arrivalDate}
+                      />
                     </div>
-                     {/* Arrival Time */}
-                  <div className="grid gap-2">
-                    <Label>Arrival Time</Label>
-                    <Input
-                      type="time"
-                      name="arrivalTime"
-                      onChange={formik.handleChange}
-                      value={formik.values.arrivalTime}
-                    />
-                  </div>
+                    {/* Arrival Time */}
+                    <div className="grid gap-2">
+                      <Label>Arrival Time</Label>
+                      <Input
+                        type="time"
+                        name="arrivalTime"
+                        onChange={formik.handleChange}
+                        value={formik.values.arrivalTime}
+                      />
+                    </div>
                   </div>
 
                   {/* Package Duration (Auto Calculated) */}

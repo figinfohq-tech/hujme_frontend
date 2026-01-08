@@ -8,6 +8,7 @@ import {
   User,
   BarChart2,
   FileText,
+  Star,
 } from "lucide-react";
 
 const AgentSidebar = () => {
@@ -35,6 +36,11 @@ const AgentSidebar = () => {
       path: "/documents",
     },
     { name: "Profiles", icon: <User size={20} />, path: "/profiles" },
+    {
+      name: "Reviews",
+      icon: <Star size={20} />,
+      path: "/reviews",
+    },
     {
       name: "Analytics",
       icon: <BarChart2 size={20} />,
