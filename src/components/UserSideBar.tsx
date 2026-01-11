@@ -9,6 +9,7 @@ import {
   BarChart2,
   File,
   FileText,
+  Star,
 } from "lucide-react";
 
 const UserSideBar = () => {
@@ -36,6 +37,11 @@ const UserSideBar = () => {
       path: "/ducoments",
     },
     { name: "Profiles", icon: <User size={20} />, path: "/profiles" },
+     {
+      name: "Reviews",
+      icon: <Star size={20} />,
+      path: "/reviews",
+    },
     {
       name: "Analytics",
       icon: <BarChart2 size={20} />,

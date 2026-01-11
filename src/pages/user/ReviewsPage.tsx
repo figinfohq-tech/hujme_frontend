@@ -119,8 +119,10 @@ export const ReviewsPage = () => {
     console.log('Review submitted:', review)
   }
 
+  console.log("token--->", localStorage.getItem("token"))
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 m-4">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-primary">Reviews & Feedback</h1>

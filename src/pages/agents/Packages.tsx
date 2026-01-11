@@ -298,6 +298,50 @@ const Packages = () => {
     }
   };
 
+  const getStatusBadgeProps = (status: string) => {
+    switch (status) {
+      case "NEW":
+        return {
+          label: "New",
+          className: "bg-blue-500 text-white hover:bg-blue-500",
+        };
+
+      case "ACTIVE":
+        return {
+          label: "Active",
+          variant: "default",
+        };
+
+      case "INACTIVE":
+        return {
+          label: "Inactive",
+          variant: "secondary",
+        };
+
+      case "SUSPENDED":
+        return {
+          label: "Suspended",
+          className: "bg-red-500 text-white hover:bg-red-500",
+        };
+
+      case "COMPLETED":
+        return {
+          label: "Completed",
+          className: "bg-gray-500 text-white hover:bg-gray-500",
+        };
+
+      default:
+        return {
+          label: status,
+          variant: "outline",
+        };
+    }
+  };
+
+  const canToggleStatus = (status: string) => {
+    return status === "ACTIVE" || status === "INACTIVE" || status === "NEW";
+  };
+
   return (
     <div className="min-h-full rounded-lg bg-background">
       <main className="container mx-auto px-4 py-8">
@@ -454,23 +498,32 @@ const Packages = () => {
                       {/* RIGHT CONTENT */}
                       <div className="flex md:flex-col items-start md:items-end gap-2 shrink-0">
                         <div className="flex items-center gap-2">
-                          <Badge
-                            variant={
-                              pkg.packageStatus === "ACTIVE"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {pkg.packageStatus === "ACTIVE"
-                              ? "Active"
-                              : "Inactive"}
-                          </Badge>
+                          {(() => {
+                            const badgeProps = getStatusBadgeProps(
+                              pkg.packageStatus
+                            );
 
-                          <Switch
-                            checked={pkg.packageStatus === "ACTIVE"}
-                            disabled={updatingId === pkg.packageId}
-                            onCheckedChange={() => togglePackageStatus(pkg)}
-                          />
+                            return (
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  variant={badgeProps.variant}
+                                  className={badgeProps.className}
+                                >
+                                  {badgeProps.label}
+                                </Badge>
+
+                                {canToggleStatus(pkg.packageStatus) && (
+                                  <Switch
+                                    checked={pkg.packageStatus === "ACTIVE"}
+                                    disabled={updatingId === pkg.packageId}
+                                    onCheckedChange={() =>
+                                      togglePackageStatus(pkg)
+                                    }
+                                  />
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         <div className="flex items-center gap-1">

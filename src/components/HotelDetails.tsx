@@ -72,6 +72,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
   const [basicHotelDetails, setBasicHotelDetails] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [selectedHotelData, setSelectedHotelData] = useState<any>("");
   const [errors, setErrors] = useState<any>({
     city: "",
     hotel: "",
@@ -192,6 +193,23 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       );
 
       setBasicHotelDetails(response.data || []);
+      
+    } catch (error) {
+      console.error("GET API Error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const getPackagesByHotelId = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(`${baseURL}hotels/${selectedHotel}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setSelectedHotelData(response.data);
     } catch (error) {
       console.error("GET API Error:", error);
     } finally {
@@ -202,6 +220,9 @@ const HotelDetails = ({ pkg, packageId }: any) => {
   useEffect(() => {
     if (id) getPackagesByID();
   }, [id]);
+  useEffect(() => {
+    if (selectedHotel) getPackagesByHotelId();
+  }, [selectedHotel]);
 
   // Map the GET response to local addedHotels (auto-fill top card)
   useEffect(() => {
@@ -211,41 +232,34 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     }
 
     const mapped = basicHotelDetails.map((item: any) => {
-      // item may look like your sample; pick values safely
-      const packageHotelId =
-        item.packageHotelId ??
-        item.id ??
-        item.packageHotel_Id ??
-        item.packageHotelId;
       const hotelDetails = item.hotelDetails ?? {};
+
       return {
-        id: String(packageHotelId ?? `${Date.now()}-${Math.random()}`),
-        packageHotelId,
-        hotelId: hotelDetails.hotelId ?? item.hotelId ?? null,
-        hotelName: hotelDetails.hotelName ?? item.hotelName ?? "Unknown",
-        city: hotelDetails.cityId ? undefined : item.cityName ?? item.city, // leave string if present
-        cityId: hotelDetails.cityId ?? item.cityId ?? item.city?.id,
-        stateId: hotelDetails.stateId ?? item.stateId,
-        countryId:
-          hotelDetails.countryId ?? item.countryId ?? hotelDetails.countryId,
-        address: hotelDetails.address ?? item.address,
-        rating: hotelDetails.starRating ?? item.starRating ?? 0,
-        distanceFromHaram:
-          hotelDetails.distanceFromHaram ?? item.distanceFromHaram ?? "-",
+        id: String(item.id ?? `${Date.now()}-${Math.random()}`),
+        packageHotelId: item.id,
+
+        hotelId: hotelDetails.hotelId,
+        hotelName: hotelDetails.hotelName,
+
+        cityId: hotelDetails.cityId,
+        cityName: hotelDetails.cityName,
+
+        stateId: hotelDetails.stateId,
+        stateName: hotelDetails.stateName,
+
+        countryId: hotelDetails.countryId,
+        countryName: hotelDetails.countryName,
+
+        address: hotelDetails.address,
+        rating: hotelDetails.starRating ?? 0,
+        distanceFromHaram: hotelDetails.distanceFromHaram ?? "-",
+
         checkInDate: item.checkinDate ? new Date(item.checkinDate) : undefined,
-        checkInTime: item.checkinTime
-          ? item.checkinTime.slice
-            ? item.checkinTime.slice(11, 16)
-            : item.checkinTime
-          : "14:00",
+        checkInTime: item.checkinTime?.slice(11, 16),
         checkOutDate: item.checkoutDate
           ? new Date(item.checkoutDate)
           : undefined,
-        checkOutTime: item.checkoutTime
-          ? item.checkoutTime.slice
-            ? item.checkoutTime.slice(11, 16)
-            : item.checkoutTime
-          : "12:00",
+        checkOutTime: item.checkoutTime?.slice(11, 16),
         daysStay: item.daysStay,
       } as SelectedHotel;
     });
@@ -268,16 +282,31 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     );
     if (!hotelInfo) return;
 
+    const country = countries.find(
+      (c) => String(c.countryId) === selectedCountry
+    );
+    const state = states.find((s) => String(s.stateId) === selectedState);
+    const city = cities.find((c) => String(c.cityId) === selectedCity);
+
     const newHotel: SelectedHotel = {
       id: `${Date.now()}-${selectedHotel}`,
+
       hotelId: hotelInfo.hotelId,
       hotelName: hotelInfo.hotelName,
-      cityId: selectedCity,
-      stateId: selectedState,
+
       countryId: selectedCountry,
+      countryName: country?.countryName,
+
+      stateId: selectedState,
+      stateName: state?.stateName,
+
+      cityId: selectedCity,
+      cityName: city?.cityName,
+
       address: hotelInfo.address || "-",
       rating: hotelInfo.starRating || 0,
       distanceFromHaram: hotelInfo.distanceFromHaram || "-",
+
       checkInDate,
       checkInTime,
       checkOutDate,
@@ -360,26 +389,51 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     const target = updated[editIndex];
     if (!target) return;
 
-    // keep packageHotelId if exists
+    const hotelInfo = hotels.find(
+      (h) => String(h.hotelId) === String(selectedHotel)
+    );
+
+    const country = countries.find(
+      (c) => String(c.countryId) === selectedCountry
+    );
+    const state = states.find((s) => String(s.stateId) === selectedState);
+    const city = cities.find((c) => String(c.cityId) === selectedCity);
+
     updated[editIndex] = {
       ...target,
-      hotelId: selectedHotel || target.hotelId,
-      hotelName:
-        hotels.find((h) => String(h.hotelId) === String(selectedHotel))
-          ?.hotelName ?? target.hotelName,
-      countryId: selectedCountry ?? target.countryId,
-      stateId: selectedState ?? target.stateId,
-      cityId: selectedCity ?? target.cityId,
+
+      // ✅ HOTEL UPDATE (THIS WAS MISSING)
+      hotelId: hotelInfo?.hotelId ?? target.hotelId,
+      hotelName: hotelInfo?.hotelName ?? target.hotelName,
+      address: hotelInfo?.address ?? target.address,
+      rating: hotelInfo?.starRating ?? target.rating,
+      distanceFromHaram:
+        hotelInfo?.distanceFromHaram ?? target.distanceFromHaram,
+
+      // ✅ LOCATION UPDATE
+      countryId: selectedCountry,
+      countryName: country?.countryName ?? target.countryName,
+
+      stateId: selectedState,
+      stateName: state?.stateName ?? target.stateName,
+
+      cityId: selectedCity,
+      cityName: city?.cityName ?? target.cityName,
+
+      // ✅ DATE UPDATE
       checkInDate,
       checkInTime,
       checkOutDate,
       checkOutTime,
+
+      // ✅ DAYS STAY UPDATE
+      daysStay: calculateDaysStay(checkInDate, checkOutDate),
     };
 
     setAddedHotels(updated);
     setEditIndex(null);
 
-    // reset form values (preserve dropdowns cleared)
+    // reset form
     setSelectedHotel("");
     setCheckInDate(undefined);
     setCheckOutDate(undefined);
@@ -389,7 +443,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     setSelectedState("");
     setSelectedCity("");
 
-    toast.success("Hotel updated locally");
+    toast.success("Hotel updated successfully");
   };
 
   const confirmDeleteHotel = async () => {
@@ -480,7 +534,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
           getPackagesByID(newPackageId);
         }
       }
-
+      await getPackagesByID();
       toast.success(
         pkg ? "Hotels updated successfully!" : "All hotels added successfully!"
       );
@@ -493,10 +547,6 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       setIsLoader(false);
     }
   };
-
-  const selectedHotelData = hotels.find(
-    (h) => String(h.hotelId) === String(selectedHotel)
-  );
 
   useEffect(() => {
     if (checkInDate && checkOutDate && checkOutDate <= checkInDate) {
@@ -528,7 +578,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded">
-                          {hotel.city ?? (hotel.cityId ? "—" : "")}
+                          {hotel.cityId ?? (hotel.cityId ? "—" : "")}
                         </span>
                         <h5 className="font-semibold text-foreground">
                           {hotel.hotelName}
@@ -539,7 +589,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                         <div className="flex items-start gap-2">
                           <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
                           <span className="text-xs text-muted-foreground">
-                            {`${hotel.address}, ${hotel.cityId}, ${hotel.stateId}, ${hotel.countryId}`}
+                            {`${hotel.address}, ${hotel.cityName}, ${hotel.stateName}, ${hotel.countryName}`}
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -663,7 +713,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <span className="text-muted-foreground">
-                  {`${selectedHotelData.address} ${selectedHotelData?.cityId}, ${selectedHotelData?.stateId}, ${selectedHotelData?.countryId}`}
+                  {`${selectedHotelData.address} ${selectedHotelData?.cityName}, ${selectedHotelData?.stateName}, ${selectedHotelData?.countryName}`}
                 </span>
               </div>
               <div className="flex items-center gap-3 flex-wrap">

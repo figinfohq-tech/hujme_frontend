@@ -48,14 +48,27 @@ import Loader from "./Loader";
 
 interface FlightSegment {
   id: string;
+
+  airlineId: number | string;
   airline: string;
   flightNumber: string;
+  flightClass: string;
+
+  departureCountries: string;
+  departureState: string;
   departureCity: string;
+
+  arrivalCountries: string;
+  arrivalState: string;
   arrivalCity: string;
+
   departureDate: Date;
   departureTime: string;
   arrivalDate: Date;
   arrivalTime: string;
+
+  isExisting: boolean;
+  isEdited: boolean;
 }
 
 const validationSchema = yup.object({
@@ -108,6 +121,7 @@ const FlightDetails = ({ pkg, packageId }) => {
   );
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [flightToDelete, setFlightToDelete] = useState<any>(null);
+  const [formKey, setFormKey] = useState(0);
 
   const id = pkg?.packageId;
 
@@ -151,7 +165,7 @@ const FlightDetails = ({ pkg, packageId }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<StateType[]>(
-        `http://31.97.205.55:8080/api/states/byCountry/${selectedCountryId}`,
+        `${baseURL}states/byCountry/${selectedCountryId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -168,7 +182,7 @@ const FlightDetails = ({ pkg, packageId }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<StateType[]>(
-        `http://31.97.205.55:8080/api/states/byCountry/${selectedCountryId2}`,
+        `${baseURL}states/byCountry/${selectedCountryId2}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -185,7 +199,7 @@ const FlightDetails = ({ pkg, packageId }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<CityType[]>(
-        `http://31.97.205.55:8080/api/cities/byState/${selectedStateId}`,
+        `${baseURL}cities/byState/${selectedStateId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -202,7 +216,7 @@ const FlightDetails = ({ pkg, packageId }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<CityType[]>(
-        `http://31.97.205.55:8080/api/cities/byState/${selectedStateId2}`,
+        `${baseURL}cities/byState/${selectedStateId2}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -327,8 +341,8 @@ const FlightDetails = ({ pkg, packageId }) => {
       arrivalTime: "12:00",
     },
     validationSchema,
-    validateOnChange: false,   
-  validateOnBlur: true,    
+    validateOnChange: false,
+    validateOnBlur: true,
     onSubmit: (values, { resetForm }) => {
       const newFlight = {
         id: editIndex !== null ? addedFlights[editIndex].id : `${Date.now()}`,
@@ -434,18 +448,34 @@ const FlightDetails = ({ pkg, packageId }) => {
       for (const flight of addedFlights) {
         const payload = {
           packageId: id ?? packageId,
-          airlineId: Number(flight.airline),
+
+          airlineId: Number(flight.airline), // ✔ airlineId
           flightNumber: flight.flightNumber,
           flightClass: flight.flightClass,
+
           departureDate: new Date(flight.departureDate).toISOString(),
           departureTime: new Date(
             `1970-01-01T${flight.departureTime}:00`
           ).toISOString(),
+
           arrivalDate: new Date(flight.arrivalDate).toISOString(),
           arrivalTime: new Date(
             `1970-01-01T${flight.arrivalTime}:00`
           ).toISOString(),
-          notes: "Flight segment added",
+
+          // ✅ NEW LOCATION FIELDS (Backend expects ONE set)
+          countryId: Number(flight.departureCountries),
+          stateId: Number(flight.departureState),
+          cityId: Number(flight.departureCity),
+
+          // ✅ OPTIONAL
+          notes: flight.isEdited
+            ? "Flight segment updated"
+            : "Flight segment added",
+
+          // ✅ AUDIT FIELDS
+          createdBy: 0,
+          updatedBy: 0,
         };
 
         // ✅ ONLY UPDATE IF EXISTING + EDITED
@@ -483,9 +513,10 @@ const FlightDetails = ({ pkg, packageId }) => {
           }
         }
       }
-
+      await getFlightByID(id ?? packageId ?? currentPackageId);
       toast.success("Flights saved successfully!");
       // setAddedFlights([]);
+      setFormKey((prev) => prev + 1);
       formik.resetForm();
     } catch (error) {
       console.error(error);
@@ -594,7 +625,11 @@ const FlightDetails = ({ pkg, packageId }) => {
       )}
 
       {/* Form Starts */}
-      <form onSubmit={formik.handleSubmit} className="space-y-4 pt-4 border-t">
+      <form
+        onSubmit={formik.handleSubmit}
+        key={formKey}
+        className="space-y-4 pt-4 border-t"
+      >
         <h4 className="text-sm font-semibold">Add Flight Segment</h4>
 
         {/* Airline + Flight */}
@@ -929,7 +964,15 @@ const FlightDetails = ({ pkg, packageId }) => {
         </Button>
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button variant="outline">Cancel</Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setEditIndex(null);
+              setFormKey((prev) => prev + 1);
+            }}
+          >
+            Cancel
+          </Button>
           {!isEditMode && (
             <Button onClick={handleCreatePackage}>
               {isLoader ? "Saving..." : "Save Package"}
