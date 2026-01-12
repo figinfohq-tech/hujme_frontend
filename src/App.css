@@ -26,4 +26,6 @@
           background-color: #e8f5e9;
           color: #198754;
         }
-        
+        .text-muted-foreground {
+          color: oklch(54.904% 0.12298 156.86) !important;
+        }

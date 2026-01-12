@@ -106,7 +106,7 @@ const HeroSection = () => {
       });
     } else {
       token
-      ? navigate("/costomer/search", {
+      ? navigate("/customer/search", {
         state: {
           stateId: selectedStateId,
           cityId: selectedCityId,

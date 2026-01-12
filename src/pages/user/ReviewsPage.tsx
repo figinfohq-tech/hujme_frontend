@@ -1,74 +1,77 @@
-import { useState } from 'react'
-import { Star, Calendar, MapPin, MessageCircle, ThumbsUp } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
+import { useState } from "react";
+import {
+  Star,
+  Calendar,
+  MapPin,
+  MessageCircle,
+  ThumbsUp,
+  Pencil,
+} from "lucide-react";
+import axios from "axios";
+import { useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { baseURL } from "@/utils/constant/url";
+import { toast } from "react-toastify";
 
 interface Review {
-  id: string
-  packageTitle: string
-  agentName: string
-  rating: number
-  comment: string
-  date: Date
-  tripDate: Date
-  location: string
-  helpful: number
-  verified: boolean
+  id: string;
+  packageTitle: string;
+  agentName: string;
+  rating: number;
+  comment: string;
+  date: Date;
+  tripDate: Date;
+  location: string;
+  helpful: number;
+  verified: boolean;
 }
 
 interface CompletedTrip {
-  id: string
-  packageTitle: string
-  agentName: string
-  agentId: string
-  completionDate: Date
-  location: string
-  hasReview: boolean
+  id: string;
+  packageTitle: string;
+  agentName: string;
+  agentId: string;
+  completionDate: Date;
+  location: string;
+  hasReview: boolean;
 }
 
-const mockCompletedTrips: CompletedTrip[] = [
-  {
-    id: '1',
-    packageTitle: 'Premium Hajj Package 2023',
-    agentName: 'Al-Haramain Tours',
-    agentId: 'agent1',
-    completionDate: new Date('2023-08-15'),
-    location: 'Mecca & Medina',
-    hasReview: false
-  }
-]
-
-const mockReviews: Review[] = [
-  {
-    id: '1',
-    packageTitle: 'Umrah Package December 2022',
-    agentName: 'Blessed Journey Tours',
-    rating: 5,
-    comment: 'Excellent service throughout the journey. The accommodations were top-notch and the guide was very knowledgeable about the religious significance of each location. Highly recommended!',
-    date: new Date('2023-01-10'),
-    tripDate: new Date('2022-12-15'),
-    location: 'Mecca & Medina',
-    helpful: 12,
-    verified: true
-  }
-]
-
 export const ReviewsPage = () => {
-  const [reviews, setReviews] = useState<Review[]>(mockReviews)
-  const [newReview, setNewReview] = useState({ rating: 0, comment: '' })
-  const [selectedTrip, setSelectedTrip] = useState<CompletedTrip | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
+  const [selectedTrip, setSelectedTrip] = useState<CompletedTrip | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [pendingReviews, setPendingReviews] = useState<CompletedTrip[]>([]);
+  const [myReviews, setMyReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [reviewMode, setReviewMode] = useState<"create" | "edit">("create");
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
 
-  console.log('ReviewsPage rendering, reviews:', reviews.length)
-
-  const StarRating = ({ rating, interactive = false, onRatingChange }: { 
-    rating: number
-    interactive?: boolean
-    onRatingChange?: (rating: number) => void 
+  const StarRating = ({
+    rating,
+    interactive = false,
+    onRatingChange,
+  }: {
+    rating: number;
+    interactive?: boolean;
+    onRatingChange?: (rating: number) => void;
   }) => {
     return (
       <div className="flex items-center gap-1">
@@ -78,48 +81,147 @@ export const ReviewsPage = () => {
             type="button"
             disabled={!interactive}
             onClick={() => interactive && onRatingChange?.(star)}
-            className={`${interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-transform`}
+            className={`${
+              interactive ? "cursor-pointer hover:scale-110" : "cursor-default"
+            } transition-transform`}
           >
             <Star
               className={`h-5 w-5 ${
                 star <= rating
-                  ? 'fill-yellow-400 text-yellow-400'
-                  : 'text-gray-300'
+                  ? "fill-yellow-400 text-yellow-400"
+                  : "text-gray-300"
               }`}
             />
           </button>
         ))}
       </div>
-    )
-  }
+    );
+  };
 
-  const handleSubmitReview = () => {
-    if (!selectedTrip || newReview.rating === 0 || !newReview.comment.trim()) {
-      return
+  const handleSubmitReview = async () => {
+    if (newReview.rating === 0 || !newReview.comment.trim()) return;
+
+    try {
+      const payload = {
+        customerId: Number(userId),
+        packageId: Number(selectedTrip?.id),
+        agentId: Number(selectedTrip?.agentId ?? 0),
+        reviewText: newReview.comment,
+        rating: newReview.rating,
+        isVerified: true,
+        isFlagged: false,
+        flaggedReason: "",
+        createdBy: Number(userId),
+        updatedBy: Number(userId),
+      };
+
+      if (reviewMode === "create") {
+        await axios.post(`${baseURL}customer-reviews`, payload, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        toast.success("Review submitted successfully");
+      } else {
+        await axios.put(
+          `${baseURL}customer-reviews/${editingReviewId}`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        toast.success("Review updated successfully");
+      }
+
+      setIsDialogOpen(false);
+      setSelectedTrip(null);
+      setEditingReviewId(null);
+      setReviewMode("create");
+      setNewReview({ rating: 0, comment: "" });
+
+      fetchReviews();
+    } catch (error) {
+      console.error("Review submit failed", error);
+      toast.error("Something went wrong. Please try again.");
     }
+  };
 
-    const review: Review = {
-      id: Date.now().toString(),
-      packageTitle: selectedTrip.packageTitle,
-      agentName: selectedTrip.agentName,
-      rating: newReview.rating,
-      comment: newReview.comment,
-      date: new Date(),
-      tripDate: selectedTrip.completionDate,
-      location: selectedTrip.location,
-      helpful: 0,
-      verified: true
+  const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    if (!userId || !token) return;
+    fetchReviews();
+  }, [userId, token]);
+
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+
+      const res = await axios.get(
+        `${baseURL}customer-reviews/byUser/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const pending: CompletedTrip[] = [];
+      const completed: Review[] = [];
+
+      res.data.forEach((item: any) => {
+        const pkg = item.packageDetails;
+
+        if (item.reviewId === null) {
+          pending.push({
+            id: pkg.packageId.toString(),
+            packageTitle: pkg.packageName,
+            agentName: pkg.agentName,
+            agentId: pkg.agentId.toString(),
+            completionDate: new Date(pkg.arrivalDate),
+            location: `${pkg.cityName}, ${pkg.stateName}`,
+            hasReview: false,
+          });
+        } else {
+          completed.push({
+            id: item.reviewId.toString(),
+            packageTitle: pkg.packageName,
+            agentName: pkg.agentName,
+            rating: item.rating,
+            comment: item.reviewText,
+            date: new Date(item.postedAt),
+            tripDate: new Date(pkg.departureDate),
+            location: `${pkg.cityName}, ${pkg.stateName}`,
+            helpful: item.helpfulVotes ?? 0,
+            verified: item.isVerified ?? false,
+          });
+        }
+      });
+
+      setPendingReviews(pending);
+      setMyReviews(completed);
+    } catch (error) {
+      console.error("Failed to fetch reviews", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setReviews(prev => [review, ...prev])
-    setNewReview({ rating: 0, comment: '' })
-    setSelectedTrip(null)
-    setIsDialogOpen(false)
-
-    console.log('Review submitted:', review)
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20 text-muted-foreground">
+        Loading reviews...
+      </div>
+    );
   }
-
-  console.log("token--->", localStorage.getItem("token"))
 
   return (
     <div className="space-y-8 m-4">
@@ -127,30 +229,41 @@ export const ReviewsPage = () => {
       <div>
         <h1 className="text-3xl font-bold text-primary">Reviews & Feedback</h1>
         <p className="text-muted-foreground mt-2">
-          Share your experience and help other pilgrims choose the right packages
+          Share your experience and help other pilgrims choose the right
+          packages
         </p>
       </div>
 
       {/* Pending Reviews */}
-      {mockCompletedTrips.some(trip => !trip.hasReview) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Reviews</CardTitle>
-            <CardDescription>
-              Share your experience for completed trips
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {mockCompletedTrips.filter(trip => !trip.hasReview).map((trip) => (
-              <div key={trip.id} className="flex items-center justify-between p-4 border rounded-lg">
+      <Card>
+        <CardHeader>
+          <CardTitle>Pending Reviews</CardTitle>
+          <CardDescription>
+            Share your experience for completed trips
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {pendingReviews.length > 0 ? (
+            pendingReviews.map((trip) => (
+              <div
+                key={trip.id}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
                 <div className="space-y-1">
                   <h4 className="font-medium">{trip.packageTitle}</h4>
-                  <p className="text-sm text-muted-foreground">{trip.agentName}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {trip.agentName}
+                  </p>
+
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      <span>Completed {trip.completionDate.toLocaleDateString()}</span>
+                      <span>
+                        Completed {trip.completionDate.toLocaleDateString()}
+                      </span>
                     </div>
+
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
                       <span>{trip.location}</span>
@@ -158,77 +271,24 @@ export const ReviewsPage = () => {
                   </div>
                 </div>
 
-                <Dialog open={isDialogOpen && selectedTrip?.id === trip.id} onOpenChange={(open) => {
-                  setIsDialogOpen(open)
-                  if (!open) {
-                    setSelectedTrip(null)
-                    setNewReview({ rating: 0, comment: '' })
-                  }
-                }}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      onClick={() => {
-                        setSelectedTrip(trip)
-                        setIsDialogOpen(true)
-                      }}
-                    >
-                      Write Review
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-lg">
-                    <DialogHeader>
-                      <DialogTitle>Write Review</DialogTitle>
-                      <DialogDescription>
-                        Share your experience for {trip.packageTitle}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <Label>Rating</Label>
-                        <StarRating 
-                          rating={newReview.rating} 
-                          interactive 
-                          onRatingChange={(rating) => setNewReview(prev => ({ ...prev, rating }))}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="comment">Your Review</Label>
-                        <Textarea
-                          id="comment"
-                          placeholder="Share your experience, what you liked, and any suggestions for improvement..."
-                          rows={5}
-                          value={newReview.comment}
-                          onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
-                        />
-                      </div>
-
-                      <div className="flex gap-2 justify-end">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => {
-                            setIsDialogOpen(false)
-                            setSelectedTrip(null)
-                            setNewReview({ rating: 0, comment: '' })
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={handleSubmitReview}
-                          disabled={newReview.rating === 0 || !newReview.comment.trim()}
-                        >
-                          Submit Review
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <Button
+                  onClick={() => {
+                    setSelectedTrip(trip);
+                    setIsDialogOpen(true);
+                  }}
+                >
+                  Write Review
+                </Button>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+            ))
+          ) : (
+            <p className="text-center text-muted-foreground py-10">
+              No pending reviews. Completed trips will appear here when feedback
+              is required.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* My Reviews */}
       <Card>
@@ -238,19 +298,24 @@ export const ReviewsPage = () => {
             Reviews you've written for completed trips
           </CardDescription>
         </CardHeader>
+
         <CardContent>
-          {reviews.length > 0 ? (
+          {myReviews.length > 0 ? (
             <div className="space-y-6">
-              {reviews.map((review) => (
-                <div key={review.id} className="border-b last:border-b-0 pb-6 last:pb-0">
+              {myReviews.map((review) => (
+                <div key={review.id} className="border-b pb-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="space-y-2">
                       <h4 className="font-medium">{review.packageTitle}</h4>
-                      <p className="text-sm text-muted-foreground">{review.agentName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {review.agentName}
+                      </p>
                       <div className="flex items-center gap-4">
                         <StarRating rating={review.rating} />
-                        <Badge variant={review.verified ? 'default' : 'secondary'}>
-                          {review.verified ? 'Verified' : 'Pending'}
+                        <Badge
+                          variant={review.verified ? "default" : "secondary"}
+                        >
+                          {review.verified ? "Verified" : "Pending"}
                         </Badge>
                       </div>
                     </div>
@@ -258,14 +323,44 @@ export const ReviewsPage = () => {
                       <p>Posted {review.date.toLocaleDateString()}</p>
                       <div className="flex items-center gap-1 mt-1">
                         <Calendar className="h-3 w-3" />
-                        <span>Trip: {review.tripDate.toLocaleDateString()}</span>
+                        <span>
+                          Trip: {review.tripDate.toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-end mt-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 transition-colors"
+                          onClick={() => {
+                            setReviewMode("edit");
+                            setEditingReviewId(review.id);
+                            setSelectedTrip({
+                              id: review.id,
+                              packageTitle: review.packageTitle,
+                              agentName: review.agentName,
+                              agentId: "",
+                              completionDate: review.tripDate,
+                              location: review.location,
+                              hasReview: true,
+                            });
+
+                            setNewReview({
+                              rating: review.rating,
+                              comment: review.comment,
+                            });
+
+                            setIsDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-3 w-3" />
+                          Modify
+                        </Button>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-sm text-foreground mb-4 leading-relaxed">
-                    {review.comment}
-                  </p>
+                  <p className="text-sm mb-3">{review.comment}</p>
 
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
@@ -285,17 +380,9 @@ export const ReviewsPage = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 space-y-4">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                <Star className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <div>
-                <h3 className="font-medium">No reviews yet</h3>
-                <p className="text-sm text-muted-foreground">
-                  Complete a trip to share your experience and help other pilgrims
-                </p>
-              </div>
-            </div>
+            <p className="text-center text-muted-foreground py-10">
+              No reviews submitted yet
+            </p>
           )}
         </CardContent>
       </Card>
@@ -312,7 +399,10 @@ export const ReviewsPage = () => {
               <ul className="text-sm text-blue-800 space-y-1">
                 <li>• Be honest and constructive in your feedback</li>
                 <li>• Focus on your experience with the service quality</li>
-                <li>• Mention specific aspects like accommodation, transport, and guidance</li>
+                <li>
+                  • Mention specific aspects like accommodation, transport, and
+                  guidance
+                </li>
                 <li>• Avoid personal information or inappropriate content</li>
                 <li>• Help fellow pilgrims make informed decisions</li>
               </ul>
@@ -320,6 +410,71 @@ export const ReviewsPage = () => {
           </div>
         </CardContent>
       </Card>
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            setSelectedTrip(null);
+            setEditingReviewId(null);
+            setReviewMode("create");
+            setNewReview({ rating: 0, comment: "" });
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {reviewMode === "edit" ? "Modify Review" : "Write Review"}
+            </DialogTitle>
+
+            <DialogDescription>
+              Share your experience for {selectedTrip?.packageTitle}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label>Rating</Label>
+              <StarRating
+                rating={newReview.rating}
+                interactive
+                onRatingChange={(rating) =>
+                  setNewReview((prev) => ({ ...prev, rating }))
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="comment">Your Review</Label>
+              <Textarea
+                id="comment"
+                rows={5}
+                placeholder="Share your experience..."
+                value={newReview.comment}
+                onChange={(e) =>
+                  setNewReview((prev) => ({
+                    ...prev,
+                    comment: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitReview}
+                disabled={newReview.rating === 0 || !newReview.comment.trim()}
+              >
+                {reviewMode === "edit" ? "Update Review" : "Submit Review"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
-  )
-}
+  );
+};

@@ -79,7 +79,7 @@ const MainRouts = () => {
               <Route index element={<User />} />
               <Route path="overview" element={<h1>Overview Page</h1>} />
               <Route path="packages" element={<Home />} />
-              <Route path="/costomer/search" element={<SearchResults />} />
+              <Route path="/customer/search" element={<SearchResults />} />
               <Route
                 path="/customer/package/:id"
                 element={<PackageDetails />}

@@ -198,7 +198,7 @@ const PackageDetails = () => {
         {/* Back Button */}
         <Button
           variant="ghost"
-          onClick={() => navigate("/costomer/search")}
+          onClick={() => navigate("/search")}
           className="mb-6 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />

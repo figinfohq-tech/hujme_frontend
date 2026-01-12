@@ -554,40 +554,42 @@ const Packages = () => {
 
                       {/* 🔥 EXISTING BUTTONS & LOGIC UNCHANGED */}
                       <div className="flex gap-2">
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            // onClick={() => handleEditPackage(pkg)}
-                            onClick={() =>
-                              navigate("/add-package", { state: { pkg } })
-                            }
-                          >
-                            <Edit className="w-4 h-4 mr-1" />
-                            Edit
-                          </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          // onClick={() => handleViewPackage(pkg)}
+                          onClick={() =>
+                            navigate("/view-package", { state: { pkg } })
+                          }
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </Button>
 
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            // onClick={() => handleViewPackage(pkg)}
-                            onClick={() =>
-                              navigate("/view-package", { state: { pkg } })
-                            }
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
-                          </Button>
+                        {/* EDIT & DELETE → ONLY IF NOT COMPLETED */}
+                        {pkg.packageStatus !== "COMPLETED" && (
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                navigate("/add-package", { state: { pkg } })
+                              }
+                            >
+                              <Edit className="w-4 h-4 mr-1" />
+                              Edit
+                            </Button>
 
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteViewPackage(pkg)}
-                          >
-                            <Delete className="w-4 h-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteViewPackage(pkg)}
+                            >
+                              <Delete className="w-4 h-4 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -28,6 +28,7 @@ import axios from "axios";
 import image from "../../public/placeholder.svg";
 import { baseURL } from "@/utils/constant/url";
 import { format } from "date-fns";
+import { ReviewsDialog } from "@/components/ReviewsDialog";
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -46,9 +47,16 @@ const SearchResults = () => {
   const [sortOrder, setSortOrder] = useState<string>("desc");
   const [packageType, setPackageType] = useState<any>([]);
   const [packageDay, setPackageDay] = useState<any>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<any>(null);
 
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
+
+  const openReviewsDialog = (pkg: any) => {
+    setSelectedPackage(pkg);
+    setIsDialogOpen(true);
+  };
 
   const toggleCompare = (packageId: string) => {
     setCompareList((prev) =>
@@ -565,7 +573,10 @@ const SearchResults = () => {
 
                           {/* RIGHT CONTENT */}
                           <div className="flex md:flex-col items-start md:items-end justify-between md:justify-start gap-2 md:text-right shrink-0">
-                            <div className="flex items-center gap-1">
+                            <div
+                              className="flex items-center gap-1 cursor-pointer"
+                              onClick={() => openReviewsDialog(result)}
+                            >
                               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                               <span className="font-medium">
                                 {result.rating}
@@ -723,6 +734,17 @@ const SearchResults = () => {
           </div>
         )}
       </main>
+
+      {selectedPackage && (
+        <ReviewsDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          packageId={selectedPackage.packageId}
+          packageName={selectedPackage.packageName}
+          agentName={selectedPackage.agentName}
+          agentId={selectedPackage.agentId}
+        />
+      )}
 
       <Footer />
     </div>
