@@ -49,18 +49,25 @@ import Loader from "./Loader";
 interface FlightSegment {
   id: string;
 
-  airlineId: number | string;
-  airline: string;
+  airlineId: number;
+  airlineName: string;
+
   flightNumber: string;
   flightClass: string;
 
-  departureCountries: string;
-  departureState: string;
-  departureCity: string;
+  departureCountryId: number;
+  departureCountryName: string;
+  departureStateId: number;
+  departureStateName: string;
+  departureCityId: number;
+  departureCityName: string;
 
-  arrivalCountries: string;
-  arrivalState: string;
-  arrivalCity: string;
+  arrivalCountryId: number;
+  arrivalCountryName: string;
+  arrivalStateId: number;
+  arrivalStateName: string;
+  arrivalCityId: number;
+  arrivalCityName: string;
 
   departureDate: Date;
   departureTime: string;
@@ -122,6 +129,7 @@ const FlightDetails = ({ pkg, packageId }) => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [flightToDelete, setFlightToDelete] = useState<any>(null);
   const [formKey, setFormKey] = useState(0);
+  const [pendingEditFlight, setPendingEditFlight] = useState<any>(null);
 
   const id = pkg?.packageId;
 
@@ -290,39 +298,55 @@ const FlightDetails = ({ pkg, packageId }) => {
   7;
 
   useEffect(() => {
-    if (!flightDetails) return;
+    if (!flightDetails || flightDetails.length === 0) return;
 
     const mapped = flightDetails.map((item: any) => {
+      const airlineFromList = airlines.find(
+        (a) => Number(a.airlineId) === Number(item.airlineId)
+      );
+
       return {
-        id: String(item.id), // DB id
-        flightId: item.id,
-        airlineId: item.airlineDetails?.airlineId,
-        airline: item.airlineDetails?.flightName,
-        flightNumber: item.airlineDetails?.flightCode,
+        id: String(item.id),
+
+        airlineId: Number(item.airlineDetails?.airlineId),
+
+        // ✅ MOST IMPORTANT FIX
+        airlineName: item.airlineDetails?.flightName,
+
+        flightNumber: item.flightNumber,
         flightClass: item.flightClass,
 
-        departureCountries: item.departureCountryId,
-        departureState: item.departureStateId,
-        departureCity: item.departureCityId,
-        arrivalCountries: item.arrivalCountryId,
-        arrivalState: item.arrivalStateId,
-        arrivalCity: item.arrivalCityId,
+        departureCountryId: item.departureCountryId,
+        departureCountryName: item.departureCountryName,
 
-        departureDate: item.departureDate
-          ? new Date(item.departureDate)
-          : undefined,
-        arrivalDate: item.arrivalDate ? new Date(item.arrivalDate) : undefined,
+        departureStateId: item.departureStateId,
+        departureStateName: item.departureStateName,
+
+        departureCityId: item.departureCityId,
+        departureCityName: item.departureCityName,
+
+        arrivalCountryId: item.arrivalCountryId,
+        arrivalCountryName: item.arrivalCountryName,
+
+        arrivalStateId: item.arrivalStateId,
+        arrivalStateName: item.arrivalStateName,
+
+        arrivalCityId: item.arrivalCityId,
+        arrivalCityName: item.arrivalCityName,
+
+        departureDate: new Date(item.departureDate),
+        arrivalDate: new Date(item.arrivalDate),
 
         departureTime: item.departureTime?.slice(11, 16),
         arrivalTime: item.arrivalTime?.slice(11, 16),
 
-        isExisting: true, // ✅ VERY IMPORTANT
+        isExisting: true,
         isEdited: false,
       };
     });
 
     setAddedFlights(mapped);
-  }, [flightDetails]);
+  }, [flightDetails, airlines]);
 
   const formik = useFormik({
     initialValues: {
@@ -344,11 +368,55 @@ const FlightDetails = ({ pkg, packageId }) => {
     validateOnChange: false,
     validateOnBlur: true,
     onSubmit: (values, { resetForm }) => {
-      const newFlight = {
+      const newFlight: FlightSegment = {
         id: editIndex !== null ? addedFlights[editIndex].id : `${Date.now()}`,
-        ...values,
+
+        airlineId: Number(values.airline),
+        airlineName:
+          airlines.find((a) => a.airlineId === Number(values.airline))
+            ?.flightName || "",
+
+        flightNumber: values.flightNumber,
+        flightClass: values.flightClass,
+
+        departureCountryId: Number(values.departureCountries),
+        departureCountryName:
+          countries.find(
+            (c) => c.countryId === Number(values.departureCountries)
+          )?.countryName || "",
+
+        departureStateId: Number(values.departureState),
+        departureStateName:
+          state.find((s) => s.stateId === Number(values.departureState))
+            ?.stateName || "",
+
+        departureCityId: Number(values.departureCity),
+        departureCityName:
+          cities.find((c) => c.cityId === Number(values.departureCity))
+            ?.cityName || "",
+
+        arrivalCountryId: Number(values.arrivalCountries),
+        arrivalCountryName:
+          countries.find((c) => c.countryId === Number(values.arrivalCountries))
+            ?.countryName || "",
+
+        arrivalStateId: Number(values.arrivalState),
+        arrivalStateName:
+          state2.find((s) => s.stateId === Number(values.arrivalState))
+            ?.stateName || "",
+
+        arrivalCityId: Number(values.arrivalCity),
+        arrivalCityName:
+          cities2.find((c) => c.cityId === Number(values.arrivalCity))
+            ?.cityName || "",
+
+        departureDate: values.departureDate!,
+        arrivalDate: values.arrivalDate!,
+        departureTime: values.departureTime,
+        arrivalTime: values.arrivalTime,
+
         isExisting:
-          editIndex !== null ? addedFlights[editIndex].isExisting : false, // ✅ NEW flight
+          editIndex !== null ? addedFlights[editIndex].isExisting : false,
         isEdited: editIndex !== null,
       };
 
@@ -448,32 +516,29 @@ const FlightDetails = ({ pkg, packageId }) => {
       for (const flight of addedFlights) {
         const payload = {
           packageId: id ?? packageId,
-
-          airlineId: Number(flight.airline), // ✔ airlineId
+          airlineId: flight.airlineId,
           flightNumber: flight.flightNumber,
           flightClass: flight.flightClass,
 
-          departureDate: new Date(flight.departureDate).toISOString(),
+          departureDate: flight.departureDate.toISOString(),
           departureTime: new Date(
             `1970-01-01T${flight.departureTime}:00`
           ).toISOString(),
 
-          arrivalDate: new Date(flight.arrivalDate).toISOString(),
+          arrivalDate: flight.arrivalDate.toISOString(),
           arrivalTime: new Date(
             `1970-01-01T${flight.arrivalTime}:00`
           ).toISOString(),
 
-          // ✅ NEW LOCATION FIELDS (Backend expects ONE set)
-          countryId: Number(flight.departureCountries),
-          stateId: Number(flight.departureState),
-          cityId: Number(flight.departureCity),
+          departureCountryId: flight.departureCountryId,
+          departureStateId: flight.departureStateId,
+          departureCityId: flight.departureCityId,
 
-          // ✅ OPTIONAL
-          notes: flight.isEdited
-            ? "Flight segment updated"
-            : "Flight segment added",
+          arrivalCountryId: flight.arrivalCountryId,
+          arrivalStateId: flight.arrivalStateId,
+          arrivalCityId: flight.arrivalCityId,
 
-          // ✅ AUDIT FIELDS
+          notes: flight.isEdited ? "Flight updated" : "Flight added",
           createdBy: 0,
           updatedBy: 0,
         };
@@ -529,22 +594,46 @@ const FlightDetails = ({ pkg, packageId }) => {
   const handleEditFlight = (flight, index) => {
     setEditIndex(index);
 
+    // store IDs only
+    setSelectedCountryId(String(flight.departureCountryId));
+    setSelectedStateId(String(flight.departureStateId));
+
+    setSelectedCountryId2(String(flight.arrivalCountryId));
+    setSelectedStateId2(String(flight.arrivalStateId));
+
+    // store flight temporarily
+    setPendingEditFlight(flight);
+  };
+
+  useEffect(() => {
+    if (!pendingEditFlight) return;
+    if (!state.length || !state2.length) return;
+    if (!cities.length || !cities2.length) return;
+
+    const flight = pendingEditFlight;
+
     formik.setValues({
-      airline: String(flight.airlineId ?? flight.airline),
+      airline: String(flight.airlineId),
       flightNumber: flight.flightNumber,
-      flightClass: String(flight.flightClass),
-      departureCountries: String(flight.departureCountries),
-      departureState: String(flight.departureState),
-      departureCity: String(flight.departureCity),
-      arrivalCountries: String(flight.arrivalCountries),
-      arrivalState: String(flight.arrivalState),
-      arrivalCity: String(flight.arrivalCity),
-      departureDate: new Date(flight.departureDate),
-      arrivalDate: new Date(flight.arrivalDate),
+      flightClass: flight.flightClass,
+
+      departureCountries: String(flight.departureCountryId),
+      departureState: String(flight.departureStateId),
+      departureCity: String(flight.departureCityId),
+
+      arrivalCountries: String(flight.arrivalCountryId),
+      arrivalState: String(flight.arrivalStateId),
+      arrivalCity: String(flight.arrivalCityId),
+
+      departureDate: flight.departureDate,
+      arrivalDate: flight.arrivalDate,
       departureTime: flight.departureTime,
       arrivalTime: flight.arrivalTime,
     });
-  };
+
+    // ✅ clear temp state
+    setPendingEditFlight(null);
+  }, [state, state2, cities, cities2]);
 
   useEffect(() => {
     const dep = formik.values.departureDate;
@@ -574,7 +663,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                   <div className="flex items-center gap-2">
                     <Plane className="h-4 w-4 text-primary" />
                     <h5 className="font-semibold">
-                      {flight.airline} - {flight.flightNumber}
+                      {flight.airlineName} - {flight.flightNumber}
                     </h5>
                     {/* Flight Class Badge */}
                     {flight?.flightClass && (
@@ -584,7 +673,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                     )}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {flight.departureCity} → {flight.arrivalCity}
+                    {`${flight.departureCityName}, ${flight.departureStateName}, ${flight.departureCountryName} → ${flight.arrivalCityName}, ${flight.arrivalStateName}, ${flight.arrivalCountryName}`}
                   </div>
                   <div className="text-xs text-muted-foreground pt-1">
                     Departure: {format(flight.departureDate, "PPP")} at{" "}
@@ -989,7 +1078,7 @@ const FlightDetails = ({ pkg, packageId }) => {
               Are you sure you want to remove this flight?
               <br />
               <span className="font-medium text-foreground">
-                {flightToDelete?.airline} – {flightToDelete?.flightNumber}
+                {flightToDelete?.airlineName} – {flightToDelete?.flightNumber}
               </span>
               <br />
               This action cannot be undone.

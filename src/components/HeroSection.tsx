@@ -1,13 +1,7 @@
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import { Search, MapPin, Calendar } from "lucide-react";
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-kaaba.jpg";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -15,15 +9,14 @@ import { baseURL } from "@/utils/constant/url";
 
 const HeroSection = () => {
   const navigate = useNavigate();
-  const [countries, setCountries] = useState([]);
   const [state, setState] = useState([]);
   const [cities, setCities] = useState([]);
   const [travelType, setTravelType] = useState([]);
-  const [selectedCountryId, setSelectedCountryId] = useState("");
+  const [countries, setCountries] = useState([]);
+  const [selectedCountryId, setSelectedCountryId] = useState(1);
   const [selectedStateId, setSelectedStateId] = useState("");
   const [selectedCityId, setSelectedCityId] = useState<string>("");
   const [selectedTravelTypeId, setSelectedTravelTypeId] = useState<string>("");
-  const [detectedStateName, setDetectedStateName] = useState("");
   const [errors, setErrors] = useState({
     country: false,
     state: false,
@@ -36,7 +29,7 @@ const HeroSection = () => {
     fetchCountries();
     fetchTravelType();
   }, []);
-  
+
   useEffect(() => {
     if (selectedCountryId) {
       fetchStates();
@@ -102,7 +95,7 @@ const HeroSection = () => {
     if (role === "AGENT") {
       navigate("/dashboard/search", {
         state: {
-          countryId:selectedCountryId,
+          countryId: selectedCountryId,
           stateId: selectedStateId,
           cityId: selectedCityId,
           travelTypeId: selectedTravelTypeId,
@@ -110,16 +103,16 @@ const HeroSection = () => {
       });
     } else {
       token
-      ? navigate("/customer/search", {
-        state: {
-          stateId: selectedStateId,
-          cityId: selectedCityId,
-          travelTypeId: selectedTravelTypeId,
-        },
-      })
-      : navigate("/search", {
-        state: {
-              countryId:selectedCountryId,
+        ? navigate("/customer/search", {
+            state: {
+              stateId: selectedStateId,
+              cityId: selectedCityId,
+              travelTypeId: selectedTravelTypeId,
+            },
+          })
+        : navigate("/search", {
+            state: {
+              countryId: selectedCountryId,
               stateId: selectedStateId,
               cityId: selectedCityId,
               travelTypeId: selectedTravelTypeId,
@@ -127,74 +120,6 @@ const HeroSection = () => {
           });
     }
   };
-
-  // user location fatching
-  const detectUserLocation = () => {
-    if (!navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        await getCountryStateFromLatLng(latitude, longitude);
-      },
-      (error) => {
-        console.error("Location access denied", error);
-      }
-    );
-  };
-
-  const getCountryStateFromLatLng = async (lat, lng) => {
-    try {
-      const res = await axios.get(
-        `https://api.bigdatacloud.net/data/reverse-geocode-client`,
-        {
-          params: {
-            latitude: lat,
-            longitude: lng,
-            localityLanguage: "en",
-          },
-        }
-      );
-
-      const countryName = res.data.countryName;
-      const stateName = res.data.principalSubdivision;
-
-      autoSelectCountryState(countryName, stateName);
-    } catch (error) {
-      console.error("Reverse geocoding failed", error);
-    }
-  };
-
-  const autoSelectCountryState = (countryName, stateName) => {
-    const matchedCountry = countries.find(
-      (c) => c.countryName.toLowerCase() === countryName.toLowerCase()
-    );
-
-    if (matchedCountry) {
-      setSelectedCountryId(matchedCountry.countryId);
-      setDetectedStateName(stateName);
-      setErrors((prev) => ({ ...prev, country: false }));
-    }
-  };
-
-  useEffect(() => {
-    if (state.length > 0 && detectedStateName) {
-      const matchedState = state.find(
-        (s) => s.stateName.toLowerCase() === detectedStateName.toLowerCase()
-      );
-
-      if (matchedState) {
-        setSelectedStateId(matchedState.stateId);
-        setErrors((prev) => ({ ...prev, state: false }));
-      }
-    }
-  }, [state, detectedStateName]);
-
-  useEffect(() => {
-    if (countries.length > 0) {
-      detectUserLocation();
-    }
-  }, [countries]);
 
   return (
     <section className="relative min-h-[600px] flex items-center justify-center overflow-hidden">
@@ -230,6 +155,7 @@ const HeroSection = () => {
                 </label>
                 <Select
                   value={selectedCountryId}
+                  disabled
                   onValueChange={(value) => {
                     setSelectedCountryId(value);
                     setErrors((prev) => ({

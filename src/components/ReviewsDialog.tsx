@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Star, ThumbsUp } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import { baseURL } from "@/utils/constant/url";
 
 /* ================= TYPES ================= */
@@ -57,7 +52,7 @@ export const ReviewsDialog = ({
               Authorization: token ? `Bearer ${token}` : undefined,
             },
           }
-        );
+        );        
 
         const formatted: ReviewItem[] = Array.isArray(res.data)
           ? res.data.map((item: any) => ({

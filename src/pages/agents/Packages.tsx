@@ -29,6 +29,7 @@ import { baseURL } from "@/utils/constant/url";
 import { useNavigate } from "react-router";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
+import { ReviewsDialog } from "@/components/ReviewsDialog";
 
 const Packages = () => {
   const [packages, setPackages] = useState<any[]>([]);
@@ -42,12 +43,13 @@ const Packages = () => {
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [packageFacilities, setPackageFacilities] = useState({});
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const navigate = useNavigate();
 
-  const handleAddPackage = () => {
-    setSelectedPackage(null);
-    setIsFormOpen(true);
+  const openReviewsDialog = (pkg: any) => {
+    setSelectedPackage(pkg);
+    setIsDialogOpen(true);
   };
 
   const handleDeleteViewPackage = (pkg: any) => {
@@ -139,7 +141,7 @@ const Packages = () => {
           },
         }
       );
-
+      
       setPackages(response.data);
       fetchFacilitiesForPackages(response.data);
       fetchAgentLogos(response.data);
@@ -526,11 +528,21 @@ const Packages = () => {
                           })()}
                         </div>
 
-                        <div className="flex items-center gap-1">
+                        {/* <div className="flex items-center gap-1">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                           <span className="font-medium">4.8</span>
                           <span className="text-sm text-muted-foreground">
                             (120 reviews)
+                          </span>
+                        </div> */}
+                        <div
+                          className="flex items-center gap-1 cursor-pointer"
+                          onClick={() => openReviewsDialog(pkg)}
+                        >
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-medium">{pkg.rating}</span>
+                          <span className="text-sm text-muted-foreground whitespace-nowrap">
+                            ({pkg.reviews} reviews)
                           </span>
                         </div>
                       </div>
@@ -616,6 +628,17 @@ const Packages = () => {
           setOpen={setDeleteOpen}
           onDelete={handleDeletePackage}
         />
+
+        {selectedPackage && (
+          <ReviewsDialog
+            isOpen={isDialogOpen}
+            onClose={() => setIsDialogOpen(false)}
+            packageId={selectedPackage.packageId}
+            packageName={selectedPackage.packageName}
+            agentName={selectedPackage.agentName}
+            agentId={selectedPackage.agentId}
+          />
+        )}
       </main>
     </div>
   );
