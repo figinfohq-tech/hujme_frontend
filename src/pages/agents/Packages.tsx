@@ -52,6 +52,12 @@ const Packages = () => {
     setIsDialogOpen(true);
   };
 
+  const formatRating = (rating?: number) => {
+  if (rating === null || rating === undefined) return "0.0";
+  return Number(rating).toFixed(1);
+};
+
+
   const handleDeleteViewPackage = (pkg: any) => {
     setSelectedPkg(pkg);
     setDeleteOpen(true); // OPEN MODAL
@@ -141,6 +147,7 @@ const Packages = () => {
           },
         }
       );
+      console.log("package--->", response.data);
       
       setPackages(response.data);
       fetchFacilitiesForPackages(response.data);
@@ -540,9 +547,9 @@ const Packages = () => {
                           onClick={() => openReviewsDialog(pkg)}
                         >
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-medium">{pkg.rating}</span>
+                          <span className="font-medium">{formatRating(pkg.ratingAverage)}</span>
                           <span className="text-sm text-muted-foreground whitespace-nowrap">
-                            ({pkg.reviews} reviews)
+                            ({pkg.reviewCount} reviews)
                           </span>
                         </div>
                       </div>

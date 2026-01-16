@@ -56,9 +56,12 @@ const BookingViewPage = () => {
   const fetchTravelersByID = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${baseURL}travelers/byBooking/36`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${baseURL}travelers/byBooking/${selectedBooking.bookingId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setPilgrimData(response.data);
     } catch (error) {
       console.error("Package Fetch Error:", error);
@@ -69,7 +72,7 @@ const BookingViewPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${baseURL}agents/contact/${myPackage?.agentId}`,
+        `${baseURL}agents/contact/${myPackage.packageDetails?.agentId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -102,7 +105,7 @@ const BookingViewPage = () => {
   }, [pilgrimData]);
 
   useEffect(() => {
-    if (myPackage.agentId) {
+    if (myPackage.packageDetails.agentId) {
       fetchTravelersByID();
       fetchDetailByAgentID();
     }
@@ -226,12 +229,36 @@ const BookingViewPage = () => {
     };
   };
 
-  const getActiveCount = (booking: Booking) => {
-    return booking.pilgrims.filter((p) => p.status === "active").length;
+  const getActiveCount = (booking: any) => {
+    const tc = booking?.travelerCount;
+
+    // API case → number
+    if (typeof tc === "number") {
+      return tc;
+    }
+
+    // Old mock case → array
+    if (Array.isArray(tc)) {
+      return tc.filter((p) => p.status === "active").length;
+    }
+
+    return 0;
   };
 
-  const getCancelledCount = (booking: Booking) => {
-    return booking.pilgrims.filter((p) => p.status === "cancelled").length;
+  const getCancelledCount = (booking: any) => {
+    const tc = booking?.travelerCount;
+
+    // API case → number (no cancelled info available)
+    if (typeof tc === "number") {
+      return 0;
+    }
+
+    // Old mock case → array
+    if (Array.isArray(tc)) {
+      return tc.filter((p) => p.status === "cancelled").length;
+    }
+
+    return 0;
   };
 
   const calculateAgeOnlyYear = (dob) => {
@@ -290,24 +317,30 @@ const BookingViewPage = () => {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Package</span>
                       <span className="font-medium">
-                        {myPackage.packageName}
+                        {myPackage.packageDetails?.packageName}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Agent</span>
-                      <span className="font-medium">{myPackage.agentName}</span>
+                      <span className="font-medium">
+                        {myPackage.packageDetails?.agentName}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Type</span>
-                      <Badge>{myPackage.travelType.toUpperCase()}</Badge>
+                      <Badge>{myPackage.packageDetails?.travelType}</Badge>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Duration</span>
-                      <span className="font-medium">{myPackage.duration}</span>
+                      <span className="font-medium">
+                        {myPackage.packageDetails?.duration}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Location</span>
-                      <span className="font-medium">{myPackage.cityName}</span>
+                      <span className="font-medium">
+                        {myPackage.packageDetails?.cityName}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -325,9 +358,17 @@ const BookingViewPage = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Status</span>
-                      <Badge className={getStatusColor(selectedBooking.status)}>
-                        {selectedBooking.status.charAt(0).toUpperCase() +
-                          selectedBooking.status.slice(1).replace("_", " ")}
+                      <Badge
+                        className={getStatusColor(
+                          selectedBooking.bookingStatus
+                        )}
+                      >
+                        {selectedBooking.bookingStatus
+                          ?.charAt(0)
+                          .toUpperCase() +
+                          selectedBooking.bookingStatus
+                            ?.slice(1)
+                            .replace("_", " ")}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
@@ -341,13 +382,13 @@ const BookingViewPage = () => {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Departure</span>
                       <span className="font-medium">
-                        {formatDate(myPackage.departureDate)}
+                        {formatDate(myPackage.packageDetails?.departureDate)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Return</span>
                       <span className="font-medium">
-                        {formatDate(selectedBooking.returnDate)}
+                        {formatDate(myPackage.packageDetails?.arrivalDate)}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -355,13 +396,16 @@ const BookingViewPage = () => {
                         Active Pilgrims
                       </span>
                       <span className="font-medium">
+                        {myPackage.travelerCount}
+                      </span>
+                      {/* <span className="font-medium">
                         {getActiveCount(selectedBooking)}
                         {getCancelledCount(selectedBooking) > 0 && (
                           <span className="text-red-600 ml-2">
                             ({getCancelledCount(selectedBooking)} cancelled)
                           </span>
                         )}
-                      </span>
+                      </span> */}
                     </div>
                   </CardContent>
                 </Card>
@@ -387,7 +431,7 @@ const BookingViewPage = () => {
                         {selectedBooking.emergencyContact}
                       </span>
                     </div>
-                    {selectedBooking.specialRequirements && (
+                    {selectedBooking && (
                       <div className="space-y-1">
                         <span className="text-muted-foreground text-sm">
                           Special Requirements:
@@ -452,9 +496,11 @@ const BookingViewPage = () => {
                           selectedBooking.paymentStatus
                         )}
                       >
-                        {selectedBooking.paymentStatus.charAt(0).toUpperCase() +
+                        {selectedBooking.paymentStatus
+                          ?.charAt(0)
+                          .toUpperCase() +
                           selectedBooking.paymentStatus
-                            .slice(1)
+                            ?.slice(1)
                             .replace("_", " ")}
                       </Badge>
                     </div>
@@ -484,7 +530,7 @@ const BookingViewPage = () => {
                     )}
 
                     {/* Refund Information for Cancelled Bookings */}
-                    {selectedBooking.refundTransactions.length > 0 && (
+                    {/* {selectedBooking.refundTransactions.length > 0 && (
                       <div className="pt-2 border-t">
                         {selectedBooking.refundTransactions.map(
                           (refund, index) => (
@@ -536,7 +582,7 @@ const BookingViewPage = () => {
                           )
                         )}
                       </div>
-                    )}
+                    )} */}
                   </CardContent>
                 </Card>
               </div>
@@ -619,7 +665,7 @@ const BookingViewPage = () => {
                   <CardContent>
                     <div className="space-y-4">
                       {/* Payment Transactions */}
-                      {selectedBooking.paymentTransactions.map(
+                      {/* {selectedBooking.paymentTransactions.map(
                         (transaction) => (
                           <div
                             key={transaction.id}
@@ -658,10 +704,10 @@ const BookingViewPage = () => {
                             </div>
                           </div>
                         )
-                      )}
+                      )} */}
 
                       {/* Refund Transactions */}
-                      {selectedBooking.refundTransactions.map((refund) => (
+                      {/* {selectedBooking.refundTransactions.map((refund) => (
                         <div
                           key={refund.id}
                           className="flex items-center justify-between p-3 border rounded-lg border-blue-200 bg-blue-50"
@@ -712,7 +758,7 @@ const BookingViewPage = () => {
                               )}
                           </div>
                         </div>
-                      ))}
+                      ))} */}
                     </div>
                   </CardContent>
                 </Card>
@@ -835,7 +881,7 @@ const BookingViewPage = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="progress" className="space-y-6">
+            {/* <TabsContent value="progress" className="space-y-6">
               {selectedBooking.pilgrims.map((pilgrim, index) => (
                 <Card
                   key={pilgrim.id}
@@ -967,7 +1013,7 @@ const BookingViewPage = () => {
                   </CardContent>
                 </Card>
               ))}
-            </TabsContent>
+            </TabsContent> */}
 
             <TabsContent value="contact" className="space-y-6">
               <Card>
@@ -1009,10 +1055,10 @@ const BookingViewPage = () => {
                       </Button>
                     </div>
 
-                    {selectedBooking.agentContact.whatsapp && (
+                    {selectedBooking?.agentContact?.whatsapp && (
                       <div className="flex items-center gap-3">
                         <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                        <span>{details.phone}</span>
+                        <span>{details?.phone}</span>
                         <Button
                           variant="outline"
                           size="sm"
@@ -1035,10 +1081,10 @@ const BookingViewPage = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-yellow-700 text-sm mb-4">
-                    {selectedBooking.cancellationPolicy.description}
+                    {selectedBooking?.cancellationPolicy?.description}
                   </p>
                   <div className="space-y-2">
-                    {selectedBooking.cancellationPolicy.rules.map(
+                    {selectedBooking.cancellationPolicy?.rules?.map(
                       (rule, index) => (
                         <div
                           key={index}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -38,6 +38,7 @@ const SearchResults = () => {
   const [priceRange, setPriceRange] = useState([50000, 500000]);
   const [ratingFilter, setRatingFilter] = useState([3]);
   const [durationFilter, setDurationFilter] = useState<string>("");
+  const [agentFilter, setAgentFilter] = useState<string>("");
   const [packageTypeFilter, setPackageTypeFilter] = useState<string>("");
   const [compareList, setCompareList] = useState<string[]>([]);
   const [packages, setPackages] = useState<any>([]);
@@ -45,8 +46,7 @@ const SearchResults = () => {
   const [packageFacilities, setPackageFacilities] = useState({});
   const [sortBy, setSortBy] = useState<string>("rating");
   const [sortOrder, setSortOrder] = useState<string>("desc");
-  const [packageType, setPackageType] = useState<any>([]);
-  const [packageDay, setPackageDay] = useState<any>([]);
+  const [packageFilter, setPackageFilter] = useState<any>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
 
@@ -56,6 +56,11 @@ const SearchResults = () => {
   const openReviewsDialog = (pkg: any) => {
     setSelectedPackage(pkg);
     setIsDialogOpen(true);
+  };
+
+  const formatRating = (rating?: number) => {
+    if (rating === null || rating === undefined) return "0.0";
+    return Number(rating).toFixed(1);
   };
 
   const toggleCompare = (packageId: string) => {
@@ -107,8 +112,7 @@ const SearchResults = () => {
     }
   };
 
-  // fetching type
-  const fetchPackagesByType = async () => {
+  const fetchPackagefilters = async () => {
     try {
       const token = localStorage.getItem("token");
 
@@ -119,44 +123,21 @@ const SearchResults = () => {
       if (cityId) params.cityId = cityId;
       if (travelTypeId) params.travelTypeId = travelTypeId;
 
-      const response = await axios.get(`${baseURL}packages/types`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: params,
-      });
-      setPackageType(response.data);
-    } catch (error) {
-      console.error("Error fetching packages by type:", error);
-    }
-  };
-  const fetchPackagesByDay = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const params: any = {};
-
-      if (countryId) params.countryId = countryId;
-      if (stateId) params.stateId = stateId;
-      if (cityId) params.cityId = cityId;
-      if (travelTypeId) params.travelTypeId = travelTypeId;
-
-      const response = await axios.get(`${baseURL}packages/durations`, {
+      const response = await axios.get(`${baseURL}packages/package-filters`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
         params: params,
       });
 
-      setPackageDay(response.data);
+      setPackageFilter(response.data);
     } catch (error) {
       console.error("Error fetching packages by type:", error);
     }
   };
 
   useEffect(() => {
-    fetchPackagesByType();
-    fetchPackagesByDay();
+    fetchPackagefilters();
   }, [countryId, stateId, cityId, travelTypeId]);
 
   // fetching type
@@ -275,6 +256,12 @@ const SearchResults = () => {
           return false;
         }
       }
+      // Agents filter (safe)
+      if (agentFilter && agentFilter !== "all") {
+        if (result.agentName !== agentFilter) {
+          return false;
+        }
+      }
 
       // Package type filter
       if (packageTypeFilter && packageTypeFilter !== "all") {
@@ -343,6 +330,27 @@ const SearchResults = () => {
                 </h3>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* agent name */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    Agency Name
+                  </label>
+                  <Select value={agentFilter} onValueChange={setAgentFilter}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder=" Agency Name" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Agency Name</SelectItem>
+                      {packageFilter.agents?.map((item: any) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* agent name */}
+
                 {/* Number of Days */}
                 <div className="space-y-3">
                   <label className="text-sm font-medium text-foreground">
@@ -357,9 +365,9 @@ const SearchResults = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Durations</SelectItem>
-                      {packageDay.map((item: any) => (
+                      {packageFilter.durations?.map((item: any) => (
                         <SelectItem key={item} value={item}>
-                          {item}
+                          {item} Days
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -380,7 +388,7 @@ const SearchResults = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      {packageType.map((item: any) => (
+                      {packageFilter.packageTypes?.map((item: any) => (
                         <SelectItem key={item} value={item}>
                           {item}
                         </SelectItem>
@@ -579,10 +587,10 @@ const SearchResults = () => {
                             >
                               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                               <span className="font-medium">
-                                {result.rating}
+                                {formatRating(result.ratingAverage)}
                               </span>
                               <span className="text-sm text-muted-foreground whitespace-nowrap">
-                                ({result.reviews} reviews)
+                                ({result.reviewCount} reviews)
                               </span>
                             </div>
 

@@ -407,6 +407,7 @@ const mockBookings: Booking[] = [
 
 export const BookingsPage = () => {
   const [bookings, setBookings] = useState<Booking[]>(mockBookings);
+  const [bookings1, setBookings1] = useState<Booking[]>([]);
   const [bookingUser, setBookingUser] = useState<any>("");
   const [myPackage, setMyPackge] = useState<any>();
   const [searchTerm, setSearchTerm] = useState("");
@@ -451,6 +452,7 @@ export const BookingsPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBookingUser(response.data);
+      setBookings1(response.data);
       setIsLoading(false);
     } catch (error) {
       console.error("Package Fetch Error:", error);
@@ -464,41 +466,52 @@ export const BookingsPage = () => {
     fetchBookingByUser();
   }, []);
 
-  const fetchPackages = async () => {
-    setIsLoading(true);
+  const fetchPackages = async (bookingList: any[]) => {
     try {
       const token = localStorage.getItem("token");
+      setIsLoading(true);
+      const updatedBookings = await Promise.all(
+        bookingList.map(async (booking) => {
+          const res = await axios.get(
+            `${baseURL}packages/${booking.packageId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
 
-      const response = await axios.get(
-        `${baseURL}packages/${bookingUser[0]?.packageId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+          return {
+            ...booking,
+            packageDetails: res.data, // 🔥 attach package
+          };
+        })
       );
-      setMyPackge(response.data);
+
+      setBookings1(updatedBookings); // ✅ bookings now enriched
       setIsLoading(false);
     } catch (error) {
       console.error("Package Fetch Error:", error);
-      setIsLoading(false);
     }
   };
+
   // Fetch Booking By User
 
   useEffect(() => {
-    if (bookingUser) {
-      fetchPackages();
+    if (bookingUser?.length > 0) {
+      fetchPackages(bookingUser);
     }
   }, [bookingUser]);
 
-  const filteredBookings = bookings.filter((booking) => {
+  const filteredBookings = bookings1.filter((booking) => {
     const matchesSearch =
-      booking.packageTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.agentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || booking.status === statusFilter;
+      booking.packageDetails?.packageName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      booking.packageDetails?.agentName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+    //   booking.id.toLowerCase().includes(searchTerm.toLowerCase());
+    // const matchesStatus =
+    //   statusFilter === "all" || booking.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   const getStatusColor = (status: string) => {
@@ -621,14 +634,22 @@ export const BookingsPage = () => {
     return (completed / total) * 100;
   };
 
-  const getOverallMilestoneProgress = (pilgrims: Pilgrim[]) => {
-    const activePilgrims = pilgrims.filter((p) => p.status === "active");
-    if (activePilgrims.length === 0) return 0;
-    const totalProgress = activePilgrims.reduce(
-      (sum, pilgrim) => sum + getMilestoneProgress(pilgrim.milestones),
-      0
-    );
-    return totalProgress / activePilgrims.length;
+  const getOverallMilestoneProgress = (pilgrims: any) => {
+    // API case → number
+    if (typeof pilgrims === "number") {
+      return pilgrims > 0 ? 100 : 0;
+    }
+
+    // Old mock case → array
+    if (Array.isArray(pilgrims)) {
+      if (pilgrims.length === 0) return 0;
+
+      const completed = pilgrims.filter((p) => p.status === "completed").length;
+
+      return Math.round((completed / pilgrims.length) * 100);
+    }
+
+    return 0;
   };
 
   const calculateRefundAmount = (booking: Booking, pilgrimIds?: string[]) => {
@@ -1005,20 +1026,36 @@ export const BookingsPage = () => {
     }
   };
 
-  const getActiveCount = (booking: Booking) => {
-    return booking.pilgrims.filter((p) => p.status === "active").length;
+  const getActiveCount = (booking: any) => {
+    if (Array.isArray(booking?.travelerCount)) {
+      return booking.travelerCount.filter((p: any) => p.status === "active")
+        .length;
+    }
+
+    // API case (number)
+    return booking?.travelerCount ?? 0;
   };
 
-  const getCancelledCount = (booking: Booking) => {
-    return booking.pilgrims.filter((p) => p.status === "cancelled").length;
+  // const getCancelledCount = (booking: Booking) => {
+  //   return booking?.travelerCount.filter((p) => p.status === "cancelled").length;
+  // };
+
+  const getCancelledCount = (booking: any) => {
+    if (Array.isArray(booking?.travelerCount)) {
+      return booking.travelerCount.filter((p: any) => p.status === "active")
+        .length;
+    }
+
+    // API case (number)
+    return booking?.travelerCount ?? 0;
   };
 
   const BookingCard = ({ booking }: { booking: Booking }) => {
     const activeCount = getActiveCount(booking);
     const cancelledCount = getCancelledCount(booking);
-    const hasPendingRefund = booking.refundTransactions.some(
-      (r) => r.status === "initiated"
-    );
+    // const hasPendingRefund = booking.refundTransactions.some(
+    //   (r) => r.status === "initiated"
+    // );
 
     if (isLoading) {
       return <Loader />;
@@ -1030,28 +1067,26 @@ export const BookingsPage = () => {
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <CardTitle className="text-lg">
-                {myPackage?.packageName}
+                {booking.packageDetails?.packageName}
               </CardTitle>
               <CardDescription className="flex items-center gap-2">
-                <span>{myPackage?.agentName}</span>
+                <span>{booking?.agentName}</span>
                 <Badge variant="outline" className="text-xs">
-                  {myPackage?.travelType.toUpperCase()}
+                  {booking.packageDetails?.travelType}
                 </Badge>
               </CardDescription>
             </div>
             <div className="flex flex-col gap-2">
-              <Badge className={getStatusColor(booking.status)}>
-                {getStatusIcon(booking.status)}
-                <span className="ml-1 capitalize">
-                  {booking.status.replace("_", " ")}
-                </span>
+              <Badge className={getStatusColor(booking.bookingStatus)}>
+                {getStatusIcon(booking.bookingStatus)}
+                <span className="ml-1 capitalize">{booking.bookingStatus}</span>
               </Badge>
-              {hasPendingRefund && (
+              {/* {hasPendingRefund && (
                 <Badge className="bg-blue-100 text-blue-800 text-xs">
                   <Banknote className="h-3 w-3 mr-1" />
                   Refund Pending
                 </Badge>
-              )}
+              )} */}
             </div>
           </div>
         </CardHeader>
@@ -1061,8 +1096,8 @@ export const BookingsPage = () => {
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span>
-                {myPackage?.departureDate
-                  ? formatDate(myPackage.departureDate)
+                {booking.packageDetails?.departureDate
+                  ? formatDate(booking.packageDetails?.departureDate)
                   : "N/A"}
               </span>
             </div>
@@ -1073,17 +1108,17 @@ export const BookingsPage = () => {
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
               <span>
-                {ActiveUser} Active
-                {cancelledCount > 0 && (
+                {booking.travelerCount} Active
+                {/* {cancelledCount > 0 && (
                   <span className="text-red-600 ml-1">
                     ({cancelledCount} Cancelled)
                   </span>
-                )}
+                )} */}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>{myPackage?.duration}</span>
+              <span>{booking.packageDetails?.duration}</span>
             </div>
           </div>
 
@@ -1149,11 +1184,14 @@ export const BookingsPage = () => {
               <div className="flex justify-between text-sm">
                 <span>Trip Progress</span>
                 <span>
-                  {Math.round(getOverallMilestoneProgress(booking.pilgrims))}%
+                  {Math.round(
+                    getOverallMilestoneProgress(booking.travelerCount)
+                  )}
+                  %
                 </span>
               </div>
               <Progress
-                value={getOverallMilestoneProgress(booking.pilgrims)}
+                value={getOverallMilestoneProgress(booking.travelerCount)}
                 className="h-2"
               />
             </div>
@@ -1162,14 +1200,16 @@ export const BookingsPage = () => {
           <div className="flex items-center justify-between pt-2">
             <div className="space-y-1">
               <p className="text-lg font-semibold">
-                {formatCurrency(myPackage?.price * ActiveUser)}
+                {formatCurrency(
+                  booking.packageDetails?.price * booking.travelerCount
+                )}
               </p>
               <p
                 className={`text-sm ${getPaymentStatusColor(
                   booking.paymentStatus
                 )}`}
               >
-                Paid: {formatCurrency(myPackage?.price)}
+                Paid: {formatCurrency(booking.packageDetails?.price)}
               </p>
             </div>
 
@@ -1192,7 +1232,7 @@ export const BookingsPage = () => {
                   navigate("/booking-view", {
                     state: {
                       booking: booking,
-                      myPackage: myPackage,
+                      myPackage: booking,
                       bookingUser: bookingUser,
                     },
                   });
@@ -1203,7 +1243,7 @@ export const BookingsPage = () => {
               </Button>
 
               {/* Refund Process Button */}
-              {hasPendingRefund && (
+              {/* {hasPendingRefund && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -1216,7 +1256,7 @@ export const BookingsPage = () => {
                   <Banknote className="h-4 w-4 mr-1" />
                   Process Refund
                 </Button>
-              )}
+              )} */}
 
               {/* Cancel Button */}
               {(booking.status === "confirmed" ||
@@ -1247,6 +1287,10 @@ export const BookingsPage = () => {
       </Card>
     );
   };
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <div className="space-y-8 container mx-auto px-4 py-8">
