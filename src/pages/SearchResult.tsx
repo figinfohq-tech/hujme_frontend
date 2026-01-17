@@ -340,7 +340,7 @@ const SearchResults = () => {
                       <SelectValue placeholder=" Agency Name" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Agency Name</SelectItem>
+                      <SelectItem value="all">All Agency</SelectItem>
                       {packageFilter.agents?.map((item: any) => (
                         <SelectItem key={item} value={item}>
                           {item}
