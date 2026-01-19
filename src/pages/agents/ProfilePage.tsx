@@ -32,6 +32,7 @@ const ProfilePage = () => {
   const [cities, setCities] = useState([]);
   const [selectedStateId, setSelectedStateId] = useState("");
   const [selectdCitiesId, setSelectedCitiesId] = useState("");
+  const [agent, setAgent] = useState<any>(null);
 
   useEffect(() => {
     fetchStates();
@@ -73,10 +74,23 @@ const ProfilePage = () => {
       console.error("Error fetching Cities:", error);
     }
   };
-
   const userId = localStorage.getItem("userId");
 
   const token = localStorage.getItem("token");
+
+  const fetchAgent = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${baseURL}agents/byUser/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setAgent(response.data);
+    } catch (error) {
+      console.error("Error fetching Cities:", error);
+    }
+  };
 
   const fetchUser = async () => {
     try {
@@ -99,7 +113,7 @@ const ProfilePage = () => {
 
   const fetchAgency = async () => {
     try {
-      const response = await axios.get(`${baseURL}agents/${userId}`, {
+      const response = await axios.get(`${baseURL}agents/${agent.agentId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -126,12 +140,15 @@ const ProfilePage = () => {
 
   const fetchLogo = async () => {
     try {
-      const res = await axios.get(`${baseURL}agents/get-logo/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const res = await axios.get(
+        `${baseURL}agents/get-logo/${Number(agent.agentId)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob",
         },
-        responseType: "blob",
-      });
+      );
       const imageUrl = URL.createObjectURL(res.data);
       setLogoPreview(imageUrl);
     } catch (error) {
@@ -142,10 +159,16 @@ const ProfilePage = () => {
   useEffect(() => {
     if (userId) {
       fetchUser();
+      fetchAgent();
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (agent?.agentId) {
       fetchAgency();
       fetchLogo();
     }
-  }, [userId]);
+  }, [agent]);
 
   useEffect(() => {
     if (cities.length && selectdCitiesId) {
@@ -267,7 +290,7 @@ const ProfilePage = () => {
         role: "AGENT",
       };
 
-      const res = await axios.put(`${baseURL}users/${userId}`, payload, {
+      const res = await axios.put(`${baseURL}users/${agent.agentId}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Account details updated successfully");
@@ -288,7 +311,7 @@ const ProfilePage = () => {
       }
 
       const payload = {
-        userId: Number(userId),
+        userId: Number(agent.agentId),
         agencyName: formik.values.agencyName,
         contactPerson: formik.values.contactPerson,
         agencyEmail: formik.values.email,
@@ -302,9 +325,13 @@ const ProfilePage = () => {
         website: formik.values.website,
       };
 
-      const res = await axios.put(`${baseURL}agents/${userId}`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.put(
+        `${baseURL}agents/${agent.agentId}`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       toast.success("Agency details updated successfully");
       fetchAgency();
     } catch (err: any) {
@@ -314,13 +341,7 @@ const ProfilePage = () => {
 
   const handleLogoUploadApi = async () => {
     try {
-      const agentId = localStorage.getItem("agentId");
-      if (!agentId) {
-        toast.error("Please register agent first");
-        return;
-      }
-
-      await uploadAgentLogo(agentId, formik.values.logo);
+      await uploadAgentLogo(agent.agentId, formik.values.logo);
       toast.success(
         logoPreview
           ? "Logo updated successfully"
@@ -352,10 +373,10 @@ const ProfilePage = () => {
             {/* Registration Form */}
             {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6"> */}
             <div className="lg:col-span-3">
-              <Card>
-                <CardContent>
-                  <form onSubmit={formik.handleSubmit} className="space-y-6">
-                    {/* ------------------ USER DETAILS ------------------ */}
+              <form onSubmit={formik.handleSubmit} className="space-y-6">
+                {/* ------------------ USER DETAILS ------------------ */}
+                <Card>
+                  <CardContent>
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold flex items-center">
                         <Shield className="w-5 h-5 mr-2 text-green-700" />
@@ -480,7 +501,7 @@ const ProfilePage = () => {
                           )}
                         </div>
                       </div>
-                      <div className="flex justify-end">
+                      <div className="flex justify-center">
                         <Button
                           type="button"
                           onClick={handleSignup}
@@ -490,8 +511,12 @@ const ProfilePage = () => {
                         </Button>
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
 
-                    {/* ------------------ AGENCY INFORMATION ------------------ */}
+                {/* ------------------ AGENCY INFORMATION ------------------ */}
+                <Card>
+                  <CardContent>
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold flex items-center">
                         <Building className="w-5 h-5 mr-2 text-green-700" />
@@ -582,6 +607,7 @@ const ProfilePage = () => {
                     </div>
 
                     {/* ------------------ LOCATION ------------------ */}
+
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <div className="flex">
@@ -751,7 +777,7 @@ const ProfilePage = () => {
                           </p>
                         )}
                       </div>
-                      <div className="flex justify-end">
+                      <div className="flex justify-center">
                         <Button
                           type="button"
                           onClick={handleAgentRegister}
@@ -761,8 +787,12 @@ const ProfilePage = () => {
                         </Button>
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
 
-                    {/* ------------------ ADDITIONAL FIELDS ------------------ */}
+                {/* ------------------ ADDITIONAL FIELDS ------------------ */}
+                <Card>
+                  <CardContent>
                     <div className="space-y-4">
                       {/* Logo Upload */}
                       <div className="space-y-2">
@@ -798,22 +828,19 @@ const ProfilePage = () => {
                         </div>
                       </div>
                     </div>
-
                     {/* ------------------ TERMS ------------------ */}
-                    <div>
-                      <div className="flex justify-end">
-                        <Button
-                          type="button"
-                          onClick={handleLogoUploadApi}
-                          className="bg-primary text-white w-48"
-                        >
-                          {logoPreview ? "Update Logo" : "Upload Logo"}
-                        </Button>
-                      </div>
+                    <div className="flex mt-4 justify-center">
+                      <Button
+                        type="button"
+                        onClick={handleLogoUploadApi}
+                        className="bg-primary text-white w-48"
+                      >
+                        {logoPreview ? "Update Logo" : "Upload Logo"}
+                      </Button>
                     </div>
-                  </form>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </form>
             </div>
             {/* </div> */}
           </div>

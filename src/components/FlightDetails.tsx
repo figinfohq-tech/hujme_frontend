@@ -80,6 +80,8 @@ interface FlightSegment {
 
 const validationSchema = yup.object({
   airline: yup.string().required("Airline is required"),
+  departureAirport: yup.string().required("Departure airport is required"),
+  arrivalAirport: yup.string().required("Arrival airport is required"),
   flightNumber: yup.string().required("Flight number is required"),
   flightClass: yup.string().required("Flight class is required"),
   departureCountries: yup.string().required("Departure country is required"),
@@ -122,14 +124,18 @@ const FlightDetails = ({ pkg, packageId }) => {
   const [selectdCitiesId2, setSelectedCitiesId2] = useState("");
   const [editIndex, setEditIndex] = useState(null);
   const [flightClass, setFlightClass] = useState<any>([]);
+  const [airports, setAirports] = useState<any>([]);
   const [selectedFlightClass, setSelectedFlightClass] = useState<any>([]);
   const [currentPackageId, setCurrentPackageId] = useState<number | null>(
-    pkg?.packageId ?? packageId ?? null
+    pkg?.packageId ?? packageId ?? null,
   );
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [flightToDelete, setFlightToDelete] = useState<any>(null);
   const [formKey, setFormKey] = useState(0);
   const [pendingEditFlight, setPendingEditFlight] = useState<any>(null);
+  const [previewDepartureAirport, setPreviewDepartureAirport] =
+    useState<any>(null);
+  const [previewArrivalAirport, setPreviewArrivalAirport] = useState<any>(null);
 
   const id = pkg?.packageId;
 
@@ -150,6 +156,19 @@ const FlightDetails = ({ pkg, packageId }) => {
         },
       });
       setAirlines(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+  const fetchAirport = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${baseURL}airports`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setAirports(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
@@ -178,7 +197,7 @@ const FlightDetails = ({ pkg, packageId }) => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setState(response.data);
     } catch (error) {
@@ -195,7 +214,7 @@ const FlightDetails = ({ pkg, packageId }) => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setState2(response.data);
     } catch (error) {
@@ -212,7 +231,7 @@ const FlightDetails = ({ pkg, packageId }) => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setCities(response.data);
     } catch (error) {
@@ -229,7 +248,7 @@ const FlightDetails = ({ pkg, packageId }) => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setCities2(response.data);
     } catch (error) {
@@ -249,7 +268,7 @@ const FlightDetails = ({ pkg, packageId }) => {
         `${baseURL}package-airlines/byPackage/${finalId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       setFlightDetails(response.data || []);
@@ -270,6 +289,7 @@ const FlightDetails = ({ pkg, packageId }) => {
     fetchCountries();
     fetchAirlines();
     fetchAirlinesType();
+    fetchAirport();
   }, []);
 
   useEffect(() => {
@@ -302,7 +322,7 @@ const FlightDetails = ({ pkg, packageId }) => {
 
     const mapped = flightDetails.map((item: any) => {
       const airlineFromList = airlines.find(
-        (a) => Number(a.airlineId) === Number(item.airlineId)
+        (a) => Number(a.airlineId) === Number(item.airlineId),
       );
 
       return {
@@ -351,14 +371,20 @@ const FlightDetails = ({ pkg, packageId }) => {
   const formik = useFormik({
     initialValues: {
       airline: "",
-      flightNumber: "",
-      flightClass: "",
+      departureAirport: "",
+      arrivalAirport: "",
+
+      // 👇 hidden values (airport se fill honge)
       departureCountries: "",
       departureState: "",
       departureCity: "",
+
       arrivalCountries: "",
       arrivalState: "",
       arrivalCity: "",
+
+      flightNumber: "",
+      flightClass: "",
       departureDate: undefined,
       arrivalDate: undefined,
       departureTime: "09:00",
@@ -382,7 +408,7 @@ const FlightDetails = ({ pkg, packageId }) => {
         departureCountryId: Number(values.departureCountries),
         departureCountryName:
           countries.find(
-            (c) => c.countryId === Number(values.departureCountries)
+            (c) => c.countryId === Number(values.departureCountries),
           )?.countryName || "",
 
         departureStateId: Number(values.departureState),
@@ -434,6 +460,8 @@ const FlightDetails = ({ pkg, packageId }) => {
 
       resetForm();
       setEditIndex(null); // reset edit mode
+      setPreviewDepartureAirport(null);
+      setPreviewArrivalAirport(null);
     },
   });
 
@@ -522,12 +550,12 @@ const FlightDetails = ({ pkg, packageId }) => {
 
           departureDate: flight.departureDate.toISOString(),
           departureTime: new Date(
-            `1970-01-01T${flight.departureTime}:00`
+            `1970-01-01T${flight.departureTime}:00`,
           ).toISOString(),
 
           arrivalDate: flight.arrivalDate.toISOString(),
           arrivalTime: new Date(
-            `1970-01-01T${flight.arrivalTime}:00`
+            `1970-01-01T${flight.arrivalTime}:00`,
           ).toISOString(),
 
           departureCountryId: flight.departureCountryId,
@@ -553,7 +581,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               },
-            }
+            },
           );
         }
 
@@ -567,7 +595,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               },
-            }
+            },
           );
           const newPackageId =
             response.data?.packageId || response.data?.package?.packageId;
@@ -607,13 +635,37 @@ const FlightDetails = ({ pkg, packageId }) => {
 
   useEffect(() => {
     if (!pendingEditFlight) return;
+    if (!airports.length) return;
     if (!state.length || !state2.length) return;
     if (!cities.length || !cities2.length) return;
 
     const flight = pendingEditFlight;
 
+    const departureAirportObj = airports.find(
+      (a) =>
+        a.countryId === flight.departureCountryId &&
+        a.stateId === flight.departureStateId &&
+        a.cityId === flight.departureCityId,
+    );
+
+    const arrivalAirportObj = airports.find(
+      (a) =>
+        a.countryId === flight.arrivalCountryId &&
+        a.stateId === flight.arrivalStateId &&
+        a.cityId === flight.arrivalCityId,
+    );
+
     formik.setValues({
       airline: String(flight.airlineId),
+
+      departureAirport: departureAirportObj
+        ? String(departureAirportObj.airportId)
+        : "",
+
+      arrivalAirport: arrivalAirportObj
+        ? String(arrivalAirportObj.airportId)
+        : "",
+
       flightNumber: flight.flightNumber,
       flightClass: flight.flightClass,
 
@@ -631,9 +683,12 @@ const FlightDetails = ({ pkg, packageId }) => {
       arrivalTime: flight.arrivalTime,
     });
 
-    // ✅ clear temp state
+    // ✅ MOST IMPORTANT PART
+    setPreviewDepartureAirport(departureAirportObj || null);
+    setPreviewArrivalAirport(arrivalAirportObj || null);
+
     setPendingEditFlight(null);
-  }, [state, state2, cities, cities2]);
+  }, [pendingEditFlight, airports, state, state2, cities, cities2]);
 
   useEffect(() => {
     const dep = formik.values.departureDate;
@@ -732,7 +787,7 @@ const FlightDetails = ({ pkg, packageId }) => {
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select departure country" />
+                <SelectValue placeholder="Select airline" />
               </SelectTrigger>
               <SelectContent>
                 {airlines.map((items) => {
@@ -797,7 +852,62 @@ const FlightDetails = ({ pkg, packageId }) => {
               </h3>
             </div>
             <div className="grid gap-4">
+              {/* airports */}
               <FormItem>
+                <FormLabel>Departure Airport</FormLabel>
+                <Select
+                  value={formik.values.departureAirport}
+                  onValueChange={(value) => {
+                    formik.setFieldValue("departureAirport", value);
+
+                    const airport = airports.find(
+                      (a) => String(a.airportId) === value,
+                    );
+
+                    if (airport) {
+                      // 👇 hidden fields auto fill
+                      formik.setFieldValue(
+                        "departureCountries",
+                        airport.countryId,
+                      );
+                      formik.setFieldValue("departureState", airport.stateId);
+                      formik.setFieldValue("departureCity", airport.cityId);
+                      setPreviewDepartureAirport(airport);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select departure airport" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {airports.map((a) => (
+                      <SelectItem key={a.airportId} value={String(a.airportId)}>
+                        {a.airportName} ({a.iataCode})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage>{formik.errors.departureAirport}</FormMessage>
+              </FormItem>
+              {previewDepartureAirport && (
+                <div className="rounded-lg border bg-muted/30 p-3 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <PlaneTakeoff className="h-4 w-4 text-primary" />
+                    <h5 className="font-semibold text-sm">
+                      {previewDepartureAirport.airportName} (
+                      {previewDepartureAirport.iataCode})
+                    </h5>
+                  </div>
+
+                  <div className="text-xs text-muted-foreground">
+                    {previewDepartureAirport.cityName},{" "}
+                    {previewDepartureAirport.stateName},{" "}
+                    {previewDepartureAirport.countryName}
+                  </div>
+                </div>
+              )}
+
+              {/* <FormItem>
                 <FormLabel>Country</FormLabel>
                 <Select
                   value={formik.values.departureCountries}
@@ -820,10 +930,10 @@ const FlightDetails = ({ pkg, packageId }) => {
                   </SelectContent>
                 </Select>
                 <FormMessage>{formik.errors.departureCountries}</FormMessage>
-              </FormItem>
+              </FormItem> */}
 
               {/* State     */}
-              <FormItem>
+              {/* <FormItem>
                 <FormLabel>State</FormLabel>
                 <Select
                   value={formik.values.departureState}
@@ -846,10 +956,10 @@ const FlightDetails = ({ pkg, packageId }) => {
                   </SelectContent>
                 </Select>
                 <FormMessage>{formik.errors.departureState}</FormMessage>
-              </FormItem>
+              </FormItem> */}
 
               {/* city */}
-              <FormItem>
+              {/* <FormItem>
                 <FormLabel>City</FormLabel>
                 <Select
                   value={formik.values.departureCity}
@@ -875,7 +985,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                   </SelectContent>
                 </Select>
                 <FormMessage>{formik.errors.departureCity}</FormMessage>
-              </FormItem>
+              </FormItem> */}
 
               {/* date & time */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -894,7 +1004,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                       const value = e.target.value;
                       formik.setFieldValue(
                         "departureDate",
-                        value ? new Date(value) : null
+                        value ? new Date(value) : null,
                       );
                     }}
                   />
@@ -925,7 +1035,61 @@ const FlightDetails = ({ pkg, packageId }) => {
               </h3>
             </div>
             <div className="grid gap-4">
+              {/* airports */}
               <FormItem>
+                <FormLabel>Arrival Airport</FormLabel>
+                <Select
+                  value={formik.values.arrivalAirport}
+                  onValueChange={(value) => {
+                    formik.setFieldValue("arrivalAirport", value);
+
+                    const airport = airports.find(
+                      (a) => String(a.airportId) === value,
+                    );
+
+                    if (airport) {
+                      formik.setFieldValue(
+                        "arrivalCountries",
+                        airport.countryId,
+                      );
+                      formik.setFieldValue("arrivalState", airport.stateId);
+                      formik.setFieldValue("arrivalCity", airport.cityId);
+                      setPreviewArrivalAirport(airport);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select arrival airport" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {airports.map((a) => (
+                      <SelectItem key={a.airportId} value={String(a.airportId)}>
+                        {a.airportName} ({a.iataCode})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage>{formik.errors.arrivalAirport}</FormMessage>
+              </FormItem>
+              {previewArrivalAirport && (
+                <div className="rounded-lg border bg-muted/30 p-3 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <PlaneLanding className="h-4 w-4 text-primary" />
+                    <h5 className="font-semibold text-sm">
+                      {previewArrivalAirport.airportName} (
+                      {previewArrivalAirport.iataCode})
+                    </h5>
+                  </div>
+
+                  <div className="text-xs text-muted-foreground">
+                    {previewArrivalAirport.cityName},{" "}
+                    {previewArrivalAirport.stateName},{" "}
+                    {previewArrivalAirport.countryName}
+                  </div>
+                </div>
+              )}
+
+              {/* <FormItem>
                 <FormLabel>Country</FormLabel>
                 <Select
                   value={formik.values.arrivalCountries}
@@ -948,9 +1112,9 @@ const FlightDetails = ({ pkg, packageId }) => {
                   </SelectContent>
                 </Select>
                 <FormMessage>{formik.errors.arrivalCountries}</FormMessage>
-              </FormItem>
+              </FormItem> */}
 
-              <FormItem>
+              {/* <FormItem>
                 <FormLabel>States</FormLabel>
                 <Select
                   value={formik.values.arrivalState}
@@ -973,9 +1137,9 @@ const FlightDetails = ({ pkg, packageId }) => {
                   </SelectContent>
                 </Select>
                 <FormMessage>{formik.errors.arrivalState}</FormMessage>
-              </FormItem>
+              </FormItem> */}
 
-              <FormItem>
+              {/* <FormItem>
                 <FormLabel>City</FormLabel>
                 <Select
                   value={formik.values.arrivalCity}
@@ -1001,7 +1165,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                   </SelectContent>
                 </Select>
                 <FormMessage>{formik.errors.arrivalCity}</FormMessage>
-              </FormItem>
+              </FormItem> */}
 
               {/* date & time */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1025,7 +1189,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                       const value = e.target.value;
                       formik.setFieldValue(
                         "arrivalDate",
-                        value ? new Date(value) : null
+                        value ? new Date(value) : null,
                       );
                     }}
                   />

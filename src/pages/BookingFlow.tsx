@@ -74,7 +74,7 @@ export const BookingFlow: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [bookingId, setBookingId] = useState("");
   const [paymentType, setPaymentType] = useState<"full" | "partial" | null>(
-    null
+    null,
   );
   const [partialAmount, setPartialAmount] = useState<number>(0);
 
@@ -162,7 +162,7 @@ export const BookingFlow: React.FC = () => {
   const updateTraveler = (
     index: number,
     field: keyof TravelerState,
-    value: any
+    value: any,
   ) => {
     setTravelers((prev) => {
       const copy = [...prev];
@@ -176,7 +176,11 @@ export const BookingFlow: React.FC = () => {
     // all travelers must have these required fields
     return travelers.every(
       (t) =>
-        t.firstName && t.lastName && t.emailId && t.phoneNumber && t.dateOfBirth // date object presence
+        t.firstName &&
+        t.lastName &&
+        t.emailId &&
+        t.phoneNumber &&
+        t.dateOfBirth, // date object presence
     );
   };
 
@@ -411,6 +415,8 @@ export const BookingFlow: React.FC = () => {
                         </Label>
                         <Input
                           id={`phone-${index}`}
+                          maxLength={10}
+                          inputMode="numeric"
                           value={traveler.phoneNumber}
                           onChange={(e) =>
                             updateTraveler(index, "phoneNumber", e.target.value)
@@ -428,11 +434,13 @@ export const BookingFlow: React.FC = () => {
                         </Label>
                         <Input
                           value={traveler.alternateNumber}
+                          maxLength={10}
+                          inputMode="numeric"
                           onChange={(e) =>
                             updateTraveler(
                               index,
                               "alternateNumber",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder="Enter alternate number"
@@ -461,33 +469,22 @@ export const BookingFlow: React.FC = () => {
                         <Label htmlFor={`dob-${index}`} className="mb-2">
                           Date of Birth *
                         </Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !traveler.dateOfBirth && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {traveler.dateOfBirth
-                                ? formatDateFn(traveler.dateOfBirth, "PPP")
-                                : "Select date"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={traveler.dateOfBirth}
-                              onSelect={(date) =>
-                                updateTraveler(index, "dateOfBirth", date)
-                              }
-                              disabled={(date) => date > new Date()}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <Input
+                          type="date"
+                          value={
+                            traveler.dateOfBirth
+                              ? formatDateFn(traveler.dateOfBirth, "yyyy-MM-dd")
+                              : ""
+                          }
+                          max={formatDateFn(new Date(), "yyyy-MM-dd")}
+                          onChange={(e) =>
+                            updateTraveler(
+                              index,
+                              "dateOfBirth",
+                              e.target.value ? new Date(e.target.value) : null,
+                            )
+                          }
+                        />
                       </div>
 
                       <div>
@@ -517,7 +514,7 @@ export const BookingFlow: React.FC = () => {
                             updateTraveler(
                               index,
                               "passportNumber",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder="Enter passport number"
@@ -526,78 +523,56 @@ export const BookingFlow: React.FC = () => {
 
                       <div>
                         <Label className="mb-2">Passport Issue Date</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !traveler.passportIssueDate &&
-                                  "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {traveler.passportIssueDate
-                                ? formatDateFn(
-                                    traveler.passportIssueDate,
-                                    "PPP"
-                                  )
-                                : "Select date"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={traveler.passportIssueDate}
-                              onSelect={(date) =>
-                                updateTraveler(index, "passportIssueDate", date)
-                              }
-                              disabled={(date) => date > new Date()}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <Input
+                          type="date"
+                          value={
+                            traveler.passportIssueDate
+                              ? formatDateFn(
+                                  traveler.passportIssueDate,
+                                  "yyyy-MM-dd",
+                                )
+                              : ""
+                          }
+                          // max={formatDateFn(new Date(), "yyyy-MM-dd")}
+                          // onChange={(e) =>
+                          //   updateTraveler(
+                          //     index,
+                          //     "passportIssueDate",
+                          //     e.target.value ? new Date(e.target.value) : null,
+                          //   )
+                          // }
+                        />
                       </div>
 
                       <div>
                         <Label className="mb-2">Passport Expiry Date</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !traveler.passportExpiryDate &&
-                                  "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {traveler.passportExpiryDate
-                                ? formatDateFn(
-                                    traveler.passportExpiryDate,
-                                    "PPP"
-                                  )
-                                : "Select date"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={traveler.passportExpiryDate}
-                              onSelect={(date) =>
-                                updateTraveler(
-                                  index,
-                                  "passportExpiryDate",
-                                  date
+                        <Input
+                          type="date"
+                          value={
+                            traveler.passportExpiryDate
+                              ? formatDateFn(
+                                  traveler.passportExpiryDate,
+                                  "yyyy-MM-dd",
                                 )
-                              }
-                              disabled={(date) =>
-                                date > new Date(2100, 0, 1) ? true : false
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                              : ""
+                          }
+                          min={
+                            traveler.passportIssueDate
+                              ? formatDateFn(
+                                  traveler.passportIssueDate,
+                                  "yyyy-MM-dd",
+                                )
+                              : undefined
+                          }
+                          max="2100-01-01"
+                          onChange={(e) =>
+                            updateTraveler(
+                              index,
+                              "passportExpiryDate",
+                              e.target.value ? new Date(e.target.value) : null,
+                            )
+                          }
+                        />
                       </div>
                     </div>
                   </CardContent>
@@ -665,7 +640,7 @@ export const BookingFlow: React.FC = () => {
                 className={cn(
                   "cursor-pointer transition-all",
                   paymentType === "full" &&
-                    "border-primary ring-2 ring-primary/20"
+                    "border-primary ring-2 ring-primary/20",
                 )}
                 onClick={() => setPaymentType("full")}
               >
@@ -696,7 +671,7 @@ export const BookingFlow: React.FC = () => {
                 className={cn(
                   "cursor-pointer transition-all",
                   paymentType === "partial" &&
-                    "border-primary ring-2 ring-primary/20"
+                    "border-primary ring-2 ring-primary/20",
                 )}
                 onClick={() => setPaymentType("partial")}
               >

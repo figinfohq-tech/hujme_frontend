@@ -64,7 +64,7 @@ const SignUp = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setState(response.data);
     } catch (error) {
@@ -81,7 +81,7 @@ const SignUp = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setCities(response.data);
     } catch (error) {
@@ -102,11 +102,11 @@ const SignUp = () => {
       `${baseURL}agents/upload-logo`,
       formData,
       {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
+        // headers: {
+        //   Authorization: `Bearer ${token}`,
+        //   "Content-Type": "multipart/form-data",
+        // },
+      },
     );
   };
 
@@ -201,77 +201,76 @@ const SignUp = () => {
         .url("Enter a valid website URL (https://...)")
         .nullable(),
     }),
-   onSubmit: async (values) => {
-  try {
-    /* ===================== 1️⃣ SIGNUP API ===================== */
-    const signupPayload = {
-      firstName: values.firstName,
-      lastName: values.lastName,
-      email: values.userEmail,
-      phone: values.mobileNumber,
-      password: values.password,
-      role: "AGENT",
-    };
+    onSubmit: async (values) => {
+      try {
+        /* ===================== 1️⃣ SIGNUP API ===================== */
+        const signupPayload = {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.userEmail,
+          phone: values.mobileNumber,
+          password: values.password,
+          role: "AGENT",
+        };
 
-    const signupRes = await axios.post(
-      `${baseURL}auth/signup`,
-      signupPayload,
-      { headers: { "Content-Type": "application/json" } }
-    );
+        const signupRes = await axios.post(
+          `${baseURL}auth/signup`,
+          signupPayload,
+          { headers: { "Content-Type": "application/json" } },
+        );
 
-    const { userId, token } = signupRes.data;
+        const { userId } = signupRes.data;
 
-    // save token & userId
-    localStorage.setItem("token", token);
-    localStorage.setItem("userId", userId);
+        // save token & userId
+        // localStorage.setItem("token", token);
+        // localStorage.setItem("userId", userId);
 
-    /* ===================== 2️⃣ AGENT REGISTER API ===================== */
-    const agentPayload = {
-      userId: Number(userId),
-      agencyName: values.agencyName,
-      contactPerson: values.contactPerson,
-      agencyEmail: values.email,
-      agencyPhone: values.phone,
-      address: values.address,
-      stateId: Number(selectedStateId),
-      cityId: Number(selectdCitiesId),
-      experience: values.experience,
-      description: values.description,
-      certification: values.certificate,
-      website: values.website,
-      termsAccepted: values.termsAccepted,
-    };
+        /* ===================== 2️⃣ AGENT REGISTER API ===================== */
+        const agentPayload = {
+          userId: Number(userId),
+          agencyName: values.agencyName,
+          contactPerson: values.contactPerson,
+          agencyEmail: values.email,
+          agencyPhone: values.phone,
+          address: values.address,
+          stateId: Number(selectedStateId),
+          cityId: Number(selectdCitiesId),
+          experience: values.experience,
+          description: values.description,
+          certification: values.certificate,
+          website: values.website,
+          termsAccepted: values.termsAccepted,
+        };
 
-    const agentRes = await axios.post(
-      `${baseURL}agents/register`,
-      agentPayload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        const agentRes = await axios.post(
+          `${baseURL}agents/register`,
+          agentPayload,
+          {
+            // headers: {
+            //   Authorization: `Bearer ${token}`,
+            //   "Content-Type": "application/json",
+            // },
+          },
+        );
+
+        const agentId = agentRes.data.agentId;
+        localStorage.setItem("agentId", agentId);
+
+        /* ===================== 3️⃣ LOGO UPLOAD (OPTIONAL) ===================== */
+        if (values.logo) {
+          await uploadAgentLogo(agentId, values.logo);
+        }
+
+        toast.success("Signup & Agent Registration Successful");
+        navigate("/");
+      } catch (error) {
+        console.error("API Error:", error.response?.data || error);
+        toast.error(
+          error.response?.data?.message ||
+            "Registration failed. Please try again.",
+        );
       }
-    );
-
-    const agentId = agentRes.data.agentId;
-    localStorage.setItem("agentId", agentId);
-
-    /* ===================== 3️⃣ LOGO UPLOAD (OPTIONAL) ===================== */
-    if (values.logo) {
-      await uploadAgentLogo(agentId, values.logo);
-    }
-
-    toast.success("Signup & Agent Registration Successful");
-    navigate("/");
-
-  } catch (error) {
-    console.error("API Error:", error.response?.data || error);
-    toast.error(
-      error.response?.data?.message || "Registration failed. Please try again."
-    );
-  }
-},
-
+    },
   });
 
   // Logo Image Handler
@@ -437,7 +436,7 @@ const SignUp = () => {
                             onChange={(e) =>
                               formik.setFieldValue(
                                 "mobileNumber",
-                                e.target.value.replace(/\D/g, "")
+                                e.target.value.replace(/\D/g, ""),
                               )
                             }
                           />
@@ -565,7 +564,7 @@ const SignUp = () => {
                             onChange={(e) => {
                               const onlyNumbers = e.target.value.replace(
                                 /\D/g,
-                                ""
+                                "",
                               );
                               formik.setFieldValue("phone", onlyNumbers);
                             }}
