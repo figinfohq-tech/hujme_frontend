@@ -290,7 +290,7 @@ const ProfilePage = () => {
         role: "AGENT",
       };
 
-      const res = await axios.put(`${baseURL}users/${agent.agentId}`, payload, {
+      const res = await axios.put(`${baseURL}users/${userId}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Account details updated successfully");

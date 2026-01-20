@@ -147,7 +147,6 @@ const Packages = () => {
           },
         }
       );
-      console.log("package--->", response.data);
       
       setPackages(response.data);
       fetchFacilitiesForPackages(response.data);

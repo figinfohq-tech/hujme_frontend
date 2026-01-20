@@ -1059,7 +1059,7 @@ export const BookingsPage = () => {
 
     if (isLoading) {
       return <Loader />;
-    }
+    }    
 
     return (
       <Card className="hover:shadow-md transition-shadow">
@@ -1103,7 +1103,7 @@ export const BookingsPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{myPackage?.cityName}</span>
+              <span>{booking.packageDetails?.cityName}, {booking.packageDetails?.stateName}</span>
             </div>
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />

@@ -279,6 +279,21 @@ const FlightDetails = ({ pkg, packageId }) => {
     }
   };
 
+  const fetchAirportById = async (airportId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${baseURL}airports/${airportId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching airport by id:", error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (currentPackageId) {
       getFlightByID(currentPackageId);
@@ -406,35 +421,23 @@ const FlightDetails = ({ pkg, packageId }) => {
         flightClass: values.flightClass,
 
         departureCountryId: Number(values.departureCountries),
-        departureCountryName:
-          countries.find(
-            (c) => c.countryId === Number(values.departureCountries),
-          )?.countryName || "",
 
         departureStateId: Number(values.departureState),
-        departureStateName:
-          state.find((s) => s.stateId === Number(values.departureState))
-            ?.stateName || "",
 
         departureCityId: Number(values.departureCity),
-        departureCityName:
-          cities.find((c) => c.cityId === Number(values.departureCity))
-            ?.cityName || "",
+
+        departureCountryName: previewDepartureAirport?.countryName || "",
+        departureStateName: previewDepartureAirport?.stateName || "",
+        departureCityName: previewDepartureAirport?.cityName || "",
 
         arrivalCountryId: Number(values.arrivalCountries),
-        arrivalCountryName:
-          countries.find((c) => c.countryId === Number(values.arrivalCountries))
-            ?.countryName || "",
 
         arrivalStateId: Number(values.arrivalState),
-        arrivalStateName:
-          state2.find((s) => s.stateId === Number(values.arrivalState))
-            ?.stateName || "",
 
         arrivalCityId: Number(values.arrivalCity),
-        arrivalCityName:
-          cities2.find((c) => c.cityId === Number(values.arrivalCity))
-            ?.cityName || "",
+        arrivalCountryName: previewArrivalAirport?.countryName || "",
+        arrivalStateName: previewArrivalAirport?.stateName || "",
+        arrivalCityName: previewArrivalAirport?.cityName || "",
 
         departureDate: values.departureDate!,
         arrivalDate: values.arrivalDate!,
@@ -683,9 +686,19 @@ const FlightDetails = ({ pkg, packageId }) => {
       arrivalTime: flight.arrivalTime,
     });
 
-    // ✅ MOST IMPORTANT PART
-    setPreviewDepartureAirport(departureAirportObj || null);
-    setPreviewArrivalAirport(arrivalAirportObj || null);
+    (async () => {
+      if (departureAirportObj?.airportId) {
+        const dep = await fetchAirportById(
+          String(departureAirportObj.airportId),
+        );
+        setPreviewDepartureAirport(dep);
+      }
+
+      if (arrivalAirportObj?.airportId) {
+        const arr = await fetchAirportById(String(arrivalAirportObj.airportId));
+        setPreviewArrivalAirport(arr);
+      }
+    })();
 
     setPendingEditFlight(null);
   }, [pendingEditFlight, airports, state, state2, cities, cities2]);
@@ -731,11 +744,14 @@ const FlightDetails = ({ pkg, packageId }) => {
                     {`${flight.departureCityName}, ${flight.departureStateName}, ${flight.departureCountryName} → ${flight.arrivalCityName}, ${flight.arrivalStateName}, ${flight.arrivalCountryName}`}
                   </div>
                   <div className="text-xs text-muted-foreground pt-1">
-                    Departure: {format(flight.departureDate, "PPP")} at{" "}
+                    {`Departure: ${format(flight.departureDate, "PPP")} 
+                    ${flight.departureTime} → Arrival: ${format(flight.arrivalDate, "PPP")} 
+                    ${flight.arrivalTime}`}
+                    {/* Departure: {format(flight.departureDate, "PPP")} at{" "}
                     {flight.departureTime}
-                    <br />
+                     <br />
                     Arrival: {format(flight.arrivalDate, "PPP")} at{" "}
-                    {flight.arrivalTime}
+                    {flight.arrivalTime} */}
                   </div>
                 </div>
                 <div>
@@ -857,21 +873,21 @@ const FlightDetails = ({ pkg, packageId }) => {
                 <FormLabel>Departure Airport</FormLabel>
                 <Select
                   value={formik.values.departureAirport}
-                  onValueChange={(value) => {
+                  onValueChange={async (value) => {
                     formik.setFieldValue("departureAirport", value);
 
-                    const airport = airports.find(
-                      (a) => String(a.airportId) === value,
-                    );
+                    const airport = await fetchAirportById(value);
 
                     if (airport) {
-                      // 👇 hidden fields auto fill
+                      // hidden fields
                       formik.setFieldValue(
                         "departureCountries",
                         airport.countryId,
                       );
                       formik.setFieldValue("departureState", airport.stateId);
                       formik.setFieldValue("departureCity", airport.cityId);
+
+                      // ✅ preview from API
                       setPreviewDepartureAirport(airport);
                     }
                   }}
@@ -891,14 +907,10 @@ const FlightDetails = ({ pkg, packageId }) => {
               </FormItem>
               {previewDepartureAirport && (
                 <div className="rounded-lg border bg-muted/30 p-3 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <PlaneTakeoff className="h-4 w-4 text-primary" />
-                    <h5 className="font-semibold text-sm">
-                      {previewDepartureAirport.airportName} (
-                      {previewDepartureAirport.iataCode})
-                    </h5>
-                  </div>
-
+                  <h5 className="font-semibold text-sm">
+                    {previewDepartureAirport.airportName} (
+                    {previewDepartureAirport.iataCode})
+                  </h5>
                   <div className="text-xs text-muted-foreground">
                     {previewDepartureAirport.cityName},{" "}
                     {previewDepartureAirport.stateName},{" "}
@@ -1040,12 +1052,10 @@ const FlightDetails = ({ pkg, packageId }) => {
                 <FormLabel>Arrival Airport</FormLabel>
                 <Select
                   value={formik.values.arrivalAirport}
-                  onValueChange={(value) => {
+                  onValueChange={async (value) => {
                     formik.setFieldValue("arrivalAirport", value);
 
-                    const airport = airports.find(
-                      (a) => String(a.airportId) === value,
-                    );
+                    const airport = await fetchAirportById(value);
 
                     if (airport) {
                       formik.setFieldValue(
@@ -1054,6 +1064,8 @@ const FlightDetails = ({ pkg, packageId }) => {
                       );
                       formik.setFieldValue("arrivalState", airport.stateId);
                       formik.setFieldValue("arrivalCity", airport.cityId);
+
+                      // ✅ preview from API
                       setPreviewArrivalAirport(airport);
                     }
                   }}

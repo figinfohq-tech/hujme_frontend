@@ -104,6 +104,36 @@ export const BookingFlow: React.FC = () => {
     initialTraveler,
   ]);
 
+  type TravelerErrors = Partial<Record<keyof TravelerState, string>>;
+
+  const [errors, setErrors] = useState<TravelerErrors[]>([]);
+
+  const validateTraveler = (t: TravelerState): TravelerErrors => {
+    const e: TravelerErrors = {};
+
+    if (!t.firstName.trim()) e.firstName = "First name is required";
+    if (!t.middleName.trim()) e.middleName = "Middle name is required";
+    if (!t.lastName.trim()) e.lastName = "Last name is required";
+
+    if (!t.emailId.trim()) {
+      e.emailId = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(t.emailId)) {
+      e.emailId = "Enter a valid email address";
+    }
+
+    if (!t.phoneNumber.trim()) {
+      e.phoneNumber = "Phone number is required";
+    } else if (!/^\d{10}$/.test(t.phoneNumber)) {
+      e.phoneNumber = "Enter a valid 10-digit phone number";
+    }
+
+    if (!t.gender) e.gender = "Gender is required";
+    if (!t.dateOfBirth) e.dateOfBirth = "Date of birth is required";
+    if (!t.nationality.trim()) e.nationality = "Nationality is required";
+
+    return e;
+  };
+
   const bookingPackages = async (travelerCount: number) => {
     try {
       const token = localStorage.getItem("token");
@@ -186,10 +216,20 @@ export const BookingFlow: React.FC = () => {
 
   /** Submit single traveler (backend expects one object as in Postman) */
   const handleBookingSubmit = async () => {
-    if (!validateStep1()) {
-      toast.error("Please fill all required fields and select departure date.");
+    const validationResults = travelers.map(validateTraveler);
+    setErrors(validationResults);
+
+    const hasError = validationResults.some((e) => Object.keys(e).length > 0);
+
+    if (hasError) {
+      toast.error("Please fix the highlighted errors");
       return;
     }
+
+    // if (!validateStep1()) {
+    //   toast.error("Please fill all required fields and select departure date.");
+    //   return;
+    // }
 
     // setStep(2);
     setIsProcessing(true);
@@ -354,9 +394,10 @@ export const BookingFlow: React.FC = () => {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor={`firstName-${index}`} className="mb-2">
-                          First Name *
+                        <Label className="mb-2">
+                          First Name <span className="text-red-500">*</span>
                         </Label>
+
                         <Input
                           id={`firstName-${index}`}
                           value={traveler.firstName}
@@ -365,12 +406,18 @@ export const BookingFlow: React.FC = () => {
                           }
                           placeholder="Enter first name"
                         />
+                        {errors[index]?.firstName && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {errors[index].firstName}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <Label htmlFor={`middleName-${index}`} className="mb-2">
-                          Middle Name *
+                        <Label className="mb-2">
+                          Middle Name <span className="text-red-500">*</span>
                         </Label>
+
                         <Input
                           value={traveler.middleName}
                           onChange={(e) =>
@@ -378,12 +425,18 @@ export const BookingFlow: React.FC = () => {
                           }
                           placeholder="Enter middle name"
                         />
+                        {errors[index]?.middleName && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {errors[index].middleName}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <Label htmlFor={`lastName-${index}`} className="mb-2">
-                          Last Name *
+                        <Label className="mb-2">
+                          Last Name <span className="text-red-500">*</span>
                         </Label>
+
                         <Input
                           id={`lastName-${index}`}
                           value={traveler.lastName}
@@ -392,12 +445,18 @@ export const BookingFlow: React.FC = () => {
                           }
                           placeholder="Enter last name"
                         />
+                        {errors[index]?.lastName && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {errors[index].lastName}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <Label htmlFor={`email-${index}`} className="mb-2">
-                          Email *
+                        <Label className="mb-2">
+                          Email <span className="text-red-500">*</span>
                         </Label>
+
                         <Input
                           id={`emailId-${index}`}
                           type="email"
@@ -407,12 +466,18 @@ export const BookingFlow: React.FC = () => {
                           }
                           placeholder="Enter email"
                         />
+                        {errors[index]?.emailId && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {errors[index].emailId}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <Label htmlFor={`phone-${index}`} className="mb-2">
-                          Phone *
+                        <Label className="mb-2">
+                          Phone Number <span className="text-red-500">*</span>
                         </Label>
+
                         <Input
                           id={`phone-${index}`}
                           maxLength={10}
@@ -423,6 +488,11 @@ export const BookingFlow: React.FC = () => {
                           }
                           placeholder="Enter phone number"
                         />
+                        {errors[index]?.phoneNumber && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {errors[index].phoneNumber}
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -448,9 +518,10 @@ export const BookingFlow: React.FC = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor={`gender-${index}`} className="mb-2">
-                          Gender *
+                        <Label className="mb-2">
+                          Gender <span className="text-red-500">*</span>
                         </Label>
+
                         <select
                           className="border rounded p-2 w-full"
                           value={traveler.gender}
@@ -463,12 +534,18 @@ export const BookingFlow: React.FC = () => {
                           <option value="female">Female</option>
                           <option value="other">Other</option>
                         </select>
+                        {errors[index]?.gender && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {errors[index].gender}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <Label htmlFor={`dob-${index}`} className="mb-2">
-                          Date of Birth *
+                        <Label className="mb-2">
+                          Date of Birth <span className="text-red-500">*</span>
                         </Label>
+
                         <Input
                           type="date"
                           value={
@@ -485,15 +562,18 @@ export const BookingFlow: React.FC = () => {
                             )
                           }
                         />
+                        {errors[index]?.dateOfBirth && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {errors[index].dateOfBirth}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <Label
-                          htmlFor={`nationality-${index}`}
-                          className="mb-2"
-                        >
-                          Nationality *
+                        <Label className="mb-2">
+                          Nationality <span className="text-red-500">*</span>
                         </Label>
+
                         <Input
                           value={traveler.nationality}
                           onChange={(e) =>
@@ -501,6 +581,11 @@ export const BookingFlow: React.FC = () => {
                           }
                           placeholder="Enter nationality"
                         />
+                        {errors[index]?.nationality && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {errors[index].nationality}
+                          </p>
+                        )}
                       </div>
 
                       <div>
