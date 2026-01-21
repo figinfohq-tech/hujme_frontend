@@ -35,13 +35,34 @@ const UserProfle = () => {
     firstName: Yup.string().min(2).required("First name required"),
     lastName: Yup.string().min(2).required("Last name required"),
     userEmail: Yup.string().email().required("Email required"),
+
     mobileNumber: Yup.string()
       .matches(/^[0-9]{10}$/, "Invalid mobile")
-      .required("Mobile required"),
-    password: Yup.string().min(6).required("Password required"),
+      .notRequired(),
+
+    // 🔹 Password OPTIONAL
+    password: Yup.string()
+      .nullable()
+      .test(
+        "password-validation",
+        "Password must be exactly 6 digits",
+        (value) => {
+          if (!value) return true; // ✅ empty allowed
+          return /^[0-9]{6}$/.test(value); // only 6 digit allowed
+        },
+      ),
+
+    // 🔹 Confirm password ONLY when password entered
     confirmPassword: Yup.string()
-      .oneOf([Yup.ref("password")], "Passwords do not match")
-      .required("Confirm password required"),
+      .nullable()
+      .when("password", {
+        is: (password: string) => password && password.length > 0,
+        then: (schema) =>
+          schema
+            .required("Confirm password required")
+            .oneOf([Yup.ref("password")], "Passwords do not match"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
   });
 
   const validateAndSetErrors = async () => {

@@ -31,6 +31,8 @@ import ResetPassword from "@/pages/authentications/ResetPassword";
 import { ReviewsPage } from "@/pages/user/ReviewsPage";
 import ProfilePage from "@/pages/agents/ProfilePage";
 import UserProfle from "@/pages/user/UserProfile";
+import SubscriptionDetails from "@/pages/agents/SubscriptionDetails";
+import SubscriptionPage from "@/pages/agents/SubscriptionPage";
 
 const MainRouts = () => {
   const role = localStorage.getItem("role");
@@ -113,6 +115,8 @@ const MainRouts = () => {
               <Route path="documents" element={<DocumentsAgent/>} />
               <Route path="booking-view" element={<BookingViewPage />} />
               <Route path="profiles" element={<ProfilePage />} />
+              <Route path="subscription" element={<SubscriptionPage />} />
+              <Route path="subscription-details" element={<SubscriptionDetails />} />
               <Route path="analytics" element={<h1>Analytics Page</h1>} />
             </Route>
           ) : (

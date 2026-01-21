@@ -59,7 +59,7 @@ const SignIn = ({ packageId }) => {
         }
 
         window.location.reload();
-      }, 1200);
+      }, 1000);
 
       resetForm();
     } catch (error) {

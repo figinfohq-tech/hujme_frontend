@@ -907,10 +907,9 @@ const FlightDetails = ({ pkg, packageId }) => {
               </FormItem>
               {previewDepartureAirport && (
                 <div className="rounded-lg border bg-muted/30 p-3 space-y-1">
-                  <h5 className="font-semibold text-sm">
-                    {previewDepartureAirport.airportName} (
-                    {previewDepartureAirport.iataCode})
-                  </h5>
+                  <div className="flex items-center gap-2">
+                    <PlaneTakeoff className="h-4 w-4 text-primary" />
+                  </div>
                   <div className="text-xs text-muted-foreground">
                     {previewDepartureAirport.cityName},{" "}
                     {previewDepartureAirport.stateName},{" "}
@@ -1087,10 +1086,6 @@ const FlightDetails = ({ pkg, packageId }) => {
                 <div className="rounded-lg border bg-muted/30 p-3 space-y-1">
                   <div className="flex items-center gap-2">
                     <PlaneLanding className="h-4 w-4 text-primary" />
-                    <h5 className="font-semibold text-sm">
-                      {previewArrivalAirport.airportName} (
-                      {previewArrivalAirport.iataCode})
-                    </h5>
                   </div>
 
                   <div className="text-xs text-muted-foreground">
