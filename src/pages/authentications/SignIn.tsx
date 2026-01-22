@@ -41,7 +41,7 @@ const SignIn = ({ packageId }) => {
       toast.success("Login successful!");
         
       // Wait for toast → then redirect → then reload
-      setTimeout(() => {
+      // setTimeout(() => {
         if (response.data.user.role === "AGENT") {
           {
             packageId
@@ -59,7 +59,7 @@ const SignIn = ({ packageId }) => {
         }
 
         window.location.reload();
-      }, 1000);
+      // }, 1000);
 
       resetForm();
     } catch (error) {

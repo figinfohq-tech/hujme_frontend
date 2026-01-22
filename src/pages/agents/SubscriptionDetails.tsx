@@ -1,7 +1,23 @@
 import React, { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
 import { Progress } from "../../components/ui/progress";
 import { Alert, AlertDescription } from "../../components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../components/ui/dialog";
 import {
   Crown,
   Calendar,
@@ -16,25 +32,11 @@ import {
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useLocation } from "react-router";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
+import SubscriptionPage from "./SubscriptionPage";
+import Loader from "@/components/Loader";
+import AgentRegistration from "./AgentRegistration";
 
 interface SubscriptionTier {
   id: string;
@@ -48,6 +50,8 @@ interface SubscriptionTier {
 }
 
 function SubscriptionDetails() {
+  console.log("👑 SubscriptionDetails page rendered");
+
   const currentSubscription = {
     tier: "Premium",
     price: 2990,
@@ -115,10 +119,11 @@ function SubscriptionDetails() {
   );
   const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false);
   const [agent, setAgent] = useState<any>(null);
-  const [plans, setPlans] = useState<any>([]);
+  const [planeById, setPlanById] = useState<any>(null);
+  const [agentSubscription, setAgentSubscription] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const { state } = useLocation();
-  const tier = state?.tier;
+  const userId = localStorage.getItem("userId");
 
   const usageHistory = [
     { month: "February", packages: 12, seats: 320 },
@@ -143,26 +148,12 @@ function SubscriptionDetails() {
     );
   };
 
-  const calculateDaysLeft = (endDate: string) => {
-    const today = new Date();
-    const end = new Date(endDate);
-
-    // Remove time part to avoid time mismatch
-    today.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
-
-    const diffTime = end.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    return diffDays;
-  };
-
   const packagesProgress =
     (currentSubscription.packagesUsed / currentSubscription.packagesLimit) *
     100;
   const seatsProgress =
     (currentSubscription.seatsUsed / currentSubscription.seatsLimit) * 100;
-  const userId = localStorage.getItem("userId");
+
   const fetchAgent = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -177,18 +168,78 @@ function SubscriptionDetails() {
     }
   };
 
-  const fetchSubscriptions = async () => {
+  const mapSubscriptionFromApi = (apiData) => {
+    const startDate = new Date(); // ya api se aaye toh woh use karo
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + apiData.validityMonths);
+
+    const today = new Date();
+
+    const diffTime = endDate.getTime() - today.getTime();
+    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return {
+      tier: apiData.subscriptionName,
+      price: apiData.price,
+      startDate,
+      endDate,
+      daysLeft,
+      packagesUsed: 0, // agar api se nahi aa raha
+      packagesLimit: apiData.maxPackages,
+      seatsUsed: 0,
+      seatsLimit: apiData.seatLimit,
+      autoRenewal: apiData.isActive,
+    };
+  };
+
+  const calculateDaysLeft = (endDate: any) => {
+    if (!endDate) return 0;
+
+    const today = new Date();
+    const end = new Date(endDate);
+
+    // difference in milliseconds
+    const diffTime = end.getTime() - today.getTime();
+
+    // convert ms → days
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays;
+  };
+
+  const fetchAgentSubscription = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${baseURL}agent-subscriptions/${tier.subscriptionId}`,
+        `${baseURL}agent-subscriptions/byAgent/${agent?.agentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
-      setPlans(response.data);
+
+      setAgentSubscription(response.data);
+    } catch (error) {
+      console.error("Error fetching Agent Subscription:", error);
+      setAgentSubscription([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSubscriptionbyId = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${baseURL}subscriptions/${agentSubscription[0]?.subscriptionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setPlanById(response.data);
     } catch (error) {
       console.error("Error fetching Cities:", error);
     }
@@ -199,31 +250,34 @@ function SubscriptionDetails() {
   }, []);
 
   useEffect(() => {
-    if (tier) {
-      fetchSubscriptions();
+    if (agent?.agentId) {
+      fetchAgentSubscription();
     }
-  }, [tier]);
+  }, [agent?.agentId]);
+
+  useEffect(() => {
+    if (agentSubscription) {
+      fetchSubscriptionbyId();
+    }
+  }, [agentSubscription]);
+
+  if (loading) {
+    return <Loader />;
+  }
+
+  if (agentSubscription.length === 0) {
+    return <SubscriptionPage />;
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-primary">
-          Subscription Details
-        </h1>
-        <p className="text-primary/90 flex items-center gap-2">
-          <span className="font-medium">{agent?.agencyName}</span>
-          <span className="text-muted-foreground/60">•</span>
-          <span>{tier?.subscriptionName}</span>
-        </p>
-      </div>
       {/* Alert for expiry */}
-      {calculateDaysLeft(plans.endDate) <= 30 && (
+      {calculateDaysLeft(agentSubscription[0]?.endDate) <= 30 && (
         <Alert className="border-yellow-200 bg-yellow-50">
           <AlertTriangle className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800">
-            Your subscription expires in {calculateDaysLeft(plans.endDate)}{" "}
-            days.
+            Your subscription expires in{" "}
+            {calculateDaysLeft(agentSubscription[0]?.endDate)} days.
             <Button
               variant="link"
               className="p-0 ml-2 text-yellow-800 underline"
@@ -235,20 +289,20 @@ function SubscriptionDetails() {
       )}
 
       {/* Current Subscription Overview */}
-      <Card className="border-l-4 border-l-hajj-accent">
+      <Card className="border-l-4 border-l-secondary">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Crown className="w-5 h-5 text-hajj-accent" />
+                <Crown className="w-5 h-5 text-secondary" />
                 Current Subscription
               </CardTitle>
               <CardDescription>
                 Your active subscription details and usage
               </CardDescription>
             </div>
-            <Badge className="bg-hajj-accent text-white">
-              {currentSubscription.tier} Plan
+            <Badge className="bg-secondary text-white">
+              {planeById?.subscriptionName} Plan
             </Badge>
           </div>
         </CardHeader>
@@ -256,7 +310,7 @@ function SubscriptionDetails() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-hajj-primary">
-                ₹{tier.price}
+                ₹{planeById?.price}
               </div>
               <p className="text-sm text-muted-foreground">Monthly Cost</p>
             </div>
@@ -265,7 +319,7 @@ function SubscriptionDetails() {
               <div className="flex items-center justify-center gap-2 mb-1">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <span className="text-lg font-bold">
-                  {calculateDaysLeft(plans.endDate)}
+                  {calculateDaysLeft(agentSubscription[0]?.endDate)}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">Days Remaining</p>
@@ -273,14 +327,14 @@ function SubscriptionDetails() {
 
             <div className="text-center">
               <div className="text-lg font-bold text-hajj-secondary">
-                {new Date(plans.startDate).toLocaleDateString()}
+                {new Date(agentSubscription[0]?.startDate).toLocaleDateString()}
               </div>
               <p className="text-sm text-muted-foreground">Start Date</p>
             </div>
 
             <div className="text-center">
               <div className="text-lg font-bold text-hajj-secondary">
-                {new Date(plans.endDate).toLocaleDateString()}
+                {new Date(agentSubscription[0]?.endDate).toLocaleDateString()}
               </div>
               <p className="text-sm text-muted-foreground">End Date</p>
             </div>
@@ -292,14 +346,13 @@ function SubscriptionDetails() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Package Usage</span>
                 <span className="text-sm text-muted-foreground">
-                  {/* {currentSubscription.packagesUsed}/{currentSubscription.packagesLimit} */}
-                  {plans.packagesUsed}
+                  {agentSubscription[0]?.packagesUsed}/{planeById?.maxPackages}
                 </span>
               </div>
               <Progress value={packagesProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                {/* {currentSubscription.packagesLimit - currentSubscription.packagesUsed}  */}
-                {plans.packagesUsed} packages remaining
+                {planeById?.maxPackages - agentSubscription[0]?.packagesUsed}{" "}
+                packages remaining
               </p>
             </div>
 
@@ -307,14 +360,13 @@ function SubscriptionDetails() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Seat Usage</span>
                 <span className="text-sm text-muted-foreground">
-                  {/* {currentSubscription.seatsUsed}/{currentSubscription.seatsLimit} */}
-                  {plans.seatLimit}
+                  {agentSubscription[0]?.seatsUsed}/{planeById?.seatLimit}
                 </span>
               </div>
               <Progress value={seatsProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                {/* {currentSubscription.seatsLimit - currentSubscription.seatsUsed}  */}
-                {plans.seatsUsed} seats remaining
+                {planeById?.seatLimit - agentSubscription[0]?.seatsUsed} seats
+                remaining
               </p>
             </div>
           </div>
@@ -326,15 +378,23 @@ function SubscriptionDetails() {
               onOpenChange={setIsUpgradeDialogOpen}
             >
               <DialogTrigger asChild>
-                <Button className="bg-hajj-primary hover:bg-hajj-primary/90">
+                <Button className="bg-primary hover:bg-primary/90">
                   <ArrowUp className="w-4 h-4 mr-2" />
                   Upgrade Plan
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogContent
+                className="
+    w-screen h-screen max-w-none
+    sm:w-full sm:h-auto sm:max-w-6xl
+    max-h-screen sm:max-h-[90vh]
+    overflow-y-auto
+    rounded-none sm:rounded-lg
+  "
+              >
                 <DialogHeader>
                   <DialogTitle>Choose Your Plan</DialogTitle>
-                  <DialogDescription>
+                  <DialogDescription className="text-primary/90">
                     Select the subscription tier that best fits your needs
                   </DialogDescription>
                 </DialogHeader>
@@ -345,23 +405,23 @@ function SubscriptionDetails() {
                       key={tier.id}
                       className={`relative cursor-pointer transition-all ${
                         selectedTier?.id === tier.id
-                          ? "ring-2 ring-hajj-accent"
+                          ? "ring-2 ring-secondary"
                           : ""
-                      } ${tier.popular ? "ring-2 ring-hajj-accent" : ""}`}
+                      } ${tier.popular ? "ring-2 ring-secondary" : ""}`}
                       onClick={() => setSelectedTier(tier)}
                     >
-                      {tier.popular && (
-                        <div className="absolute top-0 right-0 bg-hajj-accent text-white px-3 py-1 text-xs font-medium rounded-bl-lg">
-                          POPULAR
-                        </div>
-                      )}
+                      {/* {tier.popular && ( */}
+                      <div className="absolute top-0 right-0 bg-secondary text-white px-3 py-1 text-xs font-medium rounded-bl-lg rounded-tr-lg">
+                        POPULAR
+                      </div>
+                      {/* )} */}
 
                       <CardHeader className="text-center">
                         <CardTitle className="text-xl">{tier.name}</CardTitle>
-                        <div className="text-3xl font-bold text-hajj-primary">
+                        <div className="text-3xl font-bold text-primary">
                           ₹{tier.price}
                         </div>
-                        <CardDescription>
+                        <CardDescription className="text-primary/90">
                           per {tier.validity} month
                           {tier.validity > 1 ? "s" : ""}
                         </CardDescription>
@@ -370,15 +430,15 @@ function SubscriptionDetails() {
                       <CardContent className="space-y-4">
                         <div className="space-y-3">
                           <div className="flex items-center gap-2 text-sm">
-                            <Package className="w-4 h-4 text-hajj-secondary" />
+                            <Package className="w-4 h-4 text-primary/90" />
                             <span>{tier.maxPackages} packages</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
-                            <Users className="w-4 h-4 text-hajj-secondary" />
+                            <Users className="w-4 h-4 text-primary/90" />
                             <span>{tier.seatLimit} seats limit</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-hajj-secondary" />
+                            <Calendar className="w-4 h-4 text-primary/90" />
                             <span>{tier.validity} month validity</span>
                           </div>
                         </div>
@@ -413,7 +473,7 @@ function SubscriptionDetails() {
                     <div className="flex gap-3 pt-4">
                       <Button
                         onClick={() => handleTierChange(selectedTier)}
-                        className="flex-1 bg-hajj-primary hover:bg-hajj-primary/90"
+                        className="flex-1 bg-primary hover:bg-primary/90"
                       >
                         Request {selectedTier.name} Plan
                       </Button>
@@ -446,7 +506,7 @@ function SubscriptionDetails() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Building className="w-5 h-5 text-hajj-secondary" />
+            <Building className="w-5 h-5 text-secondary" />
             Usage History
           </CardTitle>
           <CardDescription>
@@ -508,7 +568,7 @@ function SubscriptionDetails() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-hajj-accent" />
+            <Star className="w-5 h-5 text-secondary" />
             Plan Features
           </CardTitle>
           <CardDescription>
