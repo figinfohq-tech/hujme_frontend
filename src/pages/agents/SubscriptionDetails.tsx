@@ -122,8 +122,10 @@ function SubscriptionDetails() {
   const [planeById, setPlanById] = useState<any>(null);
   const [agentSubscription, setAgentSubscription] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [subscriptions, setSubscriptions] = useState([]);
 
   const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
 
   const usageHistory = [
     { month: "February", packages: 12, seats: 320 },
@@ -156,7 +158,6 @@ function SubscriptionDetails() {
 
   const fetchAgent = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.get(`${baseURL}agents/byUser/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -209,7 +210,6 @@ function SubscriptionDetails() {
 
   const fetchAgentSubscription = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${baseURL}agent-subscriptions/byAgent/${agent?.agentId}`,
         {
@@ -230,7 +230,6 @@ function SubscriptionDetails() {
 
   const fetchSubscriptionbyId = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${baseURL}subscriptions/${agentSubscription[0]?.subscriptionId}`,
         {
@@ -245,8 +244,23 @@ function SubscriptionDetails() {
     }
   };
 
+  const getSubscriptions = async () => {
+    try {
+      const res = await axios.get(`${baseURL}subscriptions`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // optional
+        },
+      });
+
+      setSubscriptions(res.data);
+    } catch (error) {
+      console.error("API Error:", error);
+    }
+  };
+
   useEffect(() => {
     fetchAgent();
+    getSubscriptions();
   }, []);
 
   useEffect(() => {
@@ -256,10 +270,10 @@ function SubscriptionDetails() {
   }, [agent?.agentId]);
 
   useEffect(() => {
-    if (agentSubscription) {
+    if (agentSubscription[0]?.subscriptionId) {
       fetchSubscriptionbyId();
     }
-  }, [agentSubscription]);
+  }, [agentSubscription[0]?.subscriptionId]);
 
   if (loading) {
     return <Loader />;
@@ -400,11 +414,11 @@ function SubscriptionDetails() {
                 </DialogHeader>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-                  {availableTiers.map((tier) => (
+                  {subscriptions.map((tier) => (
                     <Card
-                      key={tier.id}
+                      key={tier?.subscriptionId}
                       className={`relative cursor-pointer transition-all ${
-                        selectedTier?.id === tier.id
+                        selectedTier?.subscriptionId === tier?.subscriptionId
                           ? "ring-2 ring-secondary"
                           : ""
                       } ${tier.popular ? "ring-2 ring-secondary" : ""}`}
@@ -417,13 +431,15 @@ function SubscriptionDetails() {
                       {/* )} */}
 
                       <CardHeader className="text-center">
-                        <CardTitle className="text-xl">{tier.name}</CardTitle>
+                        <CardTitle className="text-xl">
+                          {tier?.subscriptionName}
+                        </CardTitle>
                         <div className="text-3xl font-bold text-primary">
-                          ₹{tier.price}
+                          ₹{tier?.price}
                         </div>
                         <CardDescription className="text-primary/90">
-                          per {tier.validity} month
-                          {tier.validity > 1 ? "s" : ""}
+                          per {tier?.validityMonths} month
+                          {tier?.validityMonths > 1 ? "s" : ""}
                         </CardDescription>
                       </CardHeader>
 
@@ -431,34 +447,35 @@ function SubscriptionDetails() {
                         <div className="space-y-3">
                           <div className="flex items-center gap-2 text-sm">
                             <Package className="w-4 h-4 text-primary/90" />
-                            <span>{tier.maxPackages} packages</span>
+                            <span>{tier?.maxPackages} packages</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
                             <Users className="w-4 h-4 text-primary/90" />
-                            <span>{tier.seatLimit} seats limit</span>
+                            <span>{tier?.seatLimit} seats limit</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="w-4 h-4 text-primary/90" />
-                            <span>{tier.validity} month validity</span>
+                            <span>{tier?.validityMonths} month validity</span>
                           </div>
                         </div>
 
                         <div className="space-y-2">
                           <p className="text-sm font-medium">Features:</p>
                           <ul className="text-xs text-muted-foreground space-y-1">
-                            {tier.features.map((feature, index) => (
+                            {availableTiers?.map((feature, index) => (
                               <li
                                 key={index}
                                 className="flex items-center gap-2"
                               >
                                 <CheckCircle className="w-3 h-3 text-green-600" />
-                                {feature}
+                                {feature.features}
                               </li>
                             ))}
                           </ul>
                         </div>
 
-                        {tier.name === currentSubscription.tier && (
+                        {tier.subscriptionId ===
+                          agentSubscription[0]?.subscriptionId && (
                           <Badge className="w-full justify-center bg-green-100 text-green-800">
                             Current Plan
                           </Badge>
@@ -469,13 +486,14 @@ function SubscriptionDetails() {
                 </div>
 
                 {selectedTier &&
-                  selectedTier.name !== currentSubscription.tier && (
-                    <div className="flex gap-3 pt-4">
+                  selectedTier.subscriptionId !==
+                    agentSubscription[0]?.subscriptionId && (
+                    <div className="flex justify-center gap-3 pt-4">
                       <Button
                         onClick={() => handleTierChange(selectedTier)}
-                        className="flex-1 bg-primary hover:bg-primary/90"
+                        className=" px-10 bg-primary hover:bg-primary/90"
                       >
-                        Request {selectedTier.name} Plan
+                        Request {selectedTier?.subscriptionName} Plan
                       </Button>
                       <Button
                         variant="outline"

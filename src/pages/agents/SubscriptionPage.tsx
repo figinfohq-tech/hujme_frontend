@@ -263,17 +263,17 @@ const SubscriptionPage = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>
+              Cancel
+            </Button>
+
             <Button
               onClick={handleConfirmSubscription}
               disabled={loading}
-              className="flex-1 bg-primary"
+              className=" bg-primary"
             >
               {loading ? "Processing..." : "Confirm"}
-            </Button>
-
-            <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>
-              Cancel
             </Button>
           </div>
         </DialogContent>
