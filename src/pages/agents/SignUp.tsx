@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { baseURL } from "@/utils/constant/url";
+import OtpVerification from "@/components/OtpVerification";
 // import Header from "@/components/Header";
 
 const SignUp = () => {
@@ -44,6 +45,14 @@ const SignUp = () => {
   const [cities, setCities] = useState([]);
   const [selectedStateId, setSelectedStateId] = useState("");
   const [selectdCitiesId, setSelectedCitiesId] = useState("");
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [otpError, setOtpError] = useState({
+    email: "",
+    phone: "",
+  });
+
+
 
   useEffect(() => {
     fetchStates();
@@ -111,6 +120,8 @@ const SignUp = () => {
   };
 
   // countries, cities and states api calling
+
+  
 
   // ------------------------ FORM VALIDATION ------------------------
   const formik = useFormik({
@@ -273,6 +284,16 @@ const SignUp = () => {
     },
   });
 
+  useEffect(() => {
+  if (formik.submitCount > 0) {
+    setOtpError({
+      email: emailVerified ? "" : "Please verify your email address",
+      phone: phoneVerified ? "" : "Please verify your mobile number",
+    });
+  }
+}, [formik.submitCount, emailVerified, phoneVerified]);
+
+
   // Logo Image Handler
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
@@ -420,6 +441,21 @@ const SignUp = () => {
                                 {formik.errors.userEmail}
                               </p>
                             )}
+                          <OtpVerification
+                            type="email"
+                            value={formik.values.userEmail}
+                            isVerified={emailVerified}
+                            onVerified={() => setEmailVerified(true)}
+                            disabled={
+                              !formik.values.userEmail ||
+                              !!formik.errors.userEmail
+                            }
+                          />
+                          {otpError.email && (
+                            <p className="text-red-600 text-sm mt-1">
+                              {otpError.email}
+                            </p>
+                          )}
                         </div>
 
                         {/* Mobile */}
@@ -446,6 +482,21 @@ const SignUp = () => {
                                 {formik.errors.mobileNumber}
                               </p>
                             )}
+                          <OtpVerification
+                            type="phone"
+                            value={formik.values.mobileNumber}
+                            isVerified={phoneVerified}
+                            onVerified={() => setPhoneVerified(true)}
+                            disabled={
+                              !formik.values.mobileNumber ||
+                              !!formik.errors.mobileNumber
+                            }
+                          />
+                          {otpError.phone && (
+                            <p className="text-red-600 text-sm mt-1">
+                              {otpError.phone}
+                            </p>
+                          )}
                         </div>
 
                         {/* Password */}

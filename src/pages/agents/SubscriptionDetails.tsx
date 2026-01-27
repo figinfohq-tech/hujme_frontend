@@ -220,6 +220,8 @@ function SubscriptionDetails() {
       );
 
       setAgentSubscription(response.data);
+      console.log("fetchAgentSubscription--->", response.data);
+      
     } catch (error) {
       console.error("Error fetching Agent Subscription:", error);
       setAgentSubscription([]);

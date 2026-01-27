@@ -44,6 +44,7 @@ const Packages = () => {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [packageFacilities, setPackageFacilities] = useState({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [agentSubscription, setAgentSubscription] = useState<any[]>([]);
 
   const navigate = useNavigate();
 
@@ -53,10 +54,9 @@ const Packages = () => {
   };
 
   const formatRating = (rating?: number) => {
-  if (rating === null || rating === undefined) return "0.0";
-  return Number(rating).toFixed(1);
-};
-
+    if (rating === null || rating === undefined) return "0.0";
+    return Number(rating).toFixed(1);
+  };
 
   const handleDeleteViewPackage = (pkg: any) => {
     setSelectedPkg(pkg);
@@ -88,7 +88,7 @@ const Packages = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       toast.success("Package deleted successfully!");
@@ -113,6 +113,7 @@ const Packages = () => {
   useEffect(() => {
     if (agentId) {
       fetchPackages();
+      fetchAgentSubscription();
     }
   }, [agentId]);
 
@@ -131,6 +132,26 @@ const Packages = () => {
     }
   };
 
+  const fetchAgentSubscription = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${baseURL}agent-subscriptions/byAgent/${agentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setAgentSubscription(response.data);
+    } catch (error) {
+      console.error("Error fetching Agent Subscription:", error);
+      setAgentSubscription([]);
+    } finally {
+    }
+  };
+
   const fetchPackages = async () => {
     if (!agentId) return;
 
@@ -145,9 +166,9 @@ const Packages = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
-      
+
       setPackages(response.data);
       fetchFacilitiesForPackages(response.data);
       fetchAgentLogos(response.data);
@@ -171,7 +192,7 @@ const Packages = () => {
             `${baseURL}package-facilities/byPackage/${pkg.packageId}`,
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
 
           // ONLY featured facilities
@@ -181,7 +202,7 @@ const Packages = () => {
             .filter(Boolean);
 
           facilitiesMap[pkg.packageId] = featuredFacilities;
-        })
+        }),
       );
 
       setPackageFacilities(facilitiesMap);
@@ -241,8 +262,8 @@ const Packages = () => {
       prev.map((p) =>
         p.packageId === pkg.packageId
           ? { ...p, packageStatus: updatedStatus }
-          : p
-      )
+          : p,
+      ),
     );
 
     setUpdatingId(pkg.packageId);
@@ -283,11 +304,11 @@ const Packages = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       toast.success(
-        `Package ${updatedStatus === "ACTIVE" ? "Activated" : "Deactivated"}`
+        `Package ${updatedStatus === "ACTIVE" ? "Activated" : "Deactivated"}`,
       );
     } catch (error) {
       // rollback
@@ -295,8 +316,8 @@ const Packages = () => {
         prev.map((p) =>
           p.packageId === pkg.packageId
             ? { ...p, packageStatus: pkg.packageStatus }
-            : p
-        )
+            : p,
+        ),
       );
 
       toast.error("Failed to update package status");
@@ -375,13 +396,15 @@ const Packages = () => {
         <hr className="border border-gray-300 mb-2" />
 
         <div className="flex justify-end mb-3 items-center">
-          <Button
-            onClick={() => navigate("/add-package")}
-            className="bg-primary text-primary-foreground"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add New Package
-          </Button>
+          {agentSubscription[0]?.isActive ? (
+            <Button
+              onClick={() => navigate("/add-package")}
+              className="bg-primary text-primary-foreground"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add New Package
+            </Button>
+          ) : null}
         </div>
 
         {isLoading ? (
@@ -471,7 +494,7 @@ const Packages = () => {
                             <span className="break-words">
                               {format(
                                 new Date(pkg.departureDate),
-                                "dd MMM yyyy"
+                                "dd MMM yyyy",
                               )}
                               {" – "}
                               {format(new Date(pkg.arrivalDate), "dd MMM yyyy")}
@@ -496,7 +519,7 @@ const Packages = () => {
                                   >
                                     {facility}
                                   </Badge>
-                                )
+                                ),
                               )}
                             </div>
                           )}
@@ -508,7 +531,7 @@ const Packages = () => {
                         <div className="flex items-center gap-2">
                           {(() => {
                             const badgeProps = getStatusBadgeProps(
-                              pkg.packageStatus
+                              pkg.packageStatus,
                             );
 
                             return (
@@ -546,7 +569,9 @@ const Packages = () => {
                           onClick={() => openReviewsDialog(pkg)}
                         >
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-medium">{formatRating(pkg.ratingAverage)}</span>
+                          <span className="font-medium">
+                            {formatRating(pkg.ratingAverage)}
+                          </span>
                           <span className="text-sm text-muted-foreground whitespace-nowrap">
                             ({pkg.reviewCount} reviews)
                           </span>
@@ -587,16 +612,18 @@ const Packages = () => {
                         {/* EDIT & DELETE → ONLY IF NOT COMPLETED */}
                         {pkg.packageStatus !== "COMPLETED" && (
                           <div className="flex flex-wrap gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                navigate("/add-package", { state: { pkg } })
-                              }
-                            >
-                              <Edit className="w-4 h-4 mr-1" />
-                              Edit
-                            </Button>
+                            {agentSubscription[0]?.isActive ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  navigate("/add-package", { state: { pkg } })
+                                }
+                              >
+                                <Edit className="w-4 h-4 mr-1" />
+                                Edit
+                              </Button>
+                            ) : null}
 
                             <Button
                               variant="outline"
