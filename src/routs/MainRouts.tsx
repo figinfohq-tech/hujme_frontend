@@ -33,6 +33,7 @@ import ProfilePage from "@/pages/agents/ProfilePage";
 import UserProfle from "@/pages/user/UserProfile";
 import SubscriptionDetails from "@/pages/agents/SubscriptionDetails";
 import SubscriptionPage from "@/pages/agents/SubscriptionPage";
+import UpgradeSubscriptionPage from "@/pages/agents/UpgradeSubscriptionPage";
 
 const MainRouts = () => {
   const role = localStorage.getItem("role");
@@ -117,6 +118,7 @@ const MainRouts = () => {
               <Route path="profiles" element={<ProfilePage />} />
               <Route path="subscription" element={<SubscriptionPage />} />
               <Route path="subscription-details" element={<SubscriptionDetails />} />
+              <Route path="subscription-upgrade" element={<UpgradeSubscriptionPage />} />
               <Route path="analytics" element={<h1>Analytics Page</h1>} />
             </Route>
           ) : (

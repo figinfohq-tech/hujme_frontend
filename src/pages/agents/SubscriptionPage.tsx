@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "react-toastify";
 
-const SubscriptionPage = () => {
+const SubscriptionPage = ({ onSubscriptionSuccess }) => {
   const [selectedTier, setSelectedTier] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
   const [agent, setAgent] = useState<any>(null);
@@ -133,10 +133,10 @@ const SubscriptionPage = () => {
         startDate: startDate.toISOString().split("T")[0],
         endDate: endDate.toISOString().split("T")[0],
         isActive: true,
-        packagesUsed: selectedTier.maxPackages,
-        seatsUsed: selectedTier.seatLimit,
-        createdBy: userId,
-        updatedBy: userId,
+        // packagesUsed: selectedTier.maxPackages,
+        // seatsUsed: selectedTier.seatLimit,
+        // createdBy: userId,
+        // updatedBy: userId,
       };
 
       await axios.post(`${baseURL}agent-subscriptions`, payload, {
@@ -148,6 +148,7 @@ const SubscriptionPage = () => {
       toast.success("Subscription request submitted successfully ✅");
       setIsConfirmOpen(false);
       setSelectedTier(null);
+      onSubscriptionSuccess?.();
     } catch (error) {
       console.error("Subscription error", error);
       toast.error("Failed to submit subscription ❌");

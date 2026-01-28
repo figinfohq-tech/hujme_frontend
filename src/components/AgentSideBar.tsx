@@ -37,7 +37,7 @@ const AgentSidebar = () => {
       path: "/documents",
     },
     { name: "Profiles", icon: <User size={20} />, path: "/profiles" },
-    { name: "Subscription Details", icon: <Crown size={20} />, path: "/subscription-details" },
+    { name: "Subscriptions", icon: <Crown size={20} />, path: "/subscription-details" },
     {
       name: "Analytics",
       icon: <BarChart2 size={20} />,

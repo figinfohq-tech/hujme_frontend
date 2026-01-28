@@ -31,12 +31,12 @@ import {
   Clock,
   Star,
 } from "lucide-react";
-import { toast } from "sonner";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
 import SubscriptionPage from "./SubscriptionPage";
 import Loader from "@/components/Loader";
-import AgentRegistration from "./AgentRegistration";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
 
 interface SubscriptionTier {
   id: string;
@@ -49,9 +49,16 @@ interface SubscriptionTier {
   popular?: boolean;
 }
 
-function SubscriptionDetails() {
-  console.log("👑 SubscriptionDetails page rendered");
+type ApiSubscription = {
+  subscriptionId: number;
+  subscriptionName: string;
+  price: number;
+  validityMonths: number;
+  maxPackages: number;
+  seatLimit: number;
+};
 
+function SubscriptionDetails() {
   const currentSubscription = {
     tier: "Premium",
     price: 2990,
@@ -114,7 +121,7 @@ function SubscriptionDetails() {
     },
   ]);
 
-  const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(
+  const [selectedTier, setSelectedTier] = useState<ApiSubscription | null>(
     null,
   );
   const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false);
@@ -123,10 +130,11 @@ function SubscriptionDetails() {
   const [agentSubscription, setAgentSubscription] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [subscriptions, setSubscriptions] = useState([]);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
-
+  const navigate = useNavigate();
   const usageHistory = [
     { month: "February", packages: 12, seats: 320 },
     { month: "March", packages: 15, seats: 420 },
@@ -134,13 +142,13 @@ function SubscriptionDetails() {
     { month: "May", packages: 15, seats: 450 },
   ];
 
-  const handleTierChange = (tier: SubscriptionTier) => {
-    console.log("🔄 Requesting tier change to:", tier.name);
-    toast.success(
-      `Upgrade request to ${tier.name} submitted. Admin will review shortly.`,
-    );
-    setIsUpgradeDialogOpen(false);
-    setSelectedTier(null);
+  const activeSubscription = agentSubscription.find(
+    (sub) => sub.isActive === true,
+  );
+
+  const handleTierChange = (tier: ApiSubscription) => {
+    setSelectedTier(tier);
+    setIsConfirmOpen(true);
   };
 
   const toggleAutoRenewal = () => {
@@ -151,10 +159,9 @@ function SubscriptionDetails() {
   };
 
   const packagesProgress =
-    (currentSubscription.packagesUsed / currentSubscription.packagesLimit) *
-    100;
+    (activeSubscription?.packagesUsed / planeById?.maxPackages) * 100;
   const seatsProgress =
-    (currentSubscription.seatsUsed / currentSubscription.seatsLimit) * 100;
+    (activeSubscription?.seatsUsed / planeById?.seatsLimit) * 100;
 
   const fetchAgent = async () => {
     try {
@@ -220,8 +227,6 @@ function SubscriptionDetails() {
       );
 
       setAgentSubscription(response.data);
-      console.log("fetchAgentSubscription--->", response.data);
-      
     } catch (error) {
       console.error("Error fetching Agent Subscription:", error);
       setAgentSubscription([]);
@@ -233,7 +238,7 @@ function SubscriptionDetails() {
   const fetchSubscriptionbyId = async () => {
     try {
       const response = await axios.get(
-        `${baseURL}subscriptions/${agentSubscription[0]?.subscriptionId}`,
+        `${baseURL}subscriptions/${activeSubscription?.subscriptionId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -250,13 +255,53 @@ function SubscriptionDetails() {
     try {
       const res = await axios.get(`${baseURL}subscriptions`, {
         headers: {
-          Authorization: `Bearer ${token}`, // optional
+          Authorization: `Bearer ${token}`,
         },
       });
 
       setSubscriptions(res.data);
     } catch (error) {
       console.error("API Error:", error);
+    }
+  };
+
+  const handleConfirmSubscription = async () => {
+    if (!selectedTier || !selectedTier.subscriptionId || !agent?.agentId) {
+      toast.error("Invalid subscription data");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + selectedTier.validityMonths);
+
+      const payload = {
+        agentId: Number(agent?.agentId),
+        subscriptionId: selectedTier.subscriptionId,
+        startDate: startDate.toISOString().split("T")[0],
+        endDate: endDate.toISOString().split("T")[0],
+        isActive: true,
+      };
+
+      await axios.post(`${baseURL}agent-subscriptions`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      toast.success("Subscription request submitted successfully ✅");
+
+      setIsConfirmOpen(false);
+      setIsUpgradeDialogOpen(false);
+      setSelectedTier(null);
+
+      fetchAgentSubscription();
+    } catch (error: any) {
+      console.error("Subscription error", error.response?.data);
+      toast.error(error.response?.data?.message || "Failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -272,28 +317,34 @@ function SubscriptionDetails() {
   }, [agent?.agentId]);
 
   useEffect(() => {
-    if (agentSubscription[0]?.subscriptionId) {
+    if (activeSubscription?.subscriptionId) {
       fetchSubscriptionbyId();
     }
-  }, [agentSubscription[0]?.subscriptionId]);
+  }, [activeSubscription?.subscriptionId]);
+
+  const handleSubscriptionSuccess = () => {
+    fetchAgentSubscription();
+  };
 
   if (loading) {
     return <Loader />;
   }
 
   if (agentSubscription.length === 0) {
-    return <SubscriptionPage />;
+    return (
+      <SubscriptionPage onSubscriptionSuccess={handleSubscriptionSuccess} />
+    );
   }
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Alert for expiry */}
-      {calculateDaysLeft(agentSubscription[0]?.endDate) <= 30 && (
+      {calculateDaysLeft(activeSubscription?.endDate) <= 30 && (
         <Alert className="border-yellow-200 bg-yellow-50">
           <AlertTriangle className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800">
             Your subscription expires in{" "}
-            {calculateDaysLeft(agentSubscription[0]?.endDate)} days.
+            {calculateDaysLeft(activeSubscription?.endDate)} days.
             <Button
               variant="link"
               className="p-0 ml-2 text-yellow-800 underline"
@@ -335,7 +386,7 @@ function SubscriptionDetails() {
               <div className="flex items-center justify-center gap-2 mb-1">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <span className="text-lg font-bold">
-                  {calculateDaysLeft(agentSubscription[0]?.endDate)}
+                  {calculateDaysLeft(activeSubscription?.endDate)}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">Days Remaining</p>
@@ -343,14 +394,14 @@ function SubscriptionDetails() {
 
             <div className="text-center">
               <div className="text-lg font-bold text-hajj-secondary">
-                {new Date(agentSubscription[0]?.startDate).toLocaleDateString()}
+                {new Date(activeSubscription?.startDate).toLocaleDateString()}
               </div>
               <p className="text-sm text-muted-foreground">Start Date</p>
             </div>
 
             <div className="text-center">
               <div className="text-lg font-bold text-hajj-secondary">
-                {new Date(agentSubscription[0]?.endDate).toLocaleDateString()}
+                {new Date(activeSubscription?.endDate).toLocaleDateString()}
               </div>
               <p className="text-sm text-muted-foreground">End Date</p>
             </div>
@@ -362,12 +413,12 @@ function SubscriptionDetails() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Package Usage</span>
                 <span className="text-sm text-muted-foreground">
-                  {agentSubscription[0]?.packagesUsed}/{planeById?.maxPackages}
+                  {activeSubscription?.packagesUsed}/{planeById?.maxPackages}
                 </span>
               </div>
               <Progress value={packagesProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                {planeById?.maxPackages - agentSubscription[0]?.packagesUsed}{" "}
+                {planeById?.maxPackages - activeSubscription?.packagesUsed}{" "}
                 packages remaining
               </p>
             </div>
@@ -376,12 +427,12 @@ function SubscriptionDetails() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Seat Usage</span>
                 <span className="text-sm text-muted-foreground">
-                  {agentSubscription[0]?.seatsUsed}/{planeById?.seatLimit}
+                  {activeSubscription?.seatsUsed}/{planeById?.seatLimit}
                 </span>
               </div>
               <Progress value={seatsProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                {planeById?.seatLimit - agentSubscription[0]?.seatsUsed} seats
+                {planeById?.seatLimit - activeSubscription?.seatsUsed} seats
                 remaining
               </p>
             </div>
@@ -389,7 +440,7 @@ function SubscriptionDetails() {
 
           {/* Quick Actions */}
           <div className="flex gap-3">
-            <Dialog
+            {/* <Dialog
               open={isUpgradeDialogOpen}
               onOpenChange={setIsUpgradeDialogOpen}
             >
@@ -407,15 +458,15 @@ function SubscriptionDetails() {
     overflow-y-auto
     rounded-none sm:rounded-lg
   "
-              >
-                <DialogHeader>
+              > */}
+            {/* <DialogHeader>
                   <DialogTitle>Choose Your Plan</DialogTitle>
                   <DialogDescription className="text-primary/90">
                     Select the subscription tier that best fits your needs
                   </DialogDescription>
-                </DialogHeader>
+                </DialogHeader> */}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                   {subscriptions.map((tier) => (
                     <Card
                       key={tier?.subscriptionId}
@@ -423,16 +474,21 @@ function SubscriptionDetails() {
                         selectedTier?.subscriptionId === tier?.subscriptionId
                           ? "ring-2 ring-secondary"
                           : ""
-                      } ${tier.popular ? "ring-2 ring-secondary" : ""}`}
+                      } ${
+                        tier.subscriptionId ===
+                        activeSubscription?.subscriptionId
+                          ? "ring-2 ring-secondary bg-green-50"
+                          : ""
+                      }`}
                       onClick={() => setSelectedTier(tier)}
                     >
                       {/* {tier.popular && ( */}
-                      <div className="absolute top-0 right-0 bg-secondary text-white px-3 py-1 text-xs font-medium rounded-bl-lg rounded-tr-lg">
+            {/* <div className="absolute top-0 right-0 bg-secondary text-white px-3 py-1 text-xs font-medium rounded-bl-lg rounded-tr-lg">
                         POPULAR
-                      </div>
-                      {/* )} */}
+                      </div> */}
+            {/* )} */}
 
-                      <CardHeader className="text-center">
+            {/* <CardHeader className="text-center">
                         <CardTitle className="text-xl">
                           {tier?.subscriptionName}
                         </CardTitle>
@@ -443,9 +499,9 @@ function SubscriptionDetails() {
                           per {tier?.validityMonths} month
                           {tier?.validityMonths > 1 ? "s" : ""}
                         </CardDescription>
-                      </CardHeader>
+                      </CardHeader> */}
 
-                      <CardContent className="space-y-4">
+            {/* <CardContent className="space-y-4">
                         <div className="space-y-3">
                           <div className="flex items-center gap-2 text-sm">
                             <Package className="w-4 h-4 text-primary/90" />
@@ -459,9 +515,9 @@ function SubscriptionDetails() {
                             <Calendar className="w-4 h-4 text-primary/90" />
                             <span>{tier?.validityMonths} month validity</span>
                           </div>
-                        </div>
+                        </div> */}
 
-                        <div className="space-y-2">
+            {/* <div className="space-y-2">
                           <p className="text-sm font-medium">Features:</p>
                           <ul className="text-xs text-muted-foreground space-y-1">
                             {availableTiers?.map((feature, index) => (
@@ -474,22 +530,22 @@ function SubscriptionDetails() {
                               </li>
                             ))}
                           </ul>
-                        </div>
+                        </div> */}
 
-                        {tier.subscriptionId ===
-                          agentSubscription[0]?.subscriptionId && (
-                          <Badge className="w-full justify-center bg-green-100 text-green-800">
+            {/* {tier.subscriptionId ===
+                          activeSubscription?.subscriptionId && (
+                          <Badge className="w-full justify-center bg-green-200 text-green-800">
                             Current Plan
                           </Badge>
                         )}
                       </CardContent>
                     </Card>
-                  ))}
-                </div>
+                  ))} */}
+            {/* </div> */}
 
-                {selectedTier &&
+            {/* {selectedTier &&
                   selectedTier.subscriptionId !==
-                    agentSubscription[0]?.subscriptionId && (
+                    activeSubscription?.subscriptionId && (
                     <div className="flex justify-center gap-3 pt-4">
                       <Button
                         onClick={() => handleTierChange(selectedTier)}
@@ -504,9 +560,16 @@ function SubscriptionDetails() {
                         Cancel
                       </Button>
                     </div>
-                  )}
-              </DialogContent>
-            </Dialog>
+                  )} */}
+            {/* </DialogContent>
+            </Dialog> */}
+            <Button
+              className="bg-primary hover:bg-primary/90"
+              onClick={() => navigate("/subscription-upgrade")}
+            >
+              <ArrowUp className="w-4 h-4" />
+              Upgrade Plan
+            </Button>
 
             <Button variant="outline">
               <ArrowDown className="w-4 h-4 mr-2" />
@@ -653,6 +716,32 @@ function SubscriptionDetails() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Subscription</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to request the{" "}
+              <b>{selectedTier?.subscriptionName}</b> plan?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>
+              Cancel
+            </Button>
+
+            <Button
+              onClick={handleConfirmSubscription}
+              disabled={loading}
+              className=" bg-primary"
+            >
+              {loading ? "Processing..." : "Confirm"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
