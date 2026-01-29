@@ -413,12 +413,14 @@ function SubscriptionDetails() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Package Usage</span>
                 <span className="text-sm text-muted-foreground">
-                  {activeSubscription?.packagesUsed}/{planeById?.maxPackages}
+                  {activeSubscription?.packagesUsed}/
+                  {activeSubscription?.balancePackage}
                 </span>
               </div>
               <Progress value={packagesProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                {planeById?.maxPackages - activeSubscription?.packagesUsed}{" "}
+                {activeSubscription?.balancePackage -
+                  activeSubscription?.packagesUsed}{" "}
                 packages remaining
               </p>
             </div>
@@ -427,7 +429,8 @@ function SubscriptionDetails() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Seat Usage</span>
                 <span className="text-sm text-muted-foreground">
-                  {activeSubscription?.seatsUsed}/{planeById?.seatLimit}
+                  {activeSubscription?.seatsUsed}/
+                  {activeSubscription?.balanceSeats}
                 </span>
               </div>
               <Progress value={seatsProgress} className="h-2" />

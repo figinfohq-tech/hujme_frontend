@@ -52,8 +52,6 @@ const SignUp = () => {
     phone: "",
   });
 
-
-
   useEffect(() => {
     fetchStates();
   }, []);
@@ -120,8 +118,6 @@ const SignUp = () => {
   };
 
   // countries, cities and states api calling
-
-  
 
   // ------------------------ FORM VALIDATION ------------------------
   const formik = useFormik({
@@ -285,14 +281,13 @@ const SignUp = () => {
   });
 
   useEffect(() => {
-  if (formik.submitCount > 0) {
-    setOtpError({
-      email: emailVerified ? "" : "Please verify your email address",
-      phone: phoneVerified ? "" : "Please verify your mobile number",
-    });
-  }
-}, [formik.submitCount, emailVerified, phoneVerified]);
-
+    if (formik.submitCount > 0) {
+      setOtpError({
+        email: emailVerified ? "" : "Please verify your email address",
+        phone: phoneVerified ? "" : "Please verify your mobile number",
+      });
+    }
+  }, [formik.submitCount, emailVerified, phoneVerified]);
 
   // Logo Image Handler
   const handleLogoUpload = (e) => {
@@ -397,6 +392,7 @@ const SignUp = () => {
                           <Input
                             {...formik.getFieldProps("firstName")}
                             placeholder="Enter your first name"
+                            maxLength={255}
                           />
                           {formik.touched.firstName &&
                             formik.errors.firstName && (
@@ -415,6 +411,7 @@ const SignUp = () => {
                           <Input
                             {...formik.getFieldProps("lastName")}
                             placeholder="Enter your last name"
+                            maxLength={255}
                           />
                           {formik.touched.lastName &&
                             formik.errors.lastName && (
@@ -434,6 +431,7 @@ const SignUp = () => {
                             type="email"
                             {...formik.getFieldProps("userEmail")}
                             placeholder="Enter your email"
+                            maxLength={255}
                           />
                           {formik.touched.userEmail &&
                             formik.errors.userEmail && (
@@ -555,6 +553,7 @@ const SignUp = () => {
                           <Input
                             {...formik.getFieldProps("agencyName")}
                             placeholder="Enter agency name"
+                            maxLength={255}
                           />
 
                           {formik.touched.agencyName &&
@@ -573,6 +572,7 @@ const SignUp = () => {
                           <Input
                             {...formik.getFieldProps("contactPerson")}
                             placeholder="Enter contact person name"
+                            maxLength={255}
                           />
                           {formik.touched.contactPerson &&
                             formik.errors.contactPerson && (
@@ -593,6 +593,7 @@ const SignUp = () => {
                             type="email"
                             {...formik.getFieldProps("email")}
                             placeholder="Enter email"
+                            maxLength={255}
                           />
                           {formik.touched.email && formik.errors.email && (
                             <p className="text-red-600 text-sm">
@@ -640,7 +641,7 @@ const SignUp = () => {
                         <Textarea
                           {...formik.getFieldProps("address")}
                           placeholder="Enter business address"
-                          maxLength={101}
+                          maxLength={1000}
                         />
                         {formik.touched.address && formik.errors.address && (
                           <p className="text-red-600 text-sm">
@@ -760,6 +761,7 @@ const SignUp = () => {
                           <Input
                             {...formik.getFieldProps("certificate")}
                             placeholder="Enter certificate number"
+                            maxLength={255}
                           />
                           {formik.touched.certificate &&
                             formik.errors.certificate && (

@@ -532,6 +532,7 @@ const ProfilePage = () => {
                           <Input
                             {...formik.getFieldProps("agencyName")}
                             placeholder="Enter agency name"
+                            maxLength={255}
                             disabled
                           />
 
@@ -550,6 +551,7 @@ const ProfilePage = () => {
                           <Input
                             {...formik.getFieldProps("contactPerson")}
                             placeholder="Enter contact person name"
+                            maxLength={255}
                           />
                           {formik.errors.contactPerson && (
                             <p className="text-red-600 text-sm">
@@ -569,6 +571,7 @@ const ProfilePage = () => {
                             type="email"
                             {...formik.getFieldProps("email")}
                             placeholder="Enter email"
+                            maxLength={255}
                           />
                           {formik.errors.email && (
                             <p className="text-red-600 text-sm">
@@ -739,6 +742,7 @@ const ProfilePage = () => {
                           <Input
                             {...formik.getFieldProps("certificate")}
                             placeholder="Enter certificate number"
+                            maxLength={255}
                           />
                           {formik.errors.certificate && (
                             <p className="text-red-600 text-sm">
@@ -754,6 +758,7 @@ const ProfilePage = () => {
                             type="url"
                             placeholder="https://www.youragency.com"
                             {...formik.getFieldProps("website")}
+                            maxLength={255}
                           />
                           {formik.errors.website && (
                             <p className="text-red-600 text-sm">

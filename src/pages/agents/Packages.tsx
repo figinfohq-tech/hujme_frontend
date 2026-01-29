@@ -48,6 +48,10 @@ const Packages = () => {
 
   const navigate = useNavigate();
 
+  const activeSubscription = agentSubscription.find(
+    (sub) => sub.isActive === true,
+  );
+
   const openReviewsDialog = (pkg: any) => {
     setSelectedPackage(pkg);
     setIsDialogOpen(true);
@@ -396,7 +400,7 @@ const Packages = () => {
         <hr className="border border-gray-300 mb-2" />
 
         <div className="flex justify-end mb-3 items-center">
-          {agentSubscription[0]?.isActive ? (
+          {activeSubscription?.isActive ? (
             <Button
               onClick={() => navigate("/add-package")}
               className="bg-primary text-primary-foreground"
@@ -612,7 +616,7 @@ const Packages = () => {
                         {/* EDIT & DELETE → ONLY IF NOT COMPLETED */}
                         {pkg.packageStatus !== "COMPLETED" && (
                           <div className="flex flex-wrap gap-2">
-                            {agentSubscription[0]?.isActive ? (
+                            {activeSubscription?.isActive ? (
                               <Button
                                 variant="outline"
                                 size="sm"

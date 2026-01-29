@@ -261,7 +261,7 @@ export function AddNewPackage({
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setStates(response.data);
     } catch (error) {
@@ -278,7 +278,7 @@ export function AddNewPackage({
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setCities(response.data);
     } catch (error) {
@@ -296,7 +296,7 @@ export function AddNewPackage({
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setTravelType(response.data);
     } catch (error) {
@@ -346,7 +346,7 @@ export function AddNewPackage({
       price: Yup.number().required("Price is required"),
       description: Yup.string().max(
         100,
-        "Description can be maximum 100 characters"
+        "Description can be maximum 100 characters",
       ),
     }),
 
@@ -384,11 +384,11 @@ export function AddNewPackage({
             : null,
           departureTime: combineDateAndTime(
             values.departureDate,
-            values.departureTime
+            values.departureTime,
           ),
           arrivalTime: combineDateAndTime(
             values.arrivalDate,
-            values.arrivalTime
+            values.arrivalTime,
           ),
           duration: Number(values.duration),
         };
@@ -406,7 +406,7 @@ export function AddNewPackage({
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               },
-            }
+            },
           );
           setIsLoader(false);
 
@@ -442,7 +442,7 @@ export function AddNewPackage({
     if (formik.values.departureDate && formik.values.arrivalDate) {
       const duration = calculateDurationInDays(
         formik.values.departureDate,
-        formik.values.arrivalDate
+        formik.values.arrivalDate,
       );
       setIsDuration(duration);
       formik.setFieldValue("duration", duration);
@@ -504,6 +504,7 @@ export function AddNewPackage({
                       placeholder="Enter the package name..."
                       onChange={formik.handleChange}
                       value={formik.values.packageName}
+                      maxLength={255}
                     />
                     {formik.errors.packageName && (
                       <p className="text-red-500 text-sm">
@@ -669,12 +670,29 @@ export function AddNewPackage({
                   {/* Price */}
                   <div className="grid gap-2">
                     <Label>Price *</Label>
-                    <Input
+                    {/* <Input
                       type="number"
                       name="price"
                       placeholder="350000"
+                      maxLength={38}
                       onChange={formik.handleChange}
                       value={formik.values.price}
+                    /> */}
+                    <Input
+                      type="text"
+                      name="price"
+                      placeholder="350000.00"
+                      value={formik.values.price}
+                      onChange={(e) => {
+                        const value = e.target.value;
+
+                        // allow only numbers with max 38 digits and 2 decimals
+                        const regex = /^\d{0,36}(\.\d{0,2})?$/;
+
+                        if (regex.test(value)) {
+                          formik.setFieldValue("price", value);
+                        }
+                      }}
                     />
                     {formik.errors.price && (
                       <p className="text-red-500 text-sm">
@@ -686,12 +704,28 @@ export function AddNewPackage({
                   {/* Original Price */}
                   <div className="grid gap-2">
                     <Label>Original Price</Label>
-                    <Input
+                    {/* <Input
                       type="number"
                       name="originalPrice"
                       placeholder="550000"
                       onChange={formik.handleChange}
                       value={formik.values.originalPrice}
+                    /> */}
+                    <Input
+                      type="text"
+                      name="price"
+                      placeholder="350000.00"
+                      value={formik.values.originalPrice}
+                      onChange={(e) => {
+                        const value = e.target.value;
+
+                        // allow only numbers with max 38 digits and 2 decimals
+                        const regex = /^\d{0,36}(\.\d{0,2})?$/;
+
+                        if (regex.test(value)) {
+                          formik.setFieldValue("originalPrice", value);
+                        }
+                      }}
                     />
                   </div>
 
