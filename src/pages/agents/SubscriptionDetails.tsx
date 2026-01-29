@@ -435,7 +435,7 @@ function SubscriptionDetails() {
               </div>
               <Progress value={seatsProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                {planeById?.seatLimit - activeSubscription?.seatsUsed} seats
+                {activeSubscription?.balanceSeats - activeSubscription?.seatsUsed} seats
                 remaining
               </p>
             </div>
