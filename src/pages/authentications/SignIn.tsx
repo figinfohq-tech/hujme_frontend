@@ -96,6 +96,7 @@ const SignIn = ({ packageId }) => {
                   id="email"
                   name="email"
                   placeholder="Enter your email"
+                  maxLength={255}
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:outline-none focus:ring-1 focus:ring-green-700 focus:border-primary transition-all"
                 />
               </div>

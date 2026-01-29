@@ -95,6 +95,7 @@ const SignUp = () => {
                     type="text"
                     id="firstName"
                     name="firstName"
+                    maxLength={255}
                     placeholder="Enter your first name"
                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-700 focus:border-green-900 outline-none transition-all"
                   />
@@ -119,6 +120,7 @@ const SignUp = () => {
                     type="text"
                     id="lastName"
                     name="lastName"
+                    maxLength={255}
                     placeholder="Enter your last name"
                     className="w-full pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-700 focus:border-green-900 outline-none transition-all"
                   />
@@ -147,6 +149,7 @@ const SignUp = () => {
                   type="email"
                   id="email"
                   name="email"
+                  maxLength={255}
                   placeholder="Enter your email"
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-700 focus:border-green-900 outline-none transition-all"
                 />
