@@ -3,16 +3,33 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, Calendar, ArrowLeft, Check, X } from "lucide-react";
+import {
+  Star,
+  MapPin,
+  Calendar,
+  ArrowLeft,
+  Check,
+  X,
+  CalendarDays,
+} from "lucide-react";
 // import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import axios from "axios";
+import { format } from "date-fns";
+import { ReviewsDialog } from "@/components/ReviewsDialog";
+import { baseURL } from "@/utils/constant/url";
 
 const ComparePackages = () => {
   const [searchParams] = useSearchParams();
   const [comparePackage, setComparePackage] = useState<any>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<any>(null);
+  const [packageFacilities, setPackageFacilities] = useState<any>({});
+  const [agentLogos, setAgentLogos] = useState<{ [key: string]: string }>({});
   const navigate = useNavigate();
   const packageIds = searchParams.get("packages")?.split(",") || [];
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     comparePackages();
@@ -29,15 +46,55 @@ const ComparePackages = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       setComparePackage(response.data);
+      fetchAgentLogos(response.data);
+      fetchFacilitiesForPackages(response.data);
     } catch (error) {
       console.error("Compare API Error:", error);
     }
   };
 
+  // fetching logo
+  const fetchAgentLogos = async (packagesData: any[]) => {
+    try {
+      const agentIds = [
+        ...new Set(packagesData.map((pkg) => pkg.agentId).filter(Boolean)),
+      ];
+
+      const logoRequests = agentIds.map(async (agentId) => {
+        try {
+          const res = await axios.get(`${baseURL}agents/get-logo/${agentId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            responseType: "blob",
+          });
+
+          const imageUrl = URL.createObjectURL(res.data);
+
+          return { agentId, logo: imageUrl };
+        } catch (err) {
+          return { agentId, logo: null };
+        }
+      });
+
+      const logos = await Promise.all(logoRequests);
+
+      const logoMap: any = {};
+      logos.forEach(({ agentId, logo }) => {
+        if (logo) {
+          logoMap[agentId] = logo;
+        }
+      });
+
+      setAgentLogos(logoMap);
+    } catch (error) {
+      console.error("Error fetching agent logos:", error);
+    }
+  };
 
   // Mock package data - in real app, fetch based on packageIds
   const allPackages = [
@@ -125,7 +182,7 @@ const ComparePackages = () => {
   ];
 
   const packages = comparePackage.filter((pkg: any) =>
-    packageIds.includes(String(pkg.packageId))
+    packageIds.includes(String(pkg.packageId)),
   );
 
   const removePackage = (packageId: string) => {
@@ -134,6 +191,47 @@ const ComparePackages = () => {
       navigate("/search");
     } else {
       navigate(`/compare?packages=${updatedIds.join(",")}`);
+    }
+  };
+
+  const formatRating = (rating?: number) => {
+    if (rating === null || rating === undefined) return "0.0";
+    return Number(rating).toFixed(1);
+  };
+  const openReviewsDialog = (pkg: any) => {
+    setSelectedPackage(pkg);
+    setIsDialogOpen(true);
+  };
+
+  const fetchFacilitiesForPackages = async (packagesData) => {
+    try {
+      const facilitiesMap = {};
+
+      await Promise.all(
+        packagesData.map(async (pkg) => {
+          if (!pkg.packageId) return;
+          const token = localStorage.getItem("token");
+
+          const res = await axios.get(
+            `${baseURL}package-facilities/byPackage/${pkg.packageId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+
+          // ONLY featured facilities
+          const featuredFacilities = res.data
+            .filter((item) => item.featured === true)
+            .map((item) => item.facilityDetails?.facilityName)
+            .filter(Boolean);
+
+          facilitiesMap[pkg.packageId] = featuredFacilities;
+        }),
+      );
+
+      setPackageFacilities(facilitiesMap);
+    } catch (error) {
+      console.error("Error fetching facilities:", error);
     }
   };
 
@@ -181,29 +279,66 @@ const ComparePackages = () => {
                 >
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => removePackage(String(pkg.packageId))}
-                    className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
+                    className="absolute top-2 right-2 rounded-full bg-primary text-white h-8 w-8 hover:bg-primary/30 focus:ring-2 focus:ring-black/30"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="h-4 w-4" />
                   </Button>
 
-                  <CardHeader className="pb-4">
-                    <div
-                      className="h-32 bg-cover bg-center rounded-lg mb-4"
-                      style={{
-                        backgroundImage: `url(${
-                          pkg.image || "/placeholder.svg"
-                        })`,
-                      }}
-                    />
+                  <CardHeader className="">
+                    <div className="h-32 rounded-lg flex items-center justify-center bg-white border">
+                      <a
+                        href={pkg.website || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`w-full h-full flex items-center justify-center transition ${
+                          pkg.website
+                            ? "hover:opacity-90"
+                            : "pointer-events-none"
+                        }`}
+                      >
+                        <img
+                          src={
+                            agentLogos[pkg.agentId]
+                              ? agentLogos[pkg.agentId]
+                              : "/placeholder.svg"
+                          }
+                          alt="Agent Logo"
+                          className="max-w-[100%] max-h-[100%] object-contain"
+                        />
+                      </a>
+                    </div>
                     <CardTitle className="text-lg">{pkg.packageName}</CardTitle>
                     <p className="text-sm text-muted-foreground">
                       {pkg.agentName}
                     </p>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                      <span className="flex items-center whitespace-nowrap">
+                        <MapPin className="w-4 h-4 mr-1 shrink-0" />
+                        {pkg.cityName}, {pkg.stateName}
+                      </span>
+
+                      <span className="flex items-center whitespace-nowrap">
+                        <Calendar className="w-4 h-4 mr-1 shrink-0" />
+                        {pkg.duration} Days
+                      </span>
+                    </div>
+
+                    {/* DATES */}
+                    {pkg.departureDate && pkg.arrivalDate && (
+                      <div className="flex items-center text-sm text-muted-foreground flex-wrap">
+                        <CalendarDays className="w-4 h-4 mr-1 shrink-0" />
+                        <span className="break-words">
+                          {format(new Date(pkg.departureDate), "dd MMM yyyy")}
+                          {" – "}
+                          {format(new Date(pkg.arrivalDate), "dd MMM yyyy")}
+                        </span>
+                      </div>
+                    )}
                   </CardHeader>
 
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-2">
                     {/* Basic Info */}
                     <div className="space-y-2">
                       <div className="flex justify-between">
@@ -228,14 +363,6 @@ const ComparePackages = () => {
                           {pkg.packageType}
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          Location:
-                        </span>
-                        <span className="text-sm font-medium">
-                          {pkg.cityName}
-                        </span>
-                      </div>
                     </div>
 
                     {/* Rating */}
@@ -243,10 +370,16 @@ const ComparePackages = () => {
                       <span className="text-sm text-muted-foreground">
                         Rating:
                       </span>
-                      <div className="flex items-center gap-1">
+                      <div
+                        className="flex items-center gap-1 cursor-pointer"
+                        onClick={() => openReviewsDialog(pkg)}
+                      >
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-medium">
-                          {pkg.rating}
+                        <span className="font-medium">
+                          {formatRating(pkg.ratingAverage)}
+                        </span>
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">
+                          ({pkg.reviewCount} reviews)
                         </span>
                       </div>
                     </div>
@@ -271,22 +404,40 @@ const ComparePackages = () => {
                     {/* Features */}
                     <div>
                       <h4 className="text-sm font-medium text-foreground mb-2">
-                        Features:
+                        Facilities :
                       </h4>
                       <div className="space-y-1">
-                        {pkg.features?.map((feature: any, idx: number) => (
+                        {/* {pkg.features?.map((feature: any, idx: number) => (
                           <div key={idx} className="flex items-center gap-2">
                             <Check className="w-3 h-3 text-green-600" />
                             <span className="text-xs text-muted-foreground">
                               {feature}
                             </span>
                           </div>
-                        ))}
+                        ))} */}
+                        {/* FACILITIES */}
+                        {packageFacilities[pkg.packageId]?.length > 0 && (
+                          <div className="gap-2">
+                            {[...packageFacilities[pkg.packageId]]
+                              .sort((a, b) => a.localeCompare(b))
+                              .map((facility, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Check className="w-4 h-4 text-green-600" />
+                                  <span className="text-xs text-muted-foreground">
+                                    {facility}
+                                  </span>
+                                </div>
+                              ))}
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     {/* Inclusions */}
-                    <div>
+                    {/* <div>
                       <h4 className="text-sm font-medium text-foreground mb-2">
                         Inclusions:
                       </h4>
@@ -300,7 +451,7 @@ const ComparePackages = () => {
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Actions */}
                     <div className="space-y-2 pt-4">
@@ -321,7 +472,16 @@ const ComparePackages = () => {
           </div>
         )}
       </main>
-
+      {selectedPackage && (
+        <ReviewsDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          packageId={selectedPackage.packageId}
+          packageName={selectedPackage.packageName}
+          agentName={selectedPackage.agentName}
+          agentId={selectedPackage.agentId}
+        />
+      )}
       <Footer />
     </div>
   );

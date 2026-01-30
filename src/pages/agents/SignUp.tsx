@@ -34,6 +34,7 @@ import {
 import { toast } from "react-toastify";
 import { baseURL } from "@/utils/constant/url";
 import OtpVerification from "@/components/OtpVerification";
+import SearchableSelect from "@/components/SearchableSelect";
 // import Header from "@/components/Header";
 
 const SignUp = () => {
@@ -656,28 +657,22 @@ const SignUp = () => {
                             <Label>State</Label>
                             <span className="text-red-500">*</span>
                           </div>
-                          <Select
-                            onValueChange={(value) => {
+                          <SearchableSelect
+                            value={formik.values.state}
+                            placeholder="Select state"
+                            items={state}
+                            labelKey="stateName"
+                            valueKey="stateId"
+                            onChange={(value) => {
                               formik.setFieldValue("state", value);
                               setSelectedStateId(value);
+
+                              // reset city when state changes
+                              formik.setFieldValue("city", "");
+                              setSelectedCitiesId("");
                             }}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select state" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {state.map((items) => {
-                                return (
-                                  <SelectItem
-                                    key={items.stateId}
-                                    value={String(items.stateId)}
-                                  >
-                                    {items.stateName}
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
+                          />
+
                           {formik.touched.state && formik.errors.state && (
                             <p className="text-red-600 text-sm">
                               {formik.errors.state}
@@ -690,28 +685,19 @@ const SignUp = () => {
                             <Label>City</Label>
                             <span className="text-red-500">*</span>
                           </div>
-                          <Select
-                            onValueChange={(value) => {
+                          <SearchableSelect
+                            value={formik.values.city}
+                            placeholder="Select city"
+                            items={cities}
+                            labelKey="cityName"
+                            valueKey="cityId"
+                            onChange={(value) => {
                               formik.setFieldValue("city", value);
                               setSelectedCitiesId(value);
                             }}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select city" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {cities.map((items) => {
-                                return (
-                                  <SelectItem
-                                    key={items.cityId}
-                                    value={String(items.cityId)}
-                                  >
-                                    {items.cityName}
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
+                            disabled={!selectedStateId}
+                          />
+
                           {formik.touched.city && formik.errors.city && (
                             <p className="text-red-600 text-sm">
                               {formik.errors.city}

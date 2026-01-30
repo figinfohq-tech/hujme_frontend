@@ -42,6 +42,7 @@ const PackageDetails = () => {
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [packageDetail, setPackageDetail] = useState();
   const [packageFacilities, setPackageFacilities] = useState<any[]>([]);
+  const [agentLogo, setAgentLogo] = useState<string | null>(null);
 
   // Mock package data - in real app, fetch based on id
   const packageData = {
@@ -122,12 +123,34 @@ const PackageDetails = () => {
       const response = await axios.get(`${baseURL}packages/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      fetchAgentLogo(response.data.agentId);
       setPackageDetail(response.data);
     } catch (error) {
       console.error("Package Fetch Error:", error);
     }
   };
   //   fetch package details
+
+  const fetchAgentLogo = async (agentId: number) => {
+    if (!agentId) return;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(`${baseURL}agents/get-logo/${agentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: "blob",
+      });
+
+      const imageUrl = URL.createObjectURL(res.data);
+      setAgentLogo(imageUrl);
+    } catch (error) {
+      console.error("Error fetching agent logo:", error);
+      setAgentLogo(null);
+    }
+  };
 
   //   fetch package faciliteis
   const fetchPackagesFacilities = async () => {
@@ -138,7 +161,7 @@ const PackageDetails = () => {
         `${baseURL}package-facilities/byPackage/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setPackageFacilities(response.data || []);
     } catch (error) {
@@ -198,7 +221,7 @@ const PackageDetails = () => {
         {/* Back Button */}
         <Button
           variant="ghost"
-          onClick={() => navigate("/search")}
+          onClick={() => navigate(-1)}
           className="mb-6 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -209,56 +232,79 @@ const PackageDetails = () => {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Package Header */}
-            <div className="mb-8">
-              <div
-                className="h-64 bg-cover bg-center rounded-lg mb-6"
-                style={{ backgroundImage: `url(${packageData.image})` }}
-              />
+            <div className="mb-8 bg-background rounded-xl shadow-sm border overflow-hidden">
+              <div className="flex h-64 flex-col md:flex-row items-stretch overflow-hidden">
+                {/* LEFT: Image */}
+                <div className="md:w-1/3 w-full h-full bg-white">
+                  <img
+                    src={agentLogo || "/placeholder.svg"}
+                    alt="Agent Logo"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
 
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground mb-2">
-                    {packageDetail?.packageName}
-                  </h1>
-                  <p className="text-lg text-muted-foreground mb-3">
-                    by {packageDetail?.agentName}
-                  </p>
-                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                    <span className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {packageDetail?.cityName}, {packageDetail?.stateName}
-                    </span>
-                    <span className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {`${packageDetail?.duration} days`}
-                    </span>
-                    <Badge variant="secondary">
-                      {packageDetail?.packageType}
-                    </Badge>
+                {/* RIGHT: Content */}
+                <div className="md:w-2/3 w-full h-full p-6 flex flex-col">
+                  {/* TOP CONTENT */}
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start gap-4 mb-4">
+                      <div>
+                        <h1 className="text-3xl font-bold text-foreground mb-1">
+                          {packageDetail?.packageName}
+                        </h1>
+
+                        <p className="text-md text-muted-foreground mb-3">
+                          By {packageDetail?.agentName}
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-4 text-md text-muted-foreground">
+                          <span className="flex items-center">
+                            <MapPin className="w-4 h-4 mr-1" />
+                            {packageDetail?.cityName},{" "}
+                            {packageDetail?.stateName}
+                          </span>
+
+                          <span className="flex items-center">
+                            <Calendar className="w-4 h-4 mr-1" />
+                            {packageDetail?.duration} days
+                          </span>
+
+                          <Badge variant="secondary" className="text-sm">
+                            {packageDetail?.packageType}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {/* Rating */}
+                      <div className="text-right shrink-0">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                          <span className="font-semibold text-lg">
+                            {packageData.rating}
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          ({packageData.reviews} reviews)
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Facilities */}
+                    <div className="flex flex-wrap gap-2">
+                      {packageFacilities
+                        ?.filter((f) => f.featured)
+                        .map((f, index) => (
+                          <Badge
+                            key={index}
+                            variant="outline"
+                            className="text-sm"
+                          >
+                            {f.facilityDetails.facilityName}
+                          </Badge>
+                        ))}
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-1 mb-2">
-                    <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                    <span className="font-semibold text-lg">
-                      {packageData.rating}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      ({packageData.reviews} reviews)
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Features */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {packageFacilities
-                  ?.filter((feature) => feature.featured === true)
-                  .map((feature, index) => (
-                    <Badge key={index} variant="outline">
-                      {feature.facilityDetails.facilityName}
-                    </Badge>
-                  ))}
               </div>
             </div>
 

@@ -31,6 +31,7 @@ import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
 import { useNavigate } from "react-router";
 import { Label } from "./ui/label";
+import SearchableSelect from "./SearchableSelect";
 
 interface SelectedHotel {
   id: string;
@@ -82,11 +83,11 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     state: "",
   });
   const [currentPackageId, setCurrentPackageId] = useState<number | null>(
-    pkg?.packageId ?? packageId ?? null
+    pkg?.packageId ?? packageId ?? null,
   );
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [hotelToDelete, setHotelToDelete] = useState<SelectedHotel | null>(
-    null
+    null,
   );
 
   const id = pkg?.packageId;
@@ -122,7 +123,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
         `${baseURL}states/byCountry/${cId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setStates(response.data || []);
     } catch (error) {
@@ -189,11 +190,10 @@ const HotelDetails = ({ pkg, packageId }: any) => {
 
       const response = await axios.get(
         `${baseURL}package-hotels/byPackage/${finalId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       setBasicHotelDetails(response.data || []);
-      
     } catch (error) {
       console.error("GET API Error:", error);
     } finally {
@@ -278,12 +278,12 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     if (Object.keys(newErrors).length) return;
 
     const hotelInfo = hotels.find(
-      (h) => String(h.hotelId) === String(selectedHotel)
+      (h) => String(h.hotelId) === String(selectedHotel),
     );
     if (!hotelInfo) return;
 
     const country = countries.find(
-      (c) => String(c.countryId) === selectedCountry
+      (c) => String(c.countryId) === selectedCountry,
     );
     const state = states.find((s) => String(s.stateId) === selectedState);
     const city = cities.find((c) => String(c.cityId) === selectedCity);
@@ -374,7 +374,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     // dates & times
     setCheckInDate(hotel.checkInDate ? new Date(hotel.checkInDate) : undefined);
     setCheckOutDate(
-      hotel.checkOutDate ? new Date(hotel.checkOutDate) : undefined
+      hotel.checkOutDate ? new Date(hotel.checkOutDate) : undefined,
     );
     setCheckInTime(hotel.checkInTime ?? "14:00");
     setCheckOutTime(hotel.checkOutTime ?? "12:00");
@@ -390,11 +390,11 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     if (!target) return;
 
     const hotelInfo = hotels.find(
-      (h) => String(h.hotelId) === String(selectedHotel)
+      (h) => String(h.hotelId) === String(selectedHotel),
     );
 
     const country = countries.find(
-      (c) => String(c.countryId) === selectedCountry
+      (c) => String(c.countryId) === selectedCountry,
     );
     const state = states.find((s) => String(s.stateId) === selectedState);
     const city = cities.find((c) => String(c.cityId) === selectedCity);
@@ -513,7 +513,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
           await axios.put(
             `${baseURL}package-hotels/${hotel.packageHotelId}`,
             payload,
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: { Authorization: `Bearer ${token}` } },
           );
         } else {
           // CREATE only new records
@@ -522,7 +522,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
             payload,
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
           const newPackageId =
             response.data?.packageId || response.data?.package?.packageId;
@@ -536,7 +536,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       }
       await getPackagesByID();
       toast.success(
-        pkg ? "Hotels updated successfully!" : "All hotels added successfully!"
+        pkg ? "Hotels updated successfully!" : "All hotels added successfully!",
       );
       // after saving, refetch to sync server ids and data
       // setAddedHotels([]);
@@ -670,14 +670,18 @@ const HotelDetails = ({ pkg, packageId }: any) => {
         <div className="grid grid-cols-1 gap-4">
           <div>
             <FormLabel>Select Hotel</FormLabel>
-            <Select
+            <SearchableSelect
               value={selectedHotel}
-              onValueChange={(value) => {
+              placeholder="Choose a hotel"
+              items={hotels}
+              labelKey="hotelName"
+              valueKey="hotelId"
+              onChange={(value) => {
                 setSelectedHotel(value);
                 setErrors({ ...errors, hotel: "" });
 
                 const hotelData = hotels.find(
-                  (h) => String(h.hotelId) === String(value)
+                  (h) => String(h.hotelId) === String(value),
                 );
 
                 if (hotelData) {
@@ -686,18 +690,8 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                   setSelectedCity(String(hotelData.cityId ?? ""));
                 }
               }}
-            >
-              <SelectTrigger className="w-full mt-2">
-                <SelectValue placeholder="Choose a hotel" />
-              </SelectTrigger>
-              <SelectContent>
-                {hotels.map((h) => (
-                  <SelectItem key={h.hotelId} value={String(h.hotelId)}>
-                    {h.hotelName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
+
             {errors.hotel && (
               <p className="text-red-500 text-xs mt-1">{errors.hotel}</p>
             )}
@@ -845,8 +839,8 @@ const HotelDetails = ({ pkg, packageId }: any) => {
               ? "Updating..."
               : "Saving..."
             : pkg
-            ? "Save Package"
-            : "Create Package"}
+              ? "Save Package"
+              : "Create Package"}
         </Button>
       </div>
 

@@ -1,11 +1,24 @@
 import { Button } from "@/components/ui/button";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, MapPin, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-kaaba.jpg";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
+import {
+  Command,
+  CommandInput,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -17,6 +30,10 @@ const HeroSection = () => {
   const [selectedStateId, setSelectedStateId] = useState("");
   const [selectedCityId, setSelectedCityId] = useState<string>("");
   const [selectedTravelTypeId, setSelectedTravelTypeId] = useState<string>("");
+  const [stateSearch, setStateSearch] = useState("");
+  const [isStateOpen, setIsStateOpen] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
+  const [isCityOpen, setIsCityOpen] = useState(false);
   const [errors, setErrors] = useState({
     country: false,
     state: false,
@@ -62,7 +79,7 @@ const HeroSection = () => {
   const fetchStates = async () => {
     try {
       const response = await axios.get(
-        `${baseURL}states/byCountry/${selectedCountryId}`
+        `${baseURL}states/byCountry/${selectedCountryId}`,
       );
       setState(response.data);
     } catch (error) {
@@ -72,7 +89,7 @@ const HeroSection = () => {
   const fetchCities = async () => {
     try {
       const response = await axios.get(
-        `${baseURL}cities/byState/${selectedStateId}`
+        `${baseURL}cities/byState/${selectedStateId}`,
       );
       setCities(response.data);
     } catch (error) {
@@ -197,15 +214,13 @@ const HeroSection = () => {
                   State
                 </label>
                 <Select
+                  open={isStateOpen}
+                  onOpenChange={setIsStateOpen}
                   value={selectedStateId}
                   onValueChange={(value) => {
                     setSelectedStateId(value);
-                    // reset city when state changes
                     setSelectedCityId("");
-                    setErrors((prev) => ({
-                      ...prev,
-                      state: false,
-                    }));
+                    setErrors((prev) => ({ ...prev, state: false }));
                   }}
                 >
                   <SelectTrigger
@@ -215,17 +230,54 @@ const HeroSection = () => {
                         : "border-gray-300"
                     }`}
                   >
-                    <SelectValue placeholder="Select state" />
+                    <SelectValue placeholder="Select state">
+                      {selectedStateId
+                        ? state.find(
+                            (s) =>
+                              String(s.stateId) === String(selectedStateId),
+                          )?.stateName
+                        : null}
+                    </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
-                    {state.map((items) => {
-                      return (
-                        <SelectItem key={items.stateId} value={items.stateId}>
-                          {items.stateName}
-                        </SelectItem>
-                      );
-                    })}
-                    {/* <SelectItem value="delhi">Delhi</SelectItem> */}
+                  <SelectContent className="p-0">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search state..."
+                        value={stateSearch}
+                        onValueChange={setStateSearch}
+                      />
+
+                      <CommandEmpty>No state found.</CommandEmpty>
+
+                      <CommandGroup className="max-h-60 overflow-y-auto">
+                        {state
+                          .filter((item) =>
+                            item.stateName
+                              .toLowerCase()
+                              .includes(stateSearch.toLowerCase()),
+                          )
+                          .map((items) => (
+                            <CommandItem
+                              key={items.stateId}
+                              value={items.stateName}
+                              onSelect={() => {
+                                setSelectedStateId(String(items.stateId));
+                                setSelectedCityId("");
+                                setStateSearch("");
+                                setErrors((prev) => ({
+                                  ...prev,
+                                  state: false,
+                                }));
+
+                                // 👇 CLOSE DROPDOWN MANUALLY
+                                setIsStateOpen(false);
+                              }}
+                            >
+                              {items.stateName}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </Command>
                   </SelectContent>
                 </Select>
                 {errors.state && (
@@ -239,22 +291,57 @@ const HeroSection = () => {
                   <MapPin className="w-4 h-4 mr-2 text-green-700" />
                   City
                 </label>
+
                 <Select
+                  open={isCityOpen}
+                  onOpenChange={setIsCityOpen}
+                  value={selectedCityId}
                   onValueChange={(value) => {
                     setSelectedCityId(value);
                   }}
                 >
                   <SelectTrigger className="w-full text-gray-700 border-gray-300 focus:ring-green-700 focus:border-green-700">
-                    <SelectValue placeholder="Select city" />
+                    <SelectValue placeholder="Select city">
+                      {selectedCityId
+                        ? cities.find(
+                            (c) => String(c.cityId) === String(selectedCityId),
+                          )?.cityName
+                        : null}
+                    </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
-                    {cities.map((items) => {
-                      return (
-                        <SelectItem key={items.cityId} value={items.cityId}>
-                          {items.cityName}
-                        </SelectItem>
-                      );
-                    })}
+
+                  <SelectContent className="p-0">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search city..."
+                        value={citySearch}
+                        onValueChange={setCitySearch}
+                      />
+
+                      <CommandEmpty>No city found.</CommandEmpty>
+
+                      <CommandGroup className="max-h-60 overflow-y-auto">
+                        {cities
+                          .filter((item) =>
+                            item.cityName
+                              .toLowerCase()
+                              .includes(citySearch.toLowerCase()),
+                          )
+                          .map((items) => (
+                            <CommandItem
+                              key={items.cityId}
+                              value={items.cityName}
+                              onSelect={() => {
+                                setSelectedCityId(String(items.cityId));
+                                setCitySearch("");
+                                setIsCityOpen(false); // 👈 close dropdown
+                              }}
+                            >
+                              {items.cityName}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </Command>
                   </SelectContent>
                 </Select>
               </div>

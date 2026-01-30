@@ -27,6 +27,7 @@ import { toast } from "react-toastify";
 import FlightDetails from "@/components/FlightDetails";
 import Facilities from "@/components/Facilities";
 import HotelDetails from "@/components/HotelDetails";
+import SearchableSelect from "@/components/SearchableSelect";
 
 const packageFormSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(200),
@@ -573,7 +574,7 @@ export function AddNewPackage({
 
                   <div className="grid gap-2">
                     <Label>Select State *</Label>
-                    <Select
+                    {/* <Select
                       value={formik.values.stateId}
                       onValueChange={(value) => {
                         formik.setFieldValue("stateId", value);
@@ -592,60 +593,49 @@ export function AddNewPackage({
                           );
                         })}
                       </SelectContent>
-                    </Select>
+                    </Select> */}
+                    <SearchableSelect
+                      value={formik.values.stateId}
+                      placeholder="Select State"
+                      items={states}
+                      labelKey="stateName"
+                      valueKey="stateId"
+                      onChange={(value) => {
+                        formik.setFieldValue("stateId", value);
+                        setSelectedStateId(value);
+                      }}
+                    />
                   </div>
 
                   {/* City Dropdown */}
                   <div className="grid gap-2">
                     <Label>Select City *</Label>
-                    <Select
+                    <SearchableSelect
                       value={formik.values.cityId}
-                      onValueChange={(value) => {
+                      placeholder="Select City"
+                      items={cities}
+                      labelKey="cityName"
+                      valueKey="cityId"
+                      onChange={(value) => {
                         formik.setFieldValue("cityId", value);
                         setSelectedCitiesId(value);
                       }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cities.map((items) => {
-                          return (
-                            <SelectItem
-                              key={items.cityId}
-                              value={String(items.cityId)}
-                            >
-                              {items.cityName}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
+                    />
                   </div>
 
                   {/* packageType Dropdown */}
                   <div className="grid gap-2">
                     <Label>Packege Type *</Label>
-                    <Select
-                      onValueChange={(value) => {
+                    <SearchableSelect
+                      value={formik.values.packageType}
+                      placeholder="Select Package Type"
+                      items={packageType}
+                      labelKey="lookupName"
+                      valueKey="lookupName"
+                      onChange={(value) => {
                         formik.setFieldValue("packageType", value);
                       }}
-                      value={formik.values.packageType?.toString()}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder=" select package type" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        {packageType.map((items) => {
-                          return (
-                            <SelectItem value={String(items.lookupName)}>
-                              {items.lookupName}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
+                    />
                   </div>
 
                   {/* Description */}

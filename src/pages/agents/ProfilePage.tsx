@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { baseURL } from "@/utils/constant/url";
+import SearchableSelect from "@/components/SearchableSelect";
 
 const ProfilePage = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -635,34 +636,26 @@ const ProfilePage = () => {
                             <Label>State</Label>
                             <span className="text-red-500">*</span>
                           </div>
-                          <Select
-                            value={formik.values.state}
-                            onValueChange={(value) => {
-                              formik.setFieldValue("state", value);
-                              setSelectedStateId(value);
-                            }}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select state" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {state.map((items) => {
-                                return (
-                                  <SelectItem
-                                    key={items.stateId}
-                                    value={String(items.stateId)}
-                                  >
-                                    {items.stateName}
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
-                          {formik.errors.state && (
-                            <p className="text-red-600 text-sm">
-                              {formik.errors.state}
-                            </p>
-                          )}
+                         <SearchableSelect
+  value={formik.values.state}
+  placeholder="Select state"
+  items={state}
+  labelKey="stateName"
+  valueKey="stateId"
+  onChange={(value) => {
+    formik.setFieldValue("state", value);
+    setSelectedStateId(value);
+
+    // reset city when state changes
+    formik.setFieldValue("city", "");
+    setSelectedCitiesId("");
+  }}
+/>
+
+{formik.errors.state && (
+  <p className="text-red-600 text-sm">{formik.errors.state}</p>
+)}
+
                         </div>
 
                         <div className="space-y-2">
@@ -670,34 +663,23 @@ const ProfilePage = () => {
                             <Label>City</Label>
                             <span className="text-red-500">*</span>
                           </div>
-                          <Select
-                            value={formik.values.city}
-                            onValueChange={(value) => {
-                              formik.setFieldValue("city", value);
-                              setSelectedCitiesId(value);
-                            }}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select city" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {cities.map((items) => {
-                                return (
-                                  <SelectItem
-                                    key={items.cityId}
-                                    value={String(items.cityId)}
-                                  >
-                                    {items.cityName}
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
-                          {formik.errors.city && (
-                            <p className="text-red-600 text-sm">
-                              {formik.errors.city}
-                            </p>
-                          )}
+                         <SearchableSelect
+  value={formik.values.city}
+  placeholder="Select city"
+  items={cities}
+  labelKey="cityName"
+  valueKey="cityId"
+  onChange={(value) => {
+    formik.setFieldValue("city", value);
+    setSelectedCitiesId(value);
+  }}
+  disabled={!selectedStateId}
+/>
+
+{formik.errors.city && (
+  <p className="text-red-600 text-sm">{formik.errors.city}</p>
+)}
+
                         </div>
                       </div>
                     </div>

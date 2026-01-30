@@ -45,6 +45,7 @@ import * as yup from "yup";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
 import Loader from "./Loader";
+import SearchableSelect from "./SearchableSelect";
 
 interface FlightSegment {
   id: string;
@@ -796,25 +797,16 @@ const FlightDetails = ({ pkg, packageId }) => {
         <div className="grid grid-cols-3 gap-4">
           <FormItem>
             <FormLabel>Airline</FormLabel>
-            <Select
+            <SearchableSelect
               value={formik.values.airline}
-              onValueChange={(value) => {
+              placeholder="Select airline"
+              items={airlines}
+              labelKey="flightName"
+              valueKey="airlineId"
+              onChange={(value) => {
                 formik.setFieldValue("airline", value);
               }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select airline" />
-              </SelectTrigger>
-              <SelectContent>
-                {airlines.map((items) => {
-                  return (
-                    <SelectItem value={String(items.airlineId)}>
-                      {items.flightName}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+            />
             <FormMessage>{formik.errors.airline}</FormMessage>
           </FormItem>
 
@@ -871,9 +863,13 @@ const FlightDetails = ({ pkg, packageId }) => {
               {/* airports */}
               <FormItem>
                 <FormLabel>Departure Airport</FormLabel>
-                <Select
+                <SearchableSelect
                   value={formik.values.departureAirport}
-                  onValueChange={async (value) => {
+                  placeholder="Select departure airport"
+                  items={airports}
+                  labelKey="airportName"
+                  valueKey="airportId"
+                  onChange={async (value) => {
                     formik.setFieldValue("departureAirport", value);
 
                     const airport = await fetchAirportById(value);
@@ -887,22 +883,11 @@ const FlightDetails = ({ pkg, packageId }) => {
                       formik.setFieldValue("departureState", airport.stateId);
                       formik.setFieldValue("departureCity", airport.cityId);
 
-                      // ✅ preview from API
+                      // preview
                       setPreviewDepartureAirport(airport);
                     }
                   }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select departure airport" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {airports.map((a) => (
-                      <SelectItem key={a.airportId} value={String(a.airportId)}>
-                        {a.airportName} ({a.iataCode})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                />
                 <FormMessage>{formik.errors.departureAirport}</FormMessage>
               </FormItem>
               {previewDepartureAirport && (
@@ -1049,38 +1034,28 @@ const FlightDetails = ({ pkg, packageId }) => {
               {/* airports */}
               <FormItem>
                 <FormLabel>Arrival Airport</FormLabel>
-                <Select
-                  value={formik.values.arrivalAirport}
-                  onValueChange={async (value) => {
-                    formik.setFieldValue("arrivalAirport", value);
+                <SearchableSelect
+  value={formik.values.arrivalAirport}
+  placeholder="Select arrival airport"
+  items={airports}
+  labelKey="airportName"
+  valueKey="airportId"
+  onChange={async (value) => {
+    formik.setFieldValue("arrivalAirport", value);
 
-                    const airport = await fetchAirportById(value);
+    const airport = await fetchAirportById(value);
 
-                    if (airport) {
-                      formik.setFieldValue(
-                        "arrivalCountries",
-                        airport.countryId,
-                      );
-                      formik.setFieldValue("arrivalState", airport.stateId);
-                      formik.setFieldValue("arrivalCity", airport.cityId);
+    if (airport) {
+      formik.setFieldValue("arrivalCountries", airport.countryId);
+      formik.setFieldValue("arrivalState", airport.stateId);
+      formik.setFieldValue("arrivalCity", airport.cityId);
 
-                      // ✅ preview from API
-                      setPreviewArrivalAirport(airport);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select arrival airport" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {airports.map((a) => (
-                      <SelectItem key={a.airportId} value={String(a.airportId)}>
-                        {a.airportName} ({a.iataCode})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage>{formik.errors.arrivalAirport}</FormMessage>
+      setPreviewArrivalAirport(airport);
+    }
+  }}
+/>
+<FormMessage>{formik.errors.arrivalAirport}</FormMessage>
+
               </FormItem>
               {previewArrivalAirport && (
                 <div className="rounded-lg border bg-muted/30 p-3 space-y-1">
