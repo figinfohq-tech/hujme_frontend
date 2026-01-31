@@ -130,6 +130,7 @@ function SubscriptionDetails() {
   const [agentSubscription, setAgentSubscription] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [subscriptions, setSubscriptions] = useState([]);
+  const [subscriptionsHistory, setSubscriptionsHistory] = useState<any>([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const userId = localStorage.getItem("userId");
@@ -171,6 +172,22 @@ function SubscriptionDetails() {
         },
       });
       setAgent(response.data);
+    } catch (error) {
+      console.error("Error fetching Cities:", error);
+    }
+  };
+
+  const fetchSubscriptionsHistory = async () => {
+    try {
+      const response = await axios.get(
+        `${baseURL}agent-subscriptions/history/${agent?.agentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setSubscriptionsHistory(response.data);
     } catch (error) {
       console.error("Error fetching Cities:", error);
     }
@@ -313,6 +330,7 @@ function SubscriptionDetails() {
   useEffect(() => {
     if (agent?.agentId) {
       fetchAgentSubscription();
+      fetchSubscriptionsHistory();
     }
   }, [agent?.agentId]);
 
@@ -337,7 +355,7 @@ function SubscriptionDetails() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-5">
       {/* Alert for expiry */}
       {calculateDaysLeft(activeSubscription?.endDate) <= 30 && (
         <Alert className="border-yellow-200 bg-yellow-50">
@@ -435,8 +453,9 @@ function SubscriptionDetails() {
               </div>
               <Progress value={seatsProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                {activeSubscription?.balanceSeats - activeSubscription?.seatsUsed} seats
-                remaining
+                {activeSubscription?.balanceSeats -
+                  activeSubscription?.seatsUsed}{" "}
+                seats remaining
               </p>
             </div>
           </div>
@@ -601,7 +620,7 @@ function SubscriptionDetails() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {usageHistory.map((month, index) => (
+            {/* {usageHistory.map((month, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between p-3 rounded-lg border"
@@ -645,7 +664,81 @@ function SubscriptionDetails() {
                   </div>
                 </div>
               </div>
-            ))}
+            ))} */}
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="bg-gray-100 text-left">
+                    <th className="px-4 py-3 font-bold">Plan Name</th>
+                    <th className="px-4 py-3 font-bold">Package Limit</th>
+                    <th className="px-4 py-3 font-bold">Seat Limit</th>
+                    <th className="px-4 py-3 font-bold">Price</th>
+                    <th className="px-4 py-3 font-bold">Start Date</th>
+                    <th className="px-4 py-3 font-bold">End Date</th>
+                    <th className="px-4 py-3 font-bold">Status</th>
+                    <th className="px-4 py-3 font-bold">Package Used</th>
+                    <th className="px-4 py-3 font-bold">Seat Used</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {subscriptionsHistory?.map((item: any, index: any) => (
+                    <tr
+                      key={index}
+                      className="border-b last:border-b-0 hover:bg-gray-50 transition"
+                    >
+                      <td className="px-4 py-3 font-medium text-gray-800">
+                        {item?.subscriptionName}
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-600">
+                        {item?.maxPackages}
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-600">
+                        {item?.seatLimit}
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-700 font-semibold">
+                        {item?.price}
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-600">
+                        {item?.startDate}
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-600">
+                        {item?.endDate}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium
+                          ${
+                            item?.status === "RENEWED"
+                              ? "bg-green-100 text-green-700"
+                              : item?.status === "CLOSED"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-gray-100 text-gray-600"
+                          }
+                          `}
+                        >
+                          {item?.status}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-600">
+                        {item?.packagesUsed}/{item?.maxPackages}
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-600">
+                        {item?.seatsUsed}/{item?.seatLimit}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </CardContent>
       </Card>
