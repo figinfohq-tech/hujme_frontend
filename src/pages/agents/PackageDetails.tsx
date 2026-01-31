@@ -29,6 +29,7 @@ import PackageBasicView from "./PackageBasicView";
 import HotelViewDetails from "./HotelViewDetails";
 import FlightViewDetails from "./FlightViewDetails";
 import FacilitiesViewDetails from "./FacilitiesViewDetails";
+import { ReviewsDialog } from "@/components/ReviewsDialog";
 // import { BookingFlow } from "@/components/BookingFlow";
 // import { BookingConfirmation } from "@/components/BookingConfirmation";
 
@@ -43,6 +44,8 @@ const PackageDetails = () => {
   const [packageDetail, setPackageDetail] = useState();
   const [packageFacilities, setPackageFacilities] = useState<any[]>([]);
   const [agentLogo, setAgentLogo] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<any>(null);
 
   // Mock package data - in real app, fetch based on id
   const packageData = {
@@ -180,6 +183,16 @@ const PackageDetails = () => {
     setBookingId(null);
   };
 
+  const formatRating = (rating?: number) => {
+    if (rating === null || rating === undefined) return "0.0";
+    return Number(rating).toFixed(1);
+  };
+
+  const openReviewsDialog = (pkg: any) => {
+    setSelectedPackage(pkg);
+    setIsDialogOpen(true);
+  };
+
   if (showConfirmation && bookingId) {
     return (
       <div className="min-h-screen bg-background">
@@ -233,9 +246,9 @@ const PackageDetails = () => {
           <div className="lg:col-span-2">
             {/* Package Header */}
             <div className="mb-8 bg-background rounded-xl shadow-sm border overflow-hidden">
-              <div className="flex h-64 flex-col md:flex-row items-stretch overflow-hidden">
+              <div className="flex flex-col md:flex-row items-stretch overflow-hidden">
                 {/* LEFT: Image */}
-                <div className="md:w-1/3 w-full h-full bg-white">
+                <div className="md:w-1/3 w-full bg-white flex">
                   <img
                     src={agentLogo || "/placeholder.svg"}
                     alt="Agent Logo"
@@ -249,7 +262,7 @@ const PackageDetails = () => {
                   <div className="flex-1">
                     <div className="flex justify-between items-start gap-4 mb-4">
                       <div>
-                        <h1 className="text-3xl font-bold text-foreground mb-1">
+                        <h1 className="text-2xl font-bold text-foreground mb-1">
                           {packageDetail?.packageName}
                         </h1>
 
@@ -276,15 +289,18 @@ const PackageDetails = () => {
                       </div>
 
                       {/* Rating */}
-                      <div className="text-right shrink-0">
+                      <div
+                        className="text-right shrink-0"
+                        onClick={() => openReviewsDialog(result)}
+                      >
                         <div className="flex items-center gap-1">
                           <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                           <span className="font-semibold text-lg">
-                            {packageData.rating}
+                            {formatRating(result.ratingAverage)}
                           </span>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          ({packageData.reviews} reviews)
+                          ({result.reviewCount} reviews)
                         </span>
                       </div>
                     </div>
@@ -500,7 +516,16 @@ const PackageDetails = () => {
           </div>
         </div>
       </main>
-
+      {selectedPackage && (
+        <ReviewsDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          packageId={selectedPackage.packageId}
+          packageName={selectedPackage.packageName}
+          agentName={selectedPackage.agentName}
+          agentId={selectedPackage.agentId}
+        />
+      )}
       <Footer />
     </div>
   );
