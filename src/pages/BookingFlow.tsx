@@ -897,7 +897,12 @@ export const BookingFlow: React.FC = () => {
             </div>
 
             <Button
-              onClick={() => navigate("/booking-confirmation")}
+              disabled={!bookingId}
+              onClick={() =>
+                navigate("/booking-confirmation", {
+                  state: { bookingId },
+                })
+              }
               className="w-full"
               size="lg"
             >
