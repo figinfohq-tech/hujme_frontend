@@ -17,12 +17,11 @@ import ComparePackages from "@/pages/agents/ComparePackages";
 import { BookingFlow } from "@/pages/BookingFlow";
 import ProtectedBookFlow from "@/pages/agents/ProtectedBookFlow";
 import { BookingConfirmation } from "@/components/BookingConfirmation";
-import ChoosePaymentOption from "@/pages/ChoosePaymentOption";
 import { BookingsPage } from "@/pages/agents/BookingsPage";
 import BookingViewPage from "@/pages/agents/BookingView";
 import { AddNewPackage } from "@/pages/agents/AddNewPackage";
 import PackageView from "@/pages/agents/PackageView";
-import {DocumentsPage} from "@/pages/user/DocumentsPage";
+import { DocumentsPage } from "@/pages/user/DocumentsPage";
 import { DocumentsAgent } from "@/pages/agents/DocumentsAgent";
 import { ManageBookings } from "@/pages/agents/ManageBookings";
 import { BookingDetailsPage } from "@/pages/agents/BookingDetailsPage";
@@ -34,6 +33,8 @@ import UserProfle from "@/pages/user/UserProfile";
 import SubscriptionDetails from "@/pages/agents/SubscriptionDetails";
 import SubscriptionPage from "@/pages/agents/SubscriptionPage";
 import UpgradeSubscriptionPage from "@/pages/agents/UpgradeSubscriptionPage";
+import ChoosePaymentOption from "@/pages/user/ChoosePaymentOption";
+import PaymentProcessComfirm from "@/pages/user/PaymentProcessComfirm";
 
 const MainRouts = () => {
   const role = localStorage.getItem("role");
@@ -59,6 +60,8 @@ const MainRouts = () => {
           <Route path="/dashboard/search" element={<SearchResults />} />
           <Route path="/package/:id" element={<PackageDetails />} />
           <Route path="/compare" element={<ComparePackages />} />
+          <Route path="/payment-option" element={<ChoosePaymentOption />} />
+          <Route path="/payment-corfirm" element={<PaymentProcessComfirm />} />
 
           <Route
             path="/booking-detail"
@@ -99,13 +102,13 @@ const MainRouts = () => {
             </Route>
           ) : role === "AGENT" ? (
             <Route
-            path="/"
-            element={
-              <ProtectedRoute>
+              path="/"
+              element={
+                <ProtectedRoute>
                   <AgentSidebar />
                 </ProtectedRoute>
               }
-              >
+            >
               <Route index element={<h1>Overview Page</h1>} />
               <Route path="overview" element={<h1>Overview Page</h1>} />
               <Route path="packages" element={<Packages />} />
@@ -113,12 +116,18 @@ const MainRouts = () => {
               <Route path="view-package" element={<PackageView />} />
               <Route path="bookings" element={<ManageBookings />} />
               <Route path="bookings-details" element={<BookingDetailsPage />} />
-              <Route path="documents" element={<DocumentsAgent/>} />
+              <Route path="documents" element={<DocumentsAgent />} />
               <Route path="booking-view" element={<BookingViewPage />} />
               <Route path="profiles" element={<ProfilePage />} />
               <Route path="subscription" element={<SubscriptionPage />} />
-              <Route path="subscription-details" element={<SubscriptionDetails />} />
-              <Route path="subscription-upgrade" element={<UpgradeSubscriptionPage />} />
+              <Route
+                path="subscription-details"
+                element={<SubscriptionDetails />}
+              />
+              <Route
+                path="subscription-upgrade"
+                element={<UpgradeSubscriptionPage />}
+              />
               <Route path="analytics" element={<h1>Analytics Page</h1>} />
             </Route>
           ) : (

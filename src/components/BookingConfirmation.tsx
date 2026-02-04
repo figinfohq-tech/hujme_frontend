@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 // import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { baseURL } from "@/utils/constant/url";
 import axios from "axios";
 import { format } from "date-fns";
@@ -62,8 +62,10 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const { state } = useLocation();
-  const bookingId = state?.bookingId;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const bookingId = location.state?.booking?.bookingId;
+
   useEffect(() => {
     fetchBookingDetails();
     fetchTravelers();
@@ -540,7 +542,10 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
             <div className="flex justify-between items-center py-2">
               <span className="text-muted-foreground">Amount Paid</span>
               {/* <span className="font-semibold text-green-600">₹{paidAmount.toLocaleString()}</span> */}
-              <span className="font-semibold text-green-600">₹100000</span>
+              <span className="font-semibold text-green-600">
+                {" "}
+                ₹{booking?.totalAmt}
+              </span>
             </div>
             {/* {pendingAmount > 0 && (
               <div className="flex justify-between items-center py-2 bg-amber-50 px-3 rounded-lg">
@@ -609,7 +614,11 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <Button onClick={onClose} variant="outline" className="flex-1">
+        <Button
+          onClick={() => navigate("/customer/search")}
+          variant="outline"
+          className="flex-1"
+        >
           Continue Browsing
         </Button>
         <Button

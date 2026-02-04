@@ -274,6 +274,20 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     if (!checkInDate) newErrors.checkInDate = "Check-in date is required";
     if (!checkOutDate) newErrors.checkOutDate = "Check-out date is required";
 
+    const lastCheckoutDate = getLastHotelCheckoutDate();
+
+    if (lastCheckoutDate && checkInDate) {
+      if (checkInDate < lastCheckoutDate) {
+        toast.error(
+          `Check-in date must be after ${format(
+            lastCheckoutDate,
+            "dd MMM yyyy",
+          )}`,
+        );
+        return;
+      }
+    }
+
     setErrors(newErrors);
     if (Object.keys(newErrors).length) return;
 
@@ -311,10 +325,11 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       checkInTime,
       checkOutDate,
       checkOutTime,
+      daysStay: calculateDaysStay(checkInDate, checkOutDate),
     };
 
     setAddedHotels([newHotel, ...addedHotels]);
-
+    setSelectedHotelData("");
     // reset local form
     setSelectedHotel("");
     setCheckInDate(undefined);
@@ -559,6 +574,15 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       ? calculateDaysStay(checkInDate, checkOutDate)
       : "";
 
+  const getLastHotelCheckoutDate = () => {
+    if (addedHotels.length === 0) return null;
+
+    // latest added hotel (top pe add ho raha hai, isliye [0])
+    const lastHotel = addedHotels[0];
+
+    return lastHotel?.checkOutDate ? new Date(lastHotel.checkOutDate) : null;
+  };
+
   return (
     <>
       {/* Added Hotels List */}
@@ -668,7 +692,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
         <h4 className="text-sm font-semibold text-foreground">Add Hotel</h4>
 
         <div className="grid grid-cols-1 gap-4">
-          <div>
+          <div className="grid gap-2">
             <FormLabel>Select Hotel</FormLabel>
             <SearchableSelect
               value={selectedHotel}
@@ -756,6 +780,11 @@ const HotelDetails = ({ pkg, packageId }: any) => {
             <Input
               type="date"
               value={checkInDate ? format(checkInDate, "yyyy-MM-dd") : ""}
+              min={
+                getLastHotelCheckoutDate()
+                  ? format(getLastHotelCheckoutDate()!, "yyyy-MM-dd")
+                  : undefined
+              }
               onChange={(e) => {
                 const value = e.target.value;
                 setCheckInDate(value ? new Date(value) : null);

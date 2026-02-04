@@ -410,6 +410,20 @@ const FlightDetails = ({ pkg, packageId }) => {
     validateOnChange: false,
     validateOnBlur: true,
     onSubmit: (values, { resetForm }) => {
+      const lastArrivalDate = getLastFlightArrivalDate();
+
+      if (!isEditMode && lastArrivalDate && values.departureDate) {
+        if (values.departureDate < lastArrivalDate) {
+          toast.error(
+            `Departure date must be after ${format(
+              lastArrivalDate,
+              "dd MMM yyyy",
+            )}`,
+          );
+          return;
+        }
+      }
+
       const newFlight: FlightSegment = {
         id: editIndex !== null ? addedFlights[editIndex].id : `${Date.now()}`,
 
@@ -713,6 +727,15 @@ const FlightDetails = ({ pkg, packageId }) => {
     }
   }, [formik.values.departureDate]);
 
+  const getLastFlightArrivalDate = () => {
+    if (addedFlights.length === 0) return null;
+
+    // last added flight
+    const lastFlight = addedFlights[addedFlights.length - 1];
+
+    return lastFlight?.arrivalDate ? new Date(lastFlight.arrivalDate) : null;
+  };
+
   return (
     <>
       {/* Added Flights List */}
@@ -996,6 +1019,11 @@ const FlightDetails = ({ pkg, packageId }) => {
                         ? format(formik.values.departureDate, "yyyy-MM-dd")
                         : ""
                     }
+                    min={
+                      !isEditMode && getLastFlightArrivalDate()
+                        ? format(getLastFlightArrivalDate()!, "yyyy-MM-dd")
+                        : undefined
+                    }
                     onChange={(e) => {
                       const value = e.target.value;
                       formik.setFieldValue(
@@ -1035,27 +1063,29 @@ const FlightDetails = ({ pkg, packageId }) => {
               <FormItem>
                 <FormLabel>Arrival Airport</FormLabel>
                 <SearchableSelect
-  value={formik.values.arrivalAirport}
-  placeholder="Select arrival airport"
-  items={airports}
-  labelKey="airportName"
-  valueKey="airportId"
-  onChange={async (value) => {
-    formik.setFieldValue("arrivalAirport", value);
+                  value={formik.values.arrivalAirport}
+                  placeholder="Select arrival airport"
+                  items={airports}
+                  labelKey="airportName"
+                  valueKey="airportId"
+                  onChange={async (value) => {
+                    formik.setFieldValue("arrivalAirport", value);
 
-    const airport = await fetchAirportById(value);
+                    const airport = await fetchAirportById(value);
 
-    if (airport) {
-      formik.setFieldValue("arrivalCountries", airport.countryId);
-      formik.setFieldValue("arrivalState", airport.stateId);
-      formik.setFieldValue("arrivalCity", airport.cityId);
+                    if (airport) {
+                      formik.setFieldValue(
+                        "arrivalCountries",
+                        airport.countryId,
+                      );
+                      formik.setFieldValue("arrivalState", airport.stateId);
+                      formik.setFieldValue("arrivalCity", airport.cityId);
 
-      setPreviewArrivalAirport(airport);
-    }
-  }}
-/>
-<FormMessage>{formik.errors.arrivalAirport}</FormMessage>
-
+                      setPreviewArrivalAirport(airport);
+                    }
+                  }}
+                />
+                <FormMessage>{formik.errors.arrivalAirport}</FormMessage>
               </FormItem>
               {previewArrivalAirport && (
                 <div className="rounded-lg border bg-muted/30 p-3 space-y-1">

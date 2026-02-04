@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "react-toastify";
+import { useRef } from "react";
+
 import {
   Popover,
   PopoverContent,
@@ -72,11 +74,13 @@ export const BookingFlow: React.FC = () => {
 
   const [step, setStep] = useState<number>(1);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [bookingId, setBookingId] = useState("");
+  const [booking, setBooking] = useState<any>(null);
   const [paymentType, setPaymentType] = useState<"full" | "partial" | null>(
     null,
   );
   const [partialAmount, setPartialAmount] = useState<number>(0);
+
+  const bookingApiCalledRef = useRef(false);
 
   // initial traveler object matching backend keys (dates as Date | null)
   const initialTraveler: TravelerState = {
@@ -130,6 +134,8 @@ export const BookingFlow: React.FC = () => {
     if (!t.gender) e.gender = "Gender is required";
     if (!t.dateOfBirth) e.dateOfBirth = "Date of birth is required";
     if (!t.nationality.trim()) e.nationality = "Nationality is required";
+    if (!t.passportNumber.trim())
+      e.passportNumber = "Password Number is required";
 
     return e;
   };
@@ -138,6 +144,8 @@ export const BookingFlow: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
+      const pricePerPerson = Number(packageData?.price || 0);
+      const totalAmt = pricePerPerson * travelerCount;
       // ✅ Your payload object
       const payloadBooking = {
         // balanceAmt: 0,
@@ -147,7 +155,7 @@ export const BookingFlow: React.FC = () => {
         // paymentStatus: "string",
         // receivedAmt: 0,
         // startDate: "string",
-        totalAmt: packageData?.price,
+        totalAmt: totalAmt,
         travelerCount: travelerCount,
         packageId: packageData?.id,
         userId: userId, // 👈 userId from localStorage
@@ -158,7 +166,7 @@ export const BookingFlow: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.data.bookingId;
+      return response.data;
     } catch (error) {
       console.error("Compare API Error:", error);
     }
@@ -216,6 +224,7 @@ export const BookingFlow: React.FC = () => {
 
   /** Submit single traveler (backend expects one object as in Postman) */
   const handleBookingSubmit = async () => {
+    if (bookingApiCalledRef.current) return; // ⛔ already called
     const validationResults = travelers.map(validateTraveler);
     setErrors(validationResults);
 
@@ -225,23 +234,20 @@ export const BookingFlow: React.FC = () => {
       toast.error("Please fix the highlighted errors");
       return;
     }
-
-    // if (!validateStep1()) {
-    //   toast.error("Please fill all required fields and select departure date.");
-    //   return;
-    // }
-
-    // setStep(2);
     setIsProcessing(true);
 
     try {
+      bookingApiCalledRef.current = true;
       const token = localStorage.getItem("token") || "";
-      const newBookingId = await bookingPackages(travelers.length);
-      setBookingId(newBookingId);
+
+      // ✅ BOOKING API — ONLY ONCE
+      const newBooking = await bookingPackages(travelers.length);
+      setBooking(newBooking);
+
       // Loop through ALL travelers
       for (let t of travelers) {
         const payload: TravelerPayload = {
-          bookingId: Number(newBookingId),
+          bookingId: Number(newBooking?.bookingId),
           alternateNumber: t.alternateNumber || "",
           createdBy: t.createdBy || "string",
           dateOfBirth: formatDate(t.dateOfBirth),
@@ -275,8 +281,9 @@ export const BookingFlow: React.FC = () => {
       // When ALL traveler APIs are successful:
 
       toast.success("All travelers submitted successfully!");
-      setStep(2);
-
+      navigate("/payment-option", {
+        state: { booking: newBooking },
+      });
       // 🔥 RESET FORM HERE
       setTravelers([
         {
@@ -298,6 +305,7 @@ export const BookingFlow: React.FC = () => {
         },
       ]);
     } catch (err: any) {
+      bookingApiCalledRef.current = false;
       const backendMessage =
         err?.response?.data?.message ||
         err?.response?.data ||
@@ -327,8 +335,8 @@ export const BookingFlow: React.FC = () => {
       });
       return;
     }
-
-    setStep(3);
+    navigate("/payment-corfirm");
+    // setStep(3);
     setTimeout(() => {
       toast({
         title: "Payment Successful",
@@ -337,7 +345,9 @@ export const BookingFlow: React.FC = () => {
     }, 1500);
   };
 
-  const totalAmount = (packageData?.price || 0) * travelers.length;
+  const travelerCount = travelers.length;
+  const totalAmount = (packageData?.price || 0) * travelerCount;
+
   const minPartialAmount = Math.ceil(totalAmount * 0.2);
 
   /** --- UI Renders --- **/
@@ -604,6 +614,11 @@ export const BookingFlow: React.FC = () => {
                           }
                           placeholder="Enter passport number"
                         />
+                        {errors[index]?.passportNumber && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {errors[index].passportNumber}
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -618,14 +633,14 @@ export const BookingFlow: React.FC = () => {
                                 )
                               : ""
                           }
-                          // max={formatDateFn(new Date(), "yyyy-MM-dd")}
-                          // onChange={(e) =>
-                          //   updateTraveler(
-                          //     index,
-                          //     "passportIssueDate",
-                          //     e.target.value ? new Date(e.target.value) : null,
-                          //   )
-                          // }
+                          max={formatDateFn(new Date(), "yyyy-MM-dd")}
+                          onChange={(e) =>
+                            updateTraveler(
+                              index,
+                              "passportIssueDate",
+                              e.target.value ? new Date(e.target.value) : null,
+                            )
+                          }
                         />
                       </div>
 
@@ -672,7 +687,7 @@ export const BookingFlow: React.FC = () => {
                 <span className="font-bold text-xl">
                   ₹
                   {(
-                    packageData?.price || 0 * travelers.length
+                    (packageData?.price || 0) * travelers.length
                   ).toLocaleString()}
                 </span>
               </div>
@@ -695,224 +710,6 @@ export const BookingFlow: React.FC = () => {
       </div>
     );
   }
-
-  if (step === 2) {
-    return (
-      <div className="max-w-2xl mx-auto p-6 space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Choose Payment Option</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Package Summary */}
-            <div className="p-4 bg-accent rounded-lg">
-              <h3 className="font-semibold text-lg">{packageData?.title}</h3>
-              <p className="text-sm text-muted-foreground">
-                {travelers.length} traveler(s)
-              </p>
-              <p className="font-bold text-xl mt-2">
-                Total: ₹{totalAmount.toLocaleString()}
-              </p>
-            </div>
-
-            {/* Payment Options */}
-            <div className="space-y-4">
-              <Label className="text-base font-semibold">
-                Select Payment Type
-              </Label>
-
-              <Card
-                className={cn(
-                  "cursor-pointer transition-all",
-                  paymentType === "full" &&
-                    "border-primary ring-2 ring-primary/20",
-                )}
-                onClick={() => setPaymentType("full")}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="radio"
-                        checked={paymentType === "full"}
-                        onChange={() => setPaymentType("full")}
-                        className="mt-1"
-                      />
-                      <div>
-                        <h4 className="font-semibold">Full Payment</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Pay the complete amount now
-                        </p>
-                      </div>
-                    </div>
-                    <span className="font-bold text-lg">
-                      ₹{totalAmount.toLocaleString()}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card
-                className={cn(
-                  "cursor-pointer transition-all",
-                  paymentType === "partial" &&
-                    "border-primary ring-2 ring-primary/20",
-                )}
-                onClick={() => setPaymentType("partial")}
-              >
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="radio"
-                          checked={paymentType === "partial"}
-                          onChange={() => setPaymentType("partial")}
-                          className="mt-1"
-                        />
-                        <div>
-                          <h4 className="font-semibold">Partial Payment</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Pay a portion now, rest later (minimum ₹
-                            {minPartialAmount.toLocaleString()})
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {paymentType === "partial" && (
-                      <div className="pl-7">
-                        <Label htmlFor="partial-amount" className="text-sm">
-                          Enter Amount
-                        </Label>
-                        <Input
-                          id="partial-amount"
-                          type="number"
-                          placeholder={`Min: ₹${minPartialAmount.toLocaleString()}`}
-                          min={minPartialAmount}
-                          max={totalAmount}
-                          value={partialAmount || ""}
-                          onChange={(e) =>
-                            setPartialAmount(Number(e.target.value))
-                          }
-                          className="mt-1"
-                        />
-                        {partialAmount > 0 && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Remaining: ₹
-                            {(totalAmount - partialAmount).toLocaleString()}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setStep(1)}
-                className="flex-1"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={handlePaymentOptionSubmit}
-                disabled={
-                  !paymentType ||
-                  (paymentType === "partial" &&
-                    partialAmount < minPartialAmount)
-                }
-                className="flex-1"
-              >
-                Proceed to Payment
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Step 3 - Payment Processing / Confirmation
-  return (
-    <div className="max-w-2xl mx-auto p-6">
-      <Card>
-        <CardContent className="text-center p-8">
-          <div className="space-y-6">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <Check className="w-10 h-10 text-green-600" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold mb-2">Payment Processing</h2>
-              <p className="text-muted-foreground">
-                Your {paymentType} payment is being processed
-              </p>
-            </div>
-
-            <div className="bg-accent p-6 rounded-lg text-left space-y-3">
-              <h3 className="font-semibold text-lg mb-4">Payment Summary</h3>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Package:</span>
-                <span className="font-medium">{packageData?.title}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Travelers:</span>
-                <span className="font-medium">{travelers.length}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total Amount:</span>
-                <span className="font-medium">
-                  ₹{totalAmount.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm border-t border-border pt-3">
-                <span className="text-muted-foreground">Amount Paid:</span>
-                <span className="font-bold text-green-600">
-                  ₹
-                  {(paymentType === "full"
-                    ? totalAmount
-                    : partialAmount
-                  ).toLocaleString()}
-                </span>
-              </div>
-              {paymentType === "partial" && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Remaining:</span>
-                  <span className="font-medium text-orange-600">
-                    ₹{(totalAmount - partialAmount).toLocaleString()}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                {paymentType === "full"
-                  ? "Your booking will be confirmed shortly. You will receive a confirmation email with all the details."
-                  : "Partial payment received. Please pay the remaining amount before your departure date to confirm your booking."}
-              </p>
-            </div>
-
-            <Button
-              disabled={!bookingId}
-              onClick={() =>
-                navigate("/booking-confirmation", {
-                  state: { bookingId },
-                })
-              }
-              className="w-full"
-              size="lg"
-            >
-              View Booking Details
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
 };
 
 export default BookingFlow;

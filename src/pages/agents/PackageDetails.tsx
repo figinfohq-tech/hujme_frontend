@@ -296,11 +296,11 @@ const PackageDetails = () => {
                         <div className="flex items-center gap-1">
                           <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                           <span className="font-semibold text-lg">
-                            {formatRating(result.ratingAverage)}
+                            {formatRating(result?.ratingAverage)}
                           </span>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          ({result.reviewCount} reviews)
+                          ({result?.reviewCount} reviews)
                         </span>
                       </div>
                     </div>
@@ -315,7 +315,7 @@ const PackageDetails = () => {
                             variant="outline"
                             className="text-sm"
                           >
-                            {f.facilityDetails.facilityName}
+                            {f.facilityDetails?.facilityName}
                           </Badge>
                         ))}
                     </div>

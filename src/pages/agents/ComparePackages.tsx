@@ -31,6 +31,14 @@ const ComparePackages = () => {
 
   const token = localStorage.getItem("token");
 
+  const allFacilities = Array.from(
+    new Set(
+      Object.values(packageFacilities)
+        .flat() // multiple arrays → single array
+        .filter(Boolean),
+    ),
+  );
+
   useEffect(() => {
     comparePackages();
   }, []);
@@ -270,205 +278,181 @@ const ComparePackages = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="overflow-x-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-w-max">
-              {packages.map((pkg: any) => (
-                <Card
-                  key={pkg.packageId}
-                  className="w-full min-w-[300px] relative"
-                >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removePackage(String(pkg.packageId))}
-                    className="absolute top-2 right-2 rounded-full bg-primary text-white h-8 w-8 hover:bg-primary/30 focus:ring-2 focus:ring-black/30"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-
-                  <CardHeader className="">
-                    <div className="h-32 rounded-lg flex items-center justify-center bg-white border">
-                      <a
-                        href={pkg.website || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`w-full h-full flex items-center justify-center transition ${
-                          pkg.website
-                            ? "hover:opacity-90"
-                            : "pointer-events-none"
-                        }`}
-                      >
+          <div className="overflow-x-auto border rounded-lg">
+            <table className="min-w-full border-collapse text-sm">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="border p-3 text-left font-semibold w-56">
+                    Package Details
+                  </th>
+                  {packages.map((pkg) => (
+                    <th
+                      key={pkg.packageId}
+                      className="border p-3 text-center min-w-[260px]"
+                    >
+                      <div className="flex flex-col items-center gap-2">
                         <img
-                          src={
-                            agentLogos[pkg.agentId]
-                              ? agentLogos[pkg.agentId]
-                              : "/placeholder.svg"
-                          }
-                          alt="Agent Logo"
-                          className="max-w-[100%] max-h-[100%] object-contain"
+                          src={agentLogos[pkg.agentId] || "/placeholder.svg"}
+                          className="h-16 object-contain"
                         />
-                      </a>
-                    </div>
-                    <CardTitle className="text-lg">{pkg.packageName}</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {pkg.agentName}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                      <span className="flex items-center whitespace-nowrap">
-                        <MapPin className="w-4 h-4 mr-1 shrink-0" />
-                        {pkg.cityName}, {pkg.stateName}
-                      </span>
-
-                      <span className="flex items-center whitespace-nowrap">
-                        <Calendar className="w-4 h-4 mr-1 shrink-0" />
-                        {pkg.duration} Days
-                      </span>
-                    </div>
-
-                    {/* DATES */}
-                    {pkg.departureDate && pkg.arrivalDate && (
-                      <div className="flex items-center text-sm text-muted-foreground flex-wrap">
-                        <CalendarDays className="w-4 h-4 mr-1 shrink-0" />
-                        <span className="break-words">
-                          {format(new Date(pkg.departureDate), "dd MMM yyyy")}
-                          {" – "}
-                          {format(new Date(pkg.arrivalDate), "dd MMM yyyy")}
-                        </span>
-                      </div>
-                    )}
-                  </CardHeader>
-
-                  <CardContent className="space-y-2">
-                    {/* Basic Info */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          Type:
-                        </span>
-                        <Badge variant="secondary">{pkg.packageType}</Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          Duration:
-                        </span>
-                        <span className="text-sm font-medium">
-                          {`${pkg.duration} Days`}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          Package:
-                        </span>
-                        <span className="text-sm font-medium">
-                          {pkg.packageType}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Rating */}
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Rating:
-                      </span>
-                      <div
-                        className="flex items-center gap-1 cursor-pointer"
-                        onClick={() => openReviewsDialog(pkg)}
-                      >
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">
-                          {formatRating(pkg.ratingAverage)}
-                        </span>
-                        <span className="text-sm text-muted-foreground whitespace-nowrap">
-                          ({pkg.reviewCount} reviews)
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Price */}
-                    <div className="border-t border-border pt-4">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                          <span className="text-xl font-bold text-primary">
-                            ₹{pkg.price?.toLocaleString()}
-                          </span>
-                          <span className="text-sm text-muted-foreground line-through">
-                            ₹{pkg.originalPrice?.toLocaleString()}
-                          </span>
+                        <div className="font-bold text-lg">
+                          {pkg.packageName}
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          Per person
-                        </p>
+                        <div className="text-xs text-muted-foreground">
+                          {pkg.agentName}
+                        </div>
                       </div>
-                    </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border p-3 font-medium">Tour Operator</td>
+                  {packages.map((pkg) => (
+                    <td key={pkg.packageId} className="border p-3 text-center">
+                      {pkg.agentName}
+                    </td>
+                  ))}
+                </tr>
 
-                    {/* Features */}
-                    <div>
-                      <h4 className="text-sm font-medium text-foreground mb-2">
-                        Facilities :
-                      </h4>
-                      <div className="space-y-1">
-                        {/* {pkg.features?.map((feature: any, idx: number) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <Check className="w-3 h-3 text-green-600" />
-                            <span className="text-xs text-muted-foreground">
-                              {feature}
-                            </span>
-                          </div>
-                        ))} */}
-                        {/* FACILITIES */}
-                        {packageFacilities[pkg.packageId]?.length > 0 && (
-                          <div className="gap-2">
-                            {[...packageFacilities[pkg.packageId]]
-                              .sort((a, b) => a.localeCompare(b))
-                              .map((facility, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Check className="w-4 h-4 text-green-600" />
-                                  <span className="text-xs text-muted-foreground">
-                                    {facility}
-                                  </span>
-                                </div>
-                              ))}
-                          </div>
-                        )}
+                <tr>
+                  <td className="border p-3 font-medium">From Location</td>
+                  {packages.map((pkg) => (
+                    <td key={pkg.packageId} className="border p-3 text-center">
+                      {pkg.cityName}, {pkg.stateName}
+                    </td>
+                  ))}
+                </tr>
+
+                <tr>
+                  <td className="border p-3 font-medium">Start Date</td>
+                  {packages.map((pkg) => (
+                    <td key={pkg.packageId} className="border p-3 text-center">
+                      {pkg.departureDate
+                        ? format(new Date(pkg.departureDate), "dd-MMM-yyyy")
+                        : "-"}
+                    </td>
+                  ))}
+                </tr>
+
+                <tr>
+                  <td className="border p-3 font-medium">End Date</td>
+                  {packages.map((pkg) => (
+                    <td key={pkg.packageId} className="border p-3 text-center">
+                      {pkg.arrivalDate
+                        ? format(new Date(pkg.arrivalDate), "dd-MMM-yyyy")
+                        : "-"}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="border p-3 font-medium">Duration</td>
+                  {packages.map((pkg) => (
+                    <td key={pkg.packageId} className="border p-3 text-center">
+                      {`${pkg?.duration} Days`}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="border p-3 font-medium">Package Type</td>
+                  {packages.map((pkg) => (
+                    <td key={pkg.packageId} className="border p-3 text-center">
+                      {pkg?.packageType}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="border p-3 font-medium">Rating</td>
+                  {packages.map((pkg) => (
+                    <td key={pkg.packageId} className="border p-3 text-center">
+                      {pkg?.ratingAverage}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="bg-muted/40">
+                  <td className="border p-3 font-medium">Price Per Seat</td>
+                  {packages.map((pkg) => (
+                    <td
+                      key={pkg.packageId}
+                      className="border p-3 text-center text-lg font-bold text-primary"
+                    >
+                      ₹{pkg.price?.toLocaleString()}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="p-3 font-medium">Facilities</td>
+                </tr>
+
+                {allFacilities.map((facilityName, index) => (
+                  <tr key={facilityName}>
+                    <td className="border p-3 font-medium">{facilityName}</td>
+
+                    {packages.map((pkg) => {
+                      const hasFacility =
+                        packageFacilities[pkg.packageId]?.includes(
+                          facilityName,
+                        );
+
+                      return (
+                        <td
+                          key={pkg.packageId}
+                          className="border p-3 text-center"
+                        >
+                          {hasFacility ? (
+                            <Check className="mx-auto text-green-600" />
+                          ) : (
+                            <X className="mx-auto text-red-500" />
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+
+                <tr>
+                  <td className="border p-3 font-medium">Action</td>
+
+                  {packages.map((pkg) => (
+                    <td
+                      key={pkg.packageId}
+                      className="border p-3 text-center align-middle"
+                    >
+                      <div className="flex flex-col gap-2 items-center">
+                        <Button
+                          size="sm"
+                          className="w-full bg-primary hover:bg-primary/90"
+                          onClick={() =>
+                            navigate("/booking-detail", {
+                              state: {
+                                packageData: {
+                                  id: pkg?.packageId.toLocaleString(),
+                                  title: pkg?.packageName,
+                                  price: pkg?.price,
+                                  duration: pkg?.duration,
+                                },
+                              },
+                            })
+                          }
+                        >
+                          Book Now
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => navigate(`/package/${pkg.packageId}`)}
+                        >
+                          View Details
+                        </Button>
                       </div>
-                    </div>
-
-                    {/* Inclusions */}
-                    {/* <div>
-                      <h4 className="text-sm font-medium text-foreground mb-2">
-                        Inclusions:
-                      </h4>
-                      <div className="space-y-1">
-                        {pkg.inclusions?.map((inc: any, idx: number) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <Check className="w-3 h-3 text-green-600" />
-                            <span className="text-xs text-muted-foreground">
-                              {inc}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div> */}
-
-                    {/* Actions */}
-                    <div className="space-y-2 pt-4">
-                      <Button
-                        className="w-full bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth"
-                        onClick={() => navigate(`/package/${pkg.packageId}`)}
-                      >
-                        View Details
-                      </Button>
-                      <Button variant="outline" className="w-full">
-                        Book Now
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
           </div>
         )}
       </main>

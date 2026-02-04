@@ -590,7 +590,8 @@ const Packages = () => {
                           <span className="text-2xl font-bold text-primary">
                             ₹{pkg.price.toLocaleString()}
                           </span>
-                          <span className="text-sm text-muted-foreground line-through">
+                          <span className="text-2xl">/</span>
+                          <span className="text-2xl font-bold text-muted-foreground line-through">
                             ₹{pkg.originalPrice.toLocaleString()}
                           </span>
                         </div>
