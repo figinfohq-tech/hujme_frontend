@@ -57,7 +57,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
   const [booking, setBooking] = useState<BookingDetails | null>(null);
   const [agent, setAgent] = useState<any>("");
   const [packageDetails, setpackageDetails] = useState<any>("");
-  const [airlineDetails, setAirlineDetails] = useState<any>("");
+  const [airlineDetails, setAirlineDetails] = useState<any>([]);
   const [travelers, setTravelers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -70,10 +70,12 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
     fetchBookingDetails();
     fetchTravelers();
   }, [bookingId]);
+  useEffect(() => {
+    fetchAgnet();
+  }, [packageDetails]);
 
   useEffect(() => {
     if (booking?.userId) {
-      fetchAgnet();
       fetchPackage();
       fetchAirline();
     }
@@ -125,7 +127,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
       }
 
       const response = await axios.get(
-        `${baseURL}agents/contact/${booking?.userId}`, // 👈 API path
+        `${baseURL}agents/contact/${packageDetails?.agentId}`, // 👈 API path
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -347,7 +349,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
 
       {/* Agent Details */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Building2 className="h-5 w-5 text-primary" />
             Agent Details
@@ -388,7 +390,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
 
       {/* Package & Travel Details */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Plane className="h-5 w-5 text-primary" />
             Package & Travel Details
@@ -398,52 +400,77 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
           <div className="bg-primary/10 p-4 rounded-lg">
             <h3 className="font-bold text-lg">{packageDetails?.packageName}</h3>
             <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+              {packageDetails?.description}
+            </div>
+            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4" />
-              <span>{packageDetails?.description}</span>
+              <span>{packageDetails?.cityName},</span>
+              <span>{packageDetails?.stateName},</span>
+              <span>{"India"}</span>
               <span>•</span>
               <Clock className="h-4 w-4" />
-              <span>{packageDetails?.duration}</span>
+              <span>{`${packageDetails?.duration} Days`}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <Plane className="h-4 w-4 text-green-600" />
-                </div>
-                <span className="font-semibold text-green-700">Departure</span>
+          {airlineDetails.map((item, index) => (
+            <div
+              key={index}
+              className="relative grid grid-cols-1 md:grid-cols-2 gap-4"
+            >
+              {/* Serial Number */}
+              <div className="absolute -top-3 -left-3 w-7 h-7 rounded-full bg-primary text-white text-xs font-semibold flex items-center justify-center z-10">
+                {index + 1}
               </div>
-              <div className="space-y-1">
-                <p className="font-semibold">
-                  {airlineDetails[0]?.departureDate &&
-                    format(
-                      new Date(airlineDetails[0].departureDate),
-                      "EEEE, dd MMMM yyyy",
-                    )}
-                </p>
-                <p className="text-sm text-muted-foreground">{`From: ${airlineDetails[0]?.departureCityName}, ${airlineDetails[0]?.departureStateName}, ${airlineDetails[0]?.departureCountryName}`}</p>
+
+              {/* Departure */}
+              <div className="border rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <Plane className="h-4 w-4 text-green-600" />
+                  </div>
+                  <span className="font-semibold text-green-700">
+                    Departure
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="font-semibold">
+                    {item?.departureDate &&
+                      format(
+                        new Date(item?.departureDate),
+                        "EEEE, dd MMMM yyyy",
+                      )}
+                  </p>
+
+                  <p className="text-sm text-muted-foreground">
+                    {`From: ${item?.departureCityName}, ${item?.departureStateName}, ${item?.departureCountryName}`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Return */}
+              <div className="border rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Plane className="h-4 w-4 text-blue-600 rotate-180" />
+                  </div>
+                  <span className="font-semibold text-blue-700">Return</span>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="font-semibold">
+                    {item?.arrivalDate &&
+                      format(new Date(item?.arrivalDate), "EEEE, dd MMMM yyyy")}
+                  </p>
+
+                  <p className="text-sm text-muted-foreground">
+                    {`To: ${item?.arrivalCityName}, ${item?.arrivalStateName}, ${item?.arrivalCountryName}`}
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="border rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Plane className="h-4 w-4 text-blue-600 rotate-180" />
-                </div>
-                <span className="font-semibold text-blue-700">Return</span>
-              </div>
-              <div className="space-y-1">
-                <p className="font-semibold">
-                  {airlineDetails[0]?.arrivalDate &&
-                    format(
-                      new Date(airlineDetails[0].arrivalDate),
-                      "EEEE, dd MMMM yyyy",
-                    )}
-                </p>
-                <p className="text-sm text-muted-foreground">{`To: ${airlineDetails[0]?.arrivalCityName}, ${airlineDetails[0]?.arrivalStateName}, ${airlineDetails[0]?.arrivalCountryName}`}</p>
-              </div>
-            </div>
-          </div>
+          ))}
         </CardContent>
       </Card>
 
@@ -512,7 +539,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
 
       {/* Payment Details */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <CreditCard className="h-5 w-5 text-primary" />
             Payment Details

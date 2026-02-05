@@ -60,7 +60,7 @@ const BookingViewPage = () => {
         `${baseURL}travelers/byBooking/${selectedBooking.bookingId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setPilgrimData(response.data);
     } catch (error) {
@@ -75,7 +75,7 @@ const BookingViewPage = () => {
         `${baseURL}agents/contact/${myPackage.packageDetails?.agentId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setDetails(response.data);
     } catch (error) {
@@ -90,7 +90,7 @@ const BookingViewPage = () => {
         `${baseURL}bookings/${pilgrimData[0].bookingId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setBookingDetails(response.data);
     } catch (error) {
@@ -195,7 +195,7 @@ const BookingViewPage = () => {
   const calculateRefundAmount = (booking: Booking, pilgrimIds?: string[]) => {
     const daysToDeparture = Math.ceil(
       (booking.departureDate.getTime() - new Date().getTime()) /
-        (1000 * 60 * 60 * 24)
+        (1000 * 60 * 60 * 24),
     );
 
     // Find applicable refund percentage
@@ -360,7 +360,7 @@ const BookingViewPage = () => {
                       <span className="text-muted-foreground">Status</span>
                       <Badge
                         className={getStatusColor(
-                          selectedBooking.bookingStatus
+                          selectedBooking.bookingStatus,
                         )}
                       >
                         {selectedBooking.bookingStatus
@@ -375,7 +375,7 @@ const BookingViewPage = () => {
                       <span className="text-muted-foreground">Booked On</span>
                       <span className="font-medium">
                         {formatDate(
-                          bookingDetails ? bookingDetails.bookingDate : "NA"
+                          bookingDetails ? bookingDetails.bookingDate : "NA",
                         )}
                       </span>
                     </div>
@@ -482,7 +482,7 @@ const BookingViewPage = () => {
                         <span className="font-medium text-red-600">
                           {formatCurrency(
                             selectedBooking.totalAmount -
-                              selectedBooking.amountPaid
+                              selectedBooking.amountPaid,
                           )}
                         </span>
                       </div>
@@ -493,7 +493,7 @@ const BookingViewPage = () => {
                       </span>
                       <Badge
                         className={getPaymentStatusColor(
-                          selectedBooking.paymentStatus
+                          selectedBooking.paymentStatus,
                         )}
                       >
                         {selectedBooking.paymentStatus
@@ -514,7 +514,7 @@ const BookingViewPage = () => {
                             {Math.round(
                               (selectedBooking.amountPaid /
                                 selectedBooking.totalAmount) *
-                                100
+                                100,
                             )}
                             %
                           </span>
@@ -607,7 +607,7 @@ const BookingViewPage = () => {
                           <p className="text-2xl font-bold text-red-600">
                             {formatCurrency(
                               selectedBooking.totalAmount -
-                                selectedBooking.amountPaid
+                                selectedBooking.amountPaid,
                             )}
                           </p>
                           <p className="text-sm text-muted-foreground">
@@ -626,7 +626,7 @@ const BookingViewPage = () => {
                               {Math.round(
                                 (selectedBooking.amountPaid /
                                   selectedBooking.totalAmount) *
-                                  100
+                                  100,
                               )}
                               %
                             </span>
@@ -1097,7 +1097,7 @@ const BookingViewPage = () => {
                             {rule.description}
                           </span>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
 
@@ -1112,7 +1112,7 @@ const BookingViewPage = () => {
                         </p>
                         <p className="text-lg font-bold text-yellow-900">
                           {formatCurrency(
-                            calculateRefundAmount(selectedBooking).refundAmount
+                            calculateRefundAmount(selectedBooking).refundAmount,
                           )}
                           <span className="text-sm font-normal ml-2">
                             (
