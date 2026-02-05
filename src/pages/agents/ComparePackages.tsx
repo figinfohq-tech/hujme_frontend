@@ -104,101 +104,19 @@ const ComparePackages = () => {
     }
   };
 
-  // Mock package data - in real app, fetch based on packageIds
-  const allPackages = [
-    {
-      id: "1",
-      agentName: "Al-Haramain Tours",
-      packageName: "Umrah Premium Package",
-      type: "Umrah",
-      duration: "10 Days",
-      price: 125000,
-      originalPrice: 150000,
-      rating: 4.8,
-      reviews: 234,
-      packageType: "Deluxe",
-      city: "Mumbai",
-      state: "Maharashtra",
-      features: [
-        "5 Star Hotel",
-        "Direct Flight",
-        "Visa Included",
-        "Guide Service",
-      ],
-      image: "/placeholder.svg",
-      inclusions: [
-        "Round-trip flights",
-        "5-star hotel",
-        "All meals",
-        "Visa processing",
-        "Guide service",
-        "Transportation",
-      ],
-    },
-    {
-      id: "2",
-      agentName: "Makkah Travels",
-      packageName: "Hajj Complete Package",
-      type: "Hajj",
-      duration: "15 Days",
-      price: 285000,
-      originalPrice: 320000,
-      rating: 4.6,
-      reviews: 189,
-      packageType: "Super Deluxe",
-      city: "Delhi",
-      state: "Delhi",
-      features: ["5 Star Hotel", "VIP Transport", "All Meals", "24/7 Support"],
-      image: "/placeholder.svg",
-      inclusions: [
-        "Round-trip flights",
-        "5-star hotel",
-        "All meals",
-        "VIP transport",
-        "24/7 support",
-        "Visa processing",
-      ],
-    },
-    {
-      id: "3",
-      agentName: "Ziyarat Express",
-      packageName: "Umrah Economy Package",
-      type: "Umrah",
-      duration: "7 Days",
-      price: 89000,
-      originalPrice: 99000,
-      rating: 4.2,
-      reviews: 156,
-      packageType: "Economy",
-      city: "Bangalore",
-      state: "Karnataka",
-      features: [
-        "3 Star Hotel",
-        "Group Package",
-        "Visa Included",
-        "Meals Included",
-      ],
-      image: "/placeholder.svg",
-      inclusions: [
-        "Round-trip flights",
-        "3-star hotel",
-        "Basic meals",
-        "Group transport",
-        "Visa processing",
-      ],
-    },
-  ];
-
   const packages = comparePackage.filter((pkg: any) =>
     packageIds.includes(String(pkg.packageId)),
   );
 
   const removePackage = (packageId: string) => {
     const updatedIds = packageIds.filter((id) => id !== packageId);
+
     if (updatedIds.length === 0) {
-      navigate("/search");
+      token ? navigate("/customer/search") : navigate("/search");
     } else {
-      navigate(`/compare?packages=${updatedIds.join(",")}`);
+      token
+        ? navigate(`/customer/compare?packages=${updatedIds.join(",")}`)
+        : navigate(`/compare?packages=${updatedIds.join(",")}`);
     }
   };
 
@@ -288,18 +206,40 @@ const ComparePackages = () => {
                   {packages.map((pkg) => (
                     <th
                       key={pkg.packageId}
-                      className="border p-3 text-center min-w-[260px]"
+                      className="border p-3 text-center min-w-[260px] align-top"
                     >
-                      <div className="flex flex-col items-center gap-2">
-                        <img
-                          src={agentLogos[pkg.agentId] || "/placeholder.svg"}
-                          className="h-16 object-contain"
-                        />
-                        <div className="font-bold text-lg">
-                          {pkg.packageName}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {pkg.agentName}
+                      {/* Relative wrapper for column */}
+                      <div className="relative pt-2">
+                        {/* Remove Button – Top Right */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Remove package"
+                          onClick={() => removePackage(String(pkg.packageId))}
+                          className="absolute top-0 right-0 h-7 w-7 rounded-full 
+                   bg-primary text-white 
+                   hover:bg-primary/80 
+                   focus-visible:ring-2 focus-visible:ring-primary/40"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+
+                        {/* Content */}
+                        <div className="flex flex-col items-center gap-2 pt-2">
+                          <img
+                            src={agentLogos[pkg.agentId] || "/placeholder.svg"}
+                            alt={pkg.agentName}
+                            className="h-16 object-contain"
+                          />
+
+                          <div className="font-bold text-lg">
+                            {pkg.packageName}
+                          </div>
+
+                          <div className="text-xs text-muted-foreground">
+                            {pkg.agentName}
+                          </div>
                         </div>
                       </div>
                     </th>
