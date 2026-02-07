@@ -334,7 +334,7 @@ const PackageDetails = () => {
               </TabsList>
 
               <TabsContent value="basic" className="mt-2">
-                <Card>
+                <Card className="p-0">
                   {/* <CardHeader>
                     <CardTitle>Package Overview</CardTitle>
                   </CardHeader>
@@ -348,7 +348,7 @@ const PackageDetails = () => {
               </TabsContent>
 
               <TabsContent value="hotel" className="mt-2">
-                <Card>
+                <Card className="p-0">
                   {/* <CardHeader>
                     <CardTitle>Day-wise Itinerary</CardTitle>
                   </CardHeader>
@@ -422,13 +422,13 @@ const PackageDetails = () => {
                     </CardContent>
                   </Card> */}
                 {/* </div> */}
-                <Card>
+                <Card className="p-0">
                   <FlightViewDetails packageId={id} />
                 </Card>
               </TabsContent>
 
               <TabsContent value="facilities" className="mt-2">
-                <Card>
+                <Card className="p-0">
                   {/* <CardHeader>
                     <CardTitle>Agent Information</CardTitle>
                   </CardHeader>

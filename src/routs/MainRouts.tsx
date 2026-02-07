@@ -39,6 +39,7 @@ import PaymentProcessComfirm from "@/pages/user/PaymentProcessComfirm";
 const MainRouts = () => {
   const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");
+  
   return (
     <>
       {/* FIXED NAVBAR */}
@@ -85,7 +86,6 @@ const MainRouts = () => {
           {role === "USER" ? (
             <Route path="/" element={<UserSideBar />}>
               <Route index element={<User />} />
-              <Route path="overview" element={<h1>Overview Page</h1>} />
               <Route path="packages" element={<Home />} />
               <Route path="/customer/search" element={<SearchResults />} />
               <Route
@@ -110,7 +110,6 @@ const MainRouts = () => {
               }
             >
               <Route index element={<h1>Overview Page</h1>} />
-              <Route path="overview" element={<h1>Overview Page</h1>} />
               <Route path="packages" element={<Packages />} />
               <Route path="add-package" element={<AddNewPackage />} />
               <Route path="view-package" element={<PackageView />} />

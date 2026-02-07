@@ -116,7 +116,7 @@ export const BookingFlow: React.FC = () => {
     const e: TravelerErrors = {};
 
     if (!t.firstName.trim()) e.firstName = "First name is required";
-    if (!t.middleName.trim()) e.middleName = "Middle name is required";
+    // if (!t.middleName.trim()) e.middleName = "Middle name is required";
     if (!t.lastName.trim()) e.lastName = "Last name is required";
 
     if (!t.emailId.trim()) {
@@ -425,7 +425,7 @@ export const BookingFlow: React.FC = () => {
 
                       <div>
                         <Label className="mb-2">
-                          Middle Name <span className="text-red-500">*</span>
+                          Middle Name
                         </Label>
 
                         <Input
@@ -435,11 +435,6 @@ export const BookingFlow: React.FC = () => {
                           }
                           placeholder="Enter middle name"
                         />
-                        {errors[index]?.middleName && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {errors[index].middleName}
-                          </p>
-                        )}
                       </div>
 
                       <div>
@@ -600,7 +595,7 @@ export const BookingFlow: React.FC = () => {
 
                       <div>
                         <Label htmlFor={`passport-${index}`} className="mb-2">
-                          Passport Number
+                          Passport Number <span className="text-red-500">*</span>
                         </Label>
                         <Input
                           id={`passport-${index}`}

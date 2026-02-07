@@ -17,11 +17,6 @@ const AgentSidebar = () => {
 
   const menuItems = [
     {
-      name: "Overview",
-      icon: <LayoutDashboard size={20} />,
-      path: "/overview",
-    },
-    {
       name: "Packages",
       icon: <Package size={20} />,
       path: "/packages",
@@ -61,7 +56,7 @@ const AgentSidebar = () => {
         </button>
 
         {/* Logo */}
-        <div className="flex items-center gap-2 mb-10 px-2">
+        <div className="flex items-center gap-2 mb-5 px-2">
           <div className="bg-indigo-500 p-2 rounded-lg">
             <LayoutDashboard size={22} />
           </div>

@@ -147,7 +147,7 @@ const ComparePackages = () => {
 
           // ONLY featured facilities
           const featuredFacilities = res.data
-            .filter((item) => item.featured === true)
+            // .filter((item) => item.featured === true)
             .map((item) => item.facilityDetails?.facilityName)
             .filter(Boolean);
 
@@ -165,23 +165,24 @@ const ComparePackages = () => {
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8">
         {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Search Results
-        </Button>
-
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Compare Packages
-          </h1>
-          <p className="text-muted-foreground">
-            Compare {packages.length} selected packages side by side
-          </p>
+        <div className="flex gap-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="mb-0 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Search Results
+          </Button>
+          {/* Header */}
+          <div className="mb-3">
+            <h1 className="text-lg md:text-1xl font-bold text-foreground">
+              Compare Packages
+            </h1>
+            <p className="text-muted-foreground text-xs">
+              Compare {packages.length} selected packages side by side
+            </p>
+          </div>
         </div>
 
         {packages.length === 0 ? (
@@ -227,11 +228,15 @@ const ComparePackages = () => {
 
                         {/* Content */}
                         <div className="flex flex-col items-center gap-2 pt-2">
-                          <img
-                            src={agentLogos[pkg.agentId] || "/placeholder.svg"}
-                            alt={pkg.agentName}
-                            className="h-16 object-contain"
-                          />
+                          <div className="h-16 w-24 flex items-center justify-center">
+                            <img
+                              src={
+                                agentLogos[pkg.agentId] || "/placeholder.svg"
+                              }
+                              alt={pkg.agentName}
+                              className="max-h-full max-w-full object-contain rounded-lg"
+                            />
+                          </div>
 
                           <div className="font-bold text-lg">
                             {pkg.packageName}
@@ -322,7 +327,9 @@ const ComparePackages = () => {
                   ))}
                 </tr>
                 <tr>
-                  <td className="p-3 font-medium">Facilities</td>
+                  <td className="p-3 font-bold text-1xl">
+                    Facilities ({allFacilities.length})
+                  </td>
                 </tr>
 
                 {allFacilities.map((facilityName, index) => (

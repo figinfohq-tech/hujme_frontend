@@ -21,7 +21,7 @@ const HotelViewDetails = ({ packageId }) => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       setBasicHotelDetails(response.data);
@@ -42,8 +42,8 @@ const HotelViewDetails = ({ packageId }) => {
   }
 
   return (
-    <div className="w-full p-4">
-      <h2 className="text-xl font-bold mb-4 text-gray-800">Hotel Details</h2>
+    <div className="w-full p-3">
+      <h2 className="text-xl font-bold mb-2 text-gray-800">Hotel Details</h2>
 
       {basicHotelDetails?.length === 0 ? (
         <p className="text-gray-500 text-center py-10">

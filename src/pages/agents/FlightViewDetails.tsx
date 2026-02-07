@@ -2,12 +2,7 @@ import Loader from "@/components/Loader";
 import { baseURL } from "@/utils/constant/url";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import {
-  PlaneTakeoff,
-  PlaneLanding,
-  Calendar,
-  Clock,
-} from "lucide-react";
+import { PlaneTakeoff, PlaneLanding, Calendar, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const FlightViewDetails = ({ packageId }) => {
@@ -23,7 +18,7 @@ const FlightViewDetails = ({ packageId }) => {
         `${baseURL}package-airlines/byPackage/${packageId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setBasicFlightsDetails(response.data);
     } catch (error) {
@@ -42,7 +37,7 @@ const FlightViewDetails = ({ packageId }) => {
   return (
     <div className="w-full px-3 sm:px-4">
       {/* Title */}
-      <h1 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
+      <h1 className="text-xl sm:text-2xl font-semibold my-2 text-gray-800 flex items-center gap-2">
         <PlaneTakeoff className="text-primary" />
         Flight Details
       </h1>

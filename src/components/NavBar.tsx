@@ -59,18 +59,16 @@ const NavBar = () => {
                 </span>
               </div>
             )}
-            {
-              !token ? (
-            <Link to="/agent">
-              <Button
-                size="sm"
-                className="bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth"
-              >
-                Become an Agent
-              </Button>
-            </Link>
-              ):null
-            }
+            {!token ? (
+              <Link to="/agent">
+                <Button
+                  size="sm"
+                  className="bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth"
+                >
+                  Become an Agent
+                </Button>
+              </Link>
+            ) : null}
             {token ? <LogoutButton /> : ""}
           </div>
 
@@ -95,24 +93,36 @@ const NavBar = () => {
               <a href="#about" className="text-foreground hover:text-primary transition-smooth">{t('navigation.about')}</a> */}
               <div className="flex flex-col space-y-2 pt-4 border-t">
                 {/* <LanguageSelector /> */}
-                <Link to="/auth">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="hover:bg-green-200"
-                  >
-                    <User className={`w-4 h-4 ml-2`} />
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/agent/register">
-                  <Button
-                    size="sm"
-                    className="bg-primary text-primary-foreground hover:bg-green-800 transition-smooth"
-                  >
-                    Become an Agent
-                  </Button>
-                </Link>
+                {!token ? (
+              <Link to="/auth">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hover:bg-green-200"
+                >
+                  <User className={`w-4 h-4 `} />
+                  Login
+                </Button>
+              </Link>
+            ) : (
+              <div className="flex items-center">
+                <User className={`w-4 h-4 `} />
+                <span className="font-semibold text-sm">
+                  {" "}
+                  {`Welcome ${userDetails?.firstName} ${userDetails?.lastName}...`}
+                </span>
+              </div>
+            )}
+                {!token ? (
+                  <Link to="/agent">
+                    <Button
+                      size="sm"
+                      className="bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth"
+                    >
+                      Become an Agent
+                    </Button>
+                  </Link>
+                ) : null}
                 {token ? <LogoutButton /> : ""}
               </div>
             </nav>

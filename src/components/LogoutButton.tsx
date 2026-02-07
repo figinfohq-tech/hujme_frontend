@@ -16,7 +16,7 @@ const LogoutButton = () => {
   };
 
   return (
-    <div className="hidden md:flex items-center">
+    <div className="md:flex items-center">
       <Button
         size="sm"
         onClick={handleLogout}

@@ -47,92 +47,70 @@ const PackageBasicView = ({ packageId }) => {
       <div className="text-center p-10 text-red-500">No Package Found</div>
     );
   return (
-    <div className="p-5 min-h-screen">
+    <div className="p-2">
       {/* Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Seat Information */}
-        <Card className="shadow-lg rounded-xl lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center text-primary gap-2 text-xl">
+        <div className="shadow-lg p-2 border rounded-xl lg:col-span-2">
+          <div>
+            <div className="flex items-center mb-2 font-semibold text-primary gap-2 text-xl">
               <Info className="w-5 h-5 text-primary" />
               Seat Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-5 text-gray-700">
-            <div className="p-4 bg-white rounded-xl shadow-sm border">
-              <span className="font-semibold text-primary">Total Seats : </span>{" "}
-              <br /> {basicDetails.totalSeats}
             </div>
-            <div className="p-4 bg-white rounded-xl shadow-sm border">
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-gray-700">
+            <div className="p-2 bg-white rounded-xl shadow-sm border">
+              <span className="font-semibold text-primary">Total Seats : </span>{" "}
+              {basicDetails.totalSeats}
+            </div>
+            <div className="p-2 bg-white rounded-xl shadow-sm border">
               <span className="font-semibold text-primary">
                 Booked Seats :{" "}
               </span>{" "}
-              <br /> {basicDetails.bookedSeats}
+              {basicDetails.bookedSeats}
             </div>
-            <div className="p-4 bg-white rounded-xl shadow-sm border">
+            <div className="p-2 bg-white rounded-xl shadow-sm border">
               <span className="font-semibold text-primary">
                 Available Seats :{" "}
               </span>{" "}
-              <br /> {basicDetails.availableSeats}
+              {basicDetails.availableSeats}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
         {/* Basic Details */}
-        <div className="shadow-md rounded-xl border border-gray-200 p-4">
+        <div className="shadow-md rounded-xl border border-gray-200 p-2">
           {/* Title */}
-          <div className="flex items-center text-lg font-semibold text-primary pb-0">
+          <div className="flex items-center text-lg font-semibold text-primary pb-0 pt-0">
             <User className="w-5 h-5 text-primary mr-1" />
             Basic Information
           </div>
 
           {/* Content */}
-          <div className="text-gray-700 text-sm mt-2 space-y-2">
-            <div className="flex">
-              <span className="font-semibold text-primary w-50">
-                Package Name:
-              </span>
-              <span>{basicDetails.packageName}</span>
-            </div>
+          <div className="grid grid-cols-[150px_1fr] gap-y-2 text-sm mt-2">
+            <span className="font-semibold text-primary">Package Name:</span>
+            <span>{basicDetails.packageName}</span>
 
-            <div className="flex">
-              <span className="font-semibold text-primary w-50">Type:</span>
-              <span>{basicDetails.packageType}</span>
-            </div>
+            <span className="font-semibold text-primary">Type:</span>
+            <span>{basicDetails.packageType}</span>
 
-            <div className="flex">
-              <span className="font-semibold text-primary w-50">
-                Travel Type:
-              </span>
-              <span>{basicDetails.travelType}</span>
-            </div>
+            <span className="font-semibold text-primary">Travel Type:</span>
+            <span>{basicDetails.travelType}</span>
 
-            <div className="flex">
-              <span className="font-semibold text-primary w-50">Duration:</span>
-              <span>
-                {basicDetails.duration ? `${basicDetails.duration} Days` : null}
-              </span>
-            </div>
+            <span className="font-semibold text-primary">Duration:</span>
+            <span>{basicDetails.duration} Days</span>
 
-            {/* <div className="flex items-center">
-              <span className="font-semibold text-primary w-50">Status:</span>
-              <Badge>{basicDetails.featured ? "Featured" : "Regular"}</Badge>
-            </div> */}
-
-            <div className="flex flex-col">
-              <span className="font-semibold text-primary">Description:</span>
-              <p className="text-gray-600 leading-tight mt-0.5 text-sm">
-                {basicDetails.description}
-              </p>
-            </div>
+            <span className="font-semibold text-primary">Description:</span>
+            <p className="text-gray-600">{basicDetails.description}</p>
           </div>
         </div>
 
         {/* Prices */}
-        <div className="shadow-md rounded-xl border border-gray-200 p-4">
+        <div className="shadow-md rounded-xl border border-gray-200 p-2">
           {/* Title */}
           <div className="flex items-center text-lg font-semibold text-primary pb-0">
-            <DollarSign className="w-5 h-5 text-primary mr-1" />
-            Pricing
+            {/* <DollarSign className="w-5 h-5 text-primary mr-1" /> */}
+            <span>₹</span>
+            <span className="ml-1">Pricing</span>
           </div>
 
           {/* Content */}
@@ -151,15 +129,15 @@ const PackageBasicView = ({ packageId }) => {
 
             <div>
               <span className="font-semibold text-primary">Notes : </span>
-              <p className="text-gray-600 mt-0.5 leading-tight">
+              <span className="text-gray-600 leading-tight">
                 {basicDetails.notes || "N/A"}
-              </p>
+              </span>
             </div>
           </div>
         </div>
 
         {/* Travel Details */}
-        <div className="shadow-md rounded-xl border border-gray-200 p-4">
+        <div className="shadow-md rounded-xl border border-gray-200 p-2">
           {/* Title */}
           <div className="flex items-center text-lg font-semibold text-primary pb-0">
             <Plane className="w-5 h-5 text-primary mr-1" />
@@ -203,7 +181,7 @@ const PackageBasicView = ({ packageId }) => {
         </div>
 
         {/* Location */}
-        <div className="shadow-lg rounded-xl border border-gray-200 p-4">
+        <div className="shadow-lg rounded-xl border border-gray-200 p-2">
           {/* Title */}
           <div className="flex items-center text-primary text-lg font-semibold pb-0 gap-1">
             <MapPin className="w-5 h-5 text-primary" />

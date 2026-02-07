@@ -33,7 +33,7 @@ const FacilitiesViewDetails = ({ packageId }) => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       setBasicFacilitiesDetails(response.data);
@@ -56,7 +56,7 @@ const FacilitiesViewDetails = ({ packageId }) => {
       acc[category].push(item);
       return acc;
     },
-    {}
+    {},
   );
 
   if (isLoading) {
@@ -68,7 +68,7 @@ const FacilitiesViewDetails = ({ packageId }) => {
   return (
     <div className="w-full px-4">
       {/* Title */}
-      <h1 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+      <h1 className="text-lg font-semibold my-2 text-gray-800 flex items-center gap-2">
         <ListChecks className="text-primary w-5 h-5" />
         Facilities
       </h1>
@@ -139,7 +139,7 @@ const FacilitiesViewDetails = ({ packageId }) => {
                           </span>
                         </TableCell> */}
                         </TableRow>
-                      )
+                      ),
                     )}
                   </TableBody>
                 </Table>
