@@ -20,7 +20,7 @@ const PackageBasicView = ({ packageId }) => {
   const getPackagesByID = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}packages/${packageId}`, {
         headers: {
           Authorization: `Bearer ${token}`,

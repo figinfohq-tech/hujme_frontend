@@ -228,7 +228,7 @@ export function AddNewPackage({
     },
   });
 
-  const agentId = localStorage.getItem("agentID");
+  const agentId = sessionStorage.getItem("agentID");
 
   useEffect(() => {
     // fetchStates();
@@ -255,7 +255,7 @@ export function AddNewPackage({
 
   const fetchStates = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<StateType[]>(
         `${baseURL}states/byCountry/${1}`,
         {
@@ -272,7 +272,7 @@ export function AddNewPackage({
 
   const fetchCities = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<CityType[]>(
         `${baseURL}cities/byState/${selectedStateId}`,
         {
@@ -290,7 +290,7 @@ export function AddNewPackage({
 
   const fetchTravelType = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<LookupType[]>(
         `${baseURL}lookups/TRAVEL_TYPE`,
         {
@@ -307,7 +307,7 @@ export function AddNewPackage({
 
   const fetchPackageType = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}lookups/PACKAGE_TYPE`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -353,7 +353,7 @@ export function AddNewPackage({
 
     onSubmit: async (values, { resetForm }) => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         setIsLoader(true);
         // Convert required fields to number
 

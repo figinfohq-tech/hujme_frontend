@@ -21,6 +21,7 @@ import {
   Filter,
   CalendarDays,
   ArrowUpDown,
+  ArrowLeft,
 } from "lucide-react";
 // import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -29,6 +30,13 @@ import image from "../../public/placeholder.svg";
 import { baseURL } from "@/utils/constant/url";
 import { format } from "date-fns";
 import { ReviewsDialog } from "@/components/ReviewsDialog";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -49,9 +57,24 @@ const SearchResults = () => {
   const [packageFilter, setPackageFilter] = useState<any>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
-
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const [selectedCountryId, setSelectedCountryId] = useState(1);
+  const [countries, setCountries] = useState([]);
+  const [isStateOpen, setIsStateOpen] = useState(false);
+  const [selectedStateId, setSelectedStateId] = useState("");
+  const [selectedCityId, setSelectedCityId] = useState<string>("");
+  const [state, setState] = useState([]);
+  const [stateSearch, setStateSearch] = useState("");
+  const [citySearch, setCitySearch] = useState("");
+  const [isCityOpen, setIsCityOpen] = useState(false);
+  const [cities, setCities] = useState([]);
+  const [travelType, setTravelType] = useState([]);
+  const [selectedTravelTypeId, setSelectedTravelTypeId] = useState<string>("");
+  const [errors, setErrors] = useState({
+    country: false,
+    state: false,
+  });
+  const token = sessionStorage.getItem("token");
+  const role = sessionStorage.getItem("role");
 
   const openReviewsDialog = (pkg: any) => {
     setSelectedPackage(pkg);
@@ -68,8 +91,8 @@ const SearchResults = () => {
       prev.includes(packageId)
         ? prev.filter((id) => id !== packageId)
         : prev.length < 3
-        ? [...prev, packageId]
-        : prev
+          ? [...prev, packageId]
+          : prev,
     );
   };
 
@@ -84,25 +107,97 @@ const SearchResults = () => {
   };
 
   useEffect(() => {
+    if (countryId) setSelectedCountryId(countryId);
+    if (stateId) setSelectedStateId(stateId);
+    if (cityId) setSelectedCityId(cityId);
+    if (travelTypeId) setSelectedTravelTypeId(travelTypeId);
+  }, [countryId, stateId, cityId, travelTypeId]);
+
+  useEffect(() => {
     fetchSearchResult();
+  }, [
+    selectedCountryId,
+    selectedStateId,
+    selectedCityId,
+    selectedTravelTypeId,
+    sortBy,
+    sortOrder,
+  ]);
+
+  useEffect(() => {
+    fetchCountries();
+    fetchTravelType();
   }, []);
+  useEffect(() => {
+    if (selectedCountryId) {
+      fetchStates();
+    }
+  }, [selectedCountryId]);
+
+  useEffect(() => {
+    if (selectedStateId) {
+      fetchCities();
+    }
+  }, [selectedStateId]);
+
+  const fetchCountries = async () => {
+    try {
+      const response = await axios.get(`${baseURL}countries`);
+      setCountries(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchStates = async () => {
+    try {
+      const response = await axios.get(
+        `${baseURL}states/byCountry/${selectedCountryId}`,
+      );
+      setState(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchCities = async () => {
+    try {
+      const response = await axios.get(
+        `${baseURL}cities/byState/${selectedStateId}`,
+      );
+      setCities(response.data);
+    } catch (error) {
+      console.error("Error fetching Cities:", error);
+    }
+  };
+
+  const fetchTravelType = async () => {
+    try {
+      const response = await axios.get(`${baseURL}lookups/TRAVEL_TYPE`);
+      setTravelType(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
 
   const fetchSearchResult = async () => {
     try {
-      const params: any = {};
-      if (cityId) params.cityId = cityId;
-      if (stateId) params.stateId = stateId;
-      if (travelTypeId) params.type = travelTypeId;
+      const params = {};
 
-      const response = await axios.get(
-        "http://31.97.205.55:8080/api/packages/search",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          params: params,
-        }
-      );
+      if (selectedCountryId) params.countryId = selectedCountryId;
+      if (selectedStateId) params.stateId = selectedStateId;
+      if (selectedCityId) params.cityId = selectedCityId;
+      if (selectedTravelTypeId) params.type = selectedTravelTypeId;
+
+      params.sortBy = sortBy;
+      params.sortOrder = sortOrder;
+
+      const response = await axios.get(`${baseURL}packages/search`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params,
+      });
 
       setPackages(response.data);
       fetchAgentLogos(response.data);
@@ -114,31 +209,32 @@ const SearchResults = () => {
 
   const fetchPackagefilters = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const params = {};
 
-      const params: any = {};
-
-      if (countryId) params.countryId = countryId;
-      if (stateId) params.stateId = stateId;
-      if (cityId) params.cityId = cityId;
-      if (travelTypeId) params.travelTypeId = travelTypeId;
+      if (selectedCountryId) params.countryId = selectedCountryId;
+      if (selectedStateId) params.stateId = selectedStateId;
+      if (selectedCityId) params.cityId = selectedCityId;
+      if (selectedTravelTypeId) params.travelTypeId = selectedTravelTypeId;
 
       const response = await axios.get(`${baseURL}packages/package-filters`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: params,
+        headers: { Authorization: `Bearer ${token}` },
+        params,
       });
 
       setPackageFilter(response.data);
     } catch (error) {
-      console.error("Error fetching packages by type:", error);
+      console.error("Error fetching packages filters:", error);
     }
   };
 
   useEffect(() => {
     fetchPackagefilters();
-  }, [countryId, stateId, cityId, travelTypeId]);
+  }, [
+    selectedCountryId,
+    selectedStateId,
+    selectedCityId,
+    selectedTravelTypeId,
+  ]);
 
   // fetching type
 
@@ -193,7 +289,7 @@ const SearchResults = () => {
             `${baseURL}package-facilities/byPackage/${pkg.packageId}`,
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
 
           // ONLY featured facilities
@@ -203,7 +299,7 @@ const SearchResults = () => {
             .filter(Boolean);
 
           facilitiesMap[pkg.packageId] = featuredFacilities;
-        })
+        }),
       );
 
       setPackageFacilities(facilitiesMap);
@@ -310,13 +406,186 @@ const SearchResults = () => {
 
       <main className="container mx-auto px-4 py-8">
         {/* Search Summary */}
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
             Search Results for Hajj & Umrah Packages
           </h1>
           <p className="text-muted-foreground">
             Found {filteredResults.length} packages matching your criteria
           </p>
+        </div> */}
+        <div className="mb-6 flex items-center">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
+        </div>
+        <div className="mb-3 rounded-xl border border-border bg-card shadow-sm">
+          <div className="flex flex-wrap lg:flex-nowrap items-center gap-3 p-2">
+            {/* LOCATION GROUP */}
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full lg:w-auto">
+              {/* Country (Disabled) */}
+              {/* <Select value={selectedCountryId} disabled>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <MapPin className="w-4 h-4 mr-2 text-green-700" />
+                  <SelectValue placeholder="Country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((items) => (
+                    <SelectItem key={items.countryId} value={items.countryId}>
+                      {items.countryName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select> */}
+
+              {/* State */}
+              <Select
+                open={isStateOpen}
+                onOpenChange={setIsStateOpen}
+                value={selectedStateId}
+              >
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="State">
+                    {selectedStateId
+                      ? state.find(
+                          (s) => String(s.stateId) === String(selectedStateId),
+                        )?.stateName
+                      : null}
+                  </SelectValue>
+                </SelectTrigger>
+
+                <SelectContent className="p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search state..."
+                      value={stateSearch}
+                      onValueChange={setStateSearch}
+                    />
+                    <CommandEmpty>No state found.</CommandEmpty>
+                    <CommandGroup className="max-h-60 overflow-y-auto">
+                      {state
+                        .filter((item) =>
+                          item.stateName
+                            .toLowerCase()
+                            .includes(stateSearch.toLowerCase()),
+                        )
+                        .map((items) => (
+                          <CommandItem
+                            key={items.stateId}
+                            onSelect={() => {
+                              setSelectedStateId(String(items.stateId));
+                              setSelectedCityId("");
+                              setStateSearch("");
+                              setIsStateOpen(false);
+                            }}
+                          >
+                            {items.stateName}
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </Command>
+                </SelectContent>
+              </Select>
+
+              {/* City */}
+              <Select
+                open={isCityOpen}
+                onOpenChange={setIsCityOpen}
+                value={selectedCityId}
+              >
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="City">
+                    {selectedCityId
+                      ? cities.find(
+                          (c) => String(c.cityId) === String(selectedCityId),
+                        )?.cityName
+                      : null}
+                  </SelectValue>
+                </SelectTrigger>
+
+                <SelectContent className="p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search city..."
+                      value={citySearch}
+                      onValueChange={setCitySearch}
+                    />
+                    <CommandEmpty>No city found.</CommandEmpty>
+                    <CommandGroup className="max-h-60 overflow-y-auto">
+                      {cities
+                        .filter((item) =>
+                          item.cityName
+                            .toLowerCase()
+                            .includes(citySearch.toLowerCase()),
+                        )
+                        .map((items) => (
+                          <CommandItem
+                            key={items.cityId}
+                            onSelect={() => {
+                              setSelectedCityId(String(items.cityId));
+                              setCitySearch("");
+                              setIsCityOpen(false);
+                            }}
+                          >
+                            {items.cityName}
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </Command>
+                </SelectContent>
+              </Select>
+              <Select onValueChange={setSelectedTravelTypeId}>
+                <SelectTrigger className="w-[200px]">
+                  <Calendar className="w-4 h-4 mr-2 text-green-700" />
+                  <SelectValue placeholder="Travel Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {travelType.map((items) => (
+                    <SelectItem key={items.lookupName} value={items.lookupName}>
+                      {items.lookupName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* DIVIDER */}
+            <div className="hidden lg:block h-10 w-px bg-border mx-2" />
+
+            {/* SORT SECTION */}
+            <div className="w-full lg:w-auto lg:ml-auto flex flex-wrap sm:flex-nowrap gap-2 items-center">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Sort & Order
+              </span>
+              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[170px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rating">Customer Rating</SelectItem>
+                  <SelectItem value="price">Package Price</SelectItem>
+                  <SelectItem value="duration">Duration</SelectItem>
+                  <SelectItem value="departureDate">Departure Date</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={sortOrder} onValueChange={setSortOrder}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Order" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="desc">High to Low</SelectItem>
+                  <SelectItem value="asc">Low to High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -439,33 +708,7 @@ const SearchResults = () => {
           {/* Search Results */}
           <div className="lg:col-span-3">
             {/* --------------------------------------- */}
-            <div className="flex items-center gap-4 mb-6 p-4 bg-card border border-border rounded-lg">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ArrowUpDown className="w-4 h-4" />
-                <span>Sort by:</span>
-              </div>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rating">Customer Rating</SelectItem>
-                  <SelectItem value="price">Package Price</SelectItem>
-                  <SelectItem value="duration">Duration</SelectItem>
-                  <SelectItem value="departureDate">Departure Date</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={sortOrder} onValueChange={setSortOrder}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Order" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="desc">High to Low</SelectItem>
-                  <SelectItem value="asc">Low to High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {/* --------------------------------------- */}
+
             <div className="space-y-6">
               {filteredResults.length === 0 ? (
                 <Card className="p-8 text-center">
@@ -549,12 +792,12 @@ const SearchResults = () => {
                                 <span className="break-words">
                                   {format(
                                     new Date(result.departureDate),
-                                    "dd MMM yyyy"
+                                    "dd MMM yyyy",
                                   )}
                                   {" – "}
                                   {format(
                                     new Date(result.arrivalDate),
-                                    "dd MMM yyyy"
+                                    "dd MMM yyyy",
                                   )}
                                 </span>
                               </div>
@@ -573,7 +816,7 @@ const SearchResults = () => {
                                     >
                                       {facility}
                                     </Badge>
-                                  )
+                                  ),
                                 )}
                               </div>
                             )}
@@ -680,8 +923,8 @@ const SearchResults = () => {
                               size="sm"
                               className="bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth"
                               onClick={() => {
-                                const token = localStorage.getItem("token");
-                                const role = localStorage.getItem("role");
+                                const token = sessionStorage.getItem("token");
+                                const role = sessionStorage.getItem("role");
                                 return token
                                   ? role === "USER"
                                     ? navigate(
@@ -690,7 +933,7 @@ const SearchResults = () => {
                                           state: {
                                             result: result,
                                           },
-                                        }
+                                        },
                                       )
                                     : null
                                   : navigate(`/package/${result.packageId}`, {

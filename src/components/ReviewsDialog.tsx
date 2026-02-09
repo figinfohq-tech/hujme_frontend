@@ -43,7 +43,7 @@ export const ReviewsDialog = ({
     const fetchReviews = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
 
         const res = await axios.get(
           `${baseURL}customer-reviews/byAgent/${agentId}`,

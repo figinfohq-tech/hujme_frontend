@@ -84,7 +84,7 @@ const Packages = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await axios.delete(
         `${baseURL}packages/${selectedPkg.packageId}`,
@@ -112,7 +112,7 @@ const Packages = () => {
     fetchAgentID();
   }, []);
 
-  // const agentId = localStorage.getItem("agentId");
+  // const agentId = sessionStorage.getItem("agentId");
 
   useEffect(() => {
     if (agentId) {
@@ -123,13 +123,13 @@ const Packages = () => {
 
   const fetchAgentID = async () => {
     try {
-      const userId = localStorage.getItem("userId");
-      const token = localStorage.getItem("token");
+      const userId = sessionStorage.getItem("userId");
+      const token = sessionStorage.getItem("token");
 
       const response = await axios.get(`${baseURL}agents/byUser/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      localStorage.setItem("agentID", response.data.agentId);
+      sessionStorage.setItem("agentID", response.data.agentId);
       setAgentId(response.data.agentId);
     } catch (error) {
       console.error("GET API Error:", error);
@@ -138,7 +138,7 @@ const Packages = () => {
 
   const fetchAgentSubscription = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `${baseURL}agent-subscriptions/byAgent/${agentId}`,
         {
@@ -160,8 +160,8 @@ const Packages = () => {
     if (!agentId) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const agentID = localStorage.getItem("agentID");
+      const token = sessionStorage.getItem("token");
+      const agentID = sessionStorage.getItem("agentID");
       const response = await axios.get(
         `${baseURL}packages/byAgent/${agentID}`,
         // byAgent
@@ -184,7 +184,7 @@ const Packages = () => {
   };
 
   const fetchFacilitiesForPackages = async (packagesData) => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     try {
       const facilitiesMap = {};
 
@@ -217,7 +217,7 @@ const Packages = () => {
 
   // fetching logo
   const fetchAgentLogos = async (packagesData: any[]) => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     try {
       const agentIds = [
         ...new Set(packagesData.map((pkg) => pkg.agentId).filter(Boolean)),
@@ -256,7 +256,7 @@ const Packages = () => {
   };
 
   const togglePackageStatus = async (pkg: any) => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     const updatedStatus =
       pkg.packageStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";

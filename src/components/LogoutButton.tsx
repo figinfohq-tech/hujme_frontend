@@ -7,10 +7,10 @@ const LogoutButton = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("userDetails");
+    sessionStorage.clear("token");
+    sessionStorage.clear("role");
+    sessionStorage.clear("userId");
+    sessionStorage.clear("userDetails");
     navigate("/"); // redirect to homepage after logout
     window.location.reload();
   };

@@ -445,8 +445,8 @@ export const BookingsPage = () => {
   const fetchBookingByUser = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
+      const token = sessionStorage.getItem("token");
+      const userId = sessionStorage.getItem("userId");
 
       const response = await axios.get(`${baseURL}bookings/byUser/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -468,7 +468,7 @@ export const BookingsPage = () => {
 
   const fetchPackages = async (bookingList: any[]) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       setIsLoading(true);
       const updatedBookings = await Promise.all(
         bookingList.map(async (booking) => {

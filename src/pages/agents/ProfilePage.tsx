@@ -47,7 +47,7 @@ const ProfilePage = () => {
 
   const fetchStates = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}states/byCountry/${1}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -61,7 +61,7 @@ const ProfilePage = () => {
 
   const fetchCities = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `${baseURL}cities/byState/${selectedStateId}`,
         {
@@ -75,13 +75,13 @@ const ProfilePage = () => {
       console.error("Error fetching Cities:", error);
     }
   };
-  const userId = localStorage.getItem("userId");
+  const userId = sessionStorage.getItem("userId");
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const fetchAgent = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}agents/byUser/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -180,7 +180,7 @@ const ProfilePage = () => {
   const uploadAgentLogo = async (agentId: any, file: any) => {
     if (!file) return;
 
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     const formData = new FormData();
     formData.append("agentId", agentId);

@@ -65,7 +65,7 @@ const SignUp = () => {
 
   const fetchStates = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `http://31.97.205.55:8080/api/states/byCountry/${1}`,
         {
@@ -82,7 +82,7 @@ const SignUp = () => {
 
   const fetchCities = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `http://31.97.205.55:8080/api/cities/byState/${selectedStateId}`,
         {
@@ -100,7 +100,7 @@ const SignUp = () => {
   const uploadAgentLogo = async (agentId: any, file: any) => {
     if (!file) return;
 
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     const formData = new FormData();
     formData.append("agentId", agentId);
@@ -230,8 +230,8 @@ const SignUp = () => {
         const { userId } = signupRes.data;
 
         // save token & userId
-        // localStorage.setItem("token", token);
-        // localStorage.setItem("userId", userId);
+        // sessionStorage.setItem("token", token);
+        // sessionStorage.setItem("userId", userId);
 
         /* ===================== 2️⃣ AGENT REGISTER API ===================== */
         const agentPayload = {
@@ -262,7 +262,7 @@ const SignUp = () => {
         );
 
         const agentId = agentRes.data.agentId;
-        localStorage.setItem("agentId", agentId);
+        sessionStorage.setItem("agentId", agentId);
 
         /* ===================== 3️⃣ LOGO UPLOAD (OPTIONAL) ===================== */
         if (values.logo) {

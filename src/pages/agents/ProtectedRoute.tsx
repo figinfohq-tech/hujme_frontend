@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 const ProtectedRoute = ({ children }) => {
   const [agent, setAgent] = useState([]);
 
-  const userId = localStorage.getItem("userId");
+  const userId = sessionStorage.getItem("userId");
 
   useEffect(() => {
     fetchAgent();
@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children }) => {
 
   const fetchAgent = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const url = `http://31.97.205.55:8080/api/agents/${userId}/exists`;
       const response = await axios.get(url, {
         headers: {

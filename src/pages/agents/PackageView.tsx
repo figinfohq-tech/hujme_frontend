@@ -13,7 +13,7 @@ const PackageView = () => {
   const { state } = useLocation();
   const pkg = state?.pkg;
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   return (
     <div className="min-h-full rounded-lg border py-4 bg-background">

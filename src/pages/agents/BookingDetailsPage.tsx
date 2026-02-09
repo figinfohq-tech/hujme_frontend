@@ -278,7 +278,7 @@ export const BookingDetailsPage = ({
 
   const fetchTravelersWithDocuments = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       // 1️⃣ Fetch travelers by booking
       const travelerRes = await axios.get(

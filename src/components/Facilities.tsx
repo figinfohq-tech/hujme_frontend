@@ -41,7 +41,7 @@ const Facilities = ({ pkg, packageId }) => {
     try {
       setIsLoader(true);
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}facilities`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -58,7 +58,7 @@ const Facilities = ({ pkg, packageId }) => {
 
   const getFacilitiesPackageByID = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `${baseURL}package-facilities/byPackage/${id}`,
         {
@@ -137,7 +137,7 @@ const Facilities = ({ pkg, packageId }) => {
     try {
       setIsLoading(true);
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!token) {
         toast.error("Token missing — login again");
         return;

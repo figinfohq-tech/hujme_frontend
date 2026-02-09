@@ -103,7 +103,7 @@ export function PackageFormDialog({
     }
   }, [pkg]);
 
-  const agentId = localStorage.getItem("agentID");
+  const agentId = sessionStorage.getItem("agentID");
   
   useEffect(() => {
     fetchTravelType();
@@ -141,7 +141,7 @@ export function PackageFormDialog({
 
   const fetchStates = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<StateType[]>(
         `http://31.97.205.55:8080/api/states/byCountry/${1}`,
         {
@@ -158,7 +158,7 @@ export function PackageFormDialog({
 
   const fetchCities = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<CityType[]>(
         `http://31.97.205.55:8080/api/cities/byState/${selectedStateId}`,
         {
@@ -176,7 +176,7 @@ export function PackageFormDialog({
 
   const fetchTravelType = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<LookupType[]>(
         "http://31.97.205.55:8080/api/lookups/TRAVEL_TYPE",
         {
@@ -193,7 +193,7 @@ export function PackageFormDialog({
 
   const fetchPackageType = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         "http://31.97.205.55:8080/api/lookups/PACKAGE_TYPE",
         {
@@ -243,7 +243,7 @@ export function PackageFormDialog({
 
     onSubmit: async (values, { resetForm }) => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         setIsLoader(true);
         // Convert required fields to number
         const payload = {

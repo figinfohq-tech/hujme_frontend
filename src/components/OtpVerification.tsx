@@ -26,7 +26,7 @@ const OtpVerification = ({
   const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const handleSendOtp = async (showToast = true) => {
     if (!value) {

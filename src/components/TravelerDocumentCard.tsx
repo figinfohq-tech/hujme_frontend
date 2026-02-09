@@ -111,7 +111,7 @@ export const TravelerDocumentCard = ({
   const fetchViewImage = async (doc: TravelerDocument) => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await axios.get(
         `${baseURL}documents/view/${doc.id}?mode=inline`,
@@ -141,7 +141,7 @@ export const TravelerDocumentCard = ({
   // View image
   const handleDownloadDocument = async (doc: any) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await axios.get(
         `${baseURL}documents/view/${doc.id}?mode=download`,

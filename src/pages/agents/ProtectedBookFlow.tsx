@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
 const ProtectedBookFlow = ({ children }) => {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   const location = useLocation();
   const passedState = location.state; // <-- YOUR PARAMS HERE
 

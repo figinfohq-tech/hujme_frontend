@@ -57,7 +57,7 @@ const AgentRegistration = () => {
 
   const fetchStates = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `http://31.97.205.55:8080/api/states/byCountry/${1}`,
         {
@@ -74,7 +74,7 @@ const AgentRegistration = () => {
 
   const fetchCities = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `http://31.97.205.55:8080/api/cities/byState/${selectedStateId}`,
         {
@@ -92,7 +92,7 @@ const AgentRegistration = () => {
   const uploadAgentLogo = async (agentId: any, file: any) => {
     if (!file) return;
 
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     const formData = new FormData();
     formData.append("agentId", agentId);
@@ -170,8 +170,8 @@ const AgentRegistration = () => {
     }),
     onSubmit: async (values) => {
       try {
-        const token = localStorage.getItem("token");
-        const userId = localStorage.getItem("userId");
+        const token = sessionStorage.getItem("token");
+        const userId = sessionStorage.getItem("userId");
 
         const payload = {
           userId: Number(userId),
@@ -200,7 +200,7 @@ const AgentRegistration = () => {
           }
         );
         const agentId = response.data.agentId;
-        localStorage.setItem("agentId", agentId);
+        sessionStorage.setItem("agentId", agentId);
 
         //  Upload Logo (ONLY if selected)
         if (values.logo) {

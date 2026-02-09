@@ -133,8 +133,8 @@ function SubscriptionDetails() {
   const [subscriptionsHistory, setSubscriptionsHistory] = useState<any>([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  const userId = localStorage.getItem("userId");
-  const token = localStorage.getItem("token");
+  const userId = sessionStorage.getItem("userId");
+  const token = sessionStorage.getItem("token");
   const navigate = useNavigate();
   const usageHistory = [
     { month: "February", packages: 12, seats: 320 },
@@ -593,7 +593,7 @@ function SubscriptionDetails() {
               Upgrade Plan
             </Button>
 
-            <Button variant="outline">
+            {/* <Button variant="outline">
               <ArrowDown className="w-4 h-4 mr-2" />
               Downgrade
             </Button>
@@ -602,7 +602,7 @@ function SubscriptionDetails() {
               <Clock className="w-4 h-4 mr-2" />
               {currentSubscription.autoRenewal ? "Disable" : "Enable"}{" "}
               Auto-Renewal
-            </Button>
+            </Button> */}
           </div>
         </CardContent>
       </Card>
@@ -744,7 +744,7 @@ function SubscriptionDetails() {
       </Card>
 
       {/* Features Comparison */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Star className="w-5 h-5 text-secondary" />
@@ -811,7 +811,7 @@ function SubscriptionDetails() {
             </table>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
         <DialogContent className="max-w-md">

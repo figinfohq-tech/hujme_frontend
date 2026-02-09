@@ -113,7 +113,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
 
   const fetchStates = async (countryId?: string) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const cId = countryId ?? selectedCountry;
       if (!cId) {
         setStates([]);
@@ -133,7 +133,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
 
   const fetchCities = async (stateId?: string) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const sId = stateId ?? selectedState;
       if (!sId) {
         setCities([]);
@@ -150,7 +150,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
 
   const fetchHotels = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<any>(`${baseURL}hotels`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -183,7 +183,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
   const getPackagesByID = async (pkgId?: number) => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const finalId = pkgId ?? currentPackageId;
       if (!finalId) return;
@@ -203,7 +203,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
   const getPackagesByHotelId = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await axios.get(`${baseURL}hotels/${selectedHotel}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -252,7 +252,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
 
         address: hotelDetails.address,
         rating: hotelDetails.starRating ?? 0,
-        distanceFromHaram: hotelDetails.distanceFromHaram ?? "-",
+        distanceFromHaram: hotelDetails.distance ?? "-",
 
         checkInDate: item.checkinDate ? new Date(item.checkinDate) : undefined,
         checkInTime: item.checkinTime?.slice(11, 16),
@@ -319,7 +319,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
 
       address: hotelInfo.address || "-",
       rating: hotelInfo.starRating || 0,
-      distanceFromHaram: hotelInfo.distanceFromHaram || "-",
+      distanceFromHaram: hotelInfo.distance || "-",
 
       checkInDate,
       checkInTime,
@@ -423,7 +423,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       address: hotelInfo?.address ?? target.address,
       rating: hotelInfo?.starRating ?? target.rating,
       distanceFromHaram:
-        hotelInfo?.distanceFromHaram ?? target.distanceFromHaram,
+        hotelInfo?.distance ?? target.distance,
 
       // ✅ LOCATION UPDATE
       countryId: selectedCountry,
@@ -485,7 +485,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
 
   const deleteHotelFromBackend = async (packageHotelId: string | number) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       await axios.delete(`${baseURL}package-hotels/${packageHotelId}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -502,7 +502,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
   const handleSubmitHotels = async () => {
     try {
       setIsLoader(true);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!pkg) {
         if (!packageId) {
           toast.error("package missing — once please create package");
@@ -595,14 +595,14 @@ const HotelDetails = ({ pkg, packageId }: any) => {
             {addedHotels.map((hotel, index) => {
               return (
                 <div
-                  key={hotel.id}
+                  key={index}
                   className="rounded-lg border bg-card p-4 space-y-2"
                 >
                   <div className="flex items-start justify-between">
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded">
-                          {hotel.cityId ?? (hotel.cityId ? "—" : "")}
+                          {hotel?.hotelId}
                         </span>
                         <h5 className="font-semibold text-foreground">
                           {hotel.hotelName}
@@ -764,7 +764,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="text-foreground">
                   <span className="font-medium">
-                    {selectedHotelData.distanceFromHaram}
+                    {selectedHotelData.distance}
                   </span>{" "}
                   from Haram Shareef
                 </span>

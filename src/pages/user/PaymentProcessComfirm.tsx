@@ -22,7 +22,7 @@ const PaymentProcessComfirm = () => {
     try {
       setIsLoading(true);
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!booking?.bookingId) {
         throw new Error("Booking ID not found");
       }

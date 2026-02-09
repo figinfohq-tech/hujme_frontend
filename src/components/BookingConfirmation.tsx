@@ -85,7 +85,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
     try {
       setIsLoading(true);
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       if (!bookingId) {
         throw new Error("Booking ID not found");
@@ -119,8 +119,8 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
     try {
       setIsLoading(true);
 
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
+      const token = sessionStorage.getItem("token");
+      const userId = sessionStorage.getItem("userId");
 
       if (!bookingId) {
         throw new Error("Booking ID not found");
@@ -153,7 +153,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
     try {
       setIsLoading(true);
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!bookingId) {
         throw new Error("Booking ID not found");
       }
@@ -185,7 +185,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
     try {
       setIsLoading(true);
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!bookingId) {
         throw new Error("Booking ID not found");
       }
@@ -217,7 +217,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
     try {
       setIsLoading(true);
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!bookingId) {
         throw new Error("Booking ID not found");
       }

@@ -55,7 +55,7 @@ const BookingViewPage = () => {
 
   const fetchTravelersByID = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `${baseURL}travelers/byBooking/${selectedBooking.bookingId}`,
         {
@@ -70,7 +70,7 @@ const BookingViewPage = () => {
 
   const fetchDetailByAgentID = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `${baseURL}agents/contact/${myPackage.packageDetails?.agentId}`,
         {
@@ -85,7 +85,7 @@ const BookingViewPage = () => {
 
   const fetchBookingDetails = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `${baseURL}bookings/${pilgrimData[0].bookingId}`,
         {

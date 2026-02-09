@@ -36,8 +36,8 @@ const SubscriptionPage = ({ onSubscriptionSuccess }) => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const token = localStorage.getItem("token");
-  const userId = Number(localStorage.getItem("userId"));
+  const token = sessionStorage.getItem("token");
+  const userId = Number(sessionStorage.getItem("userId"));
   // SAME DATA (example – tum apna existing data yahin use karo)
   const currentSubscription = {
     tier: "Basic",
@@ -98,7 +98,7 @@ const SubscriptionPage = ({ onSubscriptionSuccess }) => {
 
   const fetchAgent = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}agents/byUser/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,

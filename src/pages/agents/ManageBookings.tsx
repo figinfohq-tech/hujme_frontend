@@ -68,8 +68,8 @@ export const ManageBookings = () => {
   // Fetch Booking By agent
   const fetchBookingByAgent = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const agentId = localStorage.getItem("agentID");
+      const token = sessionStorage.getItem("token");
+      const agentId = sessionStorage.getItem("agentID");
       const response = await axios.get(
         `${baseURL}packages/byAgent/${agentId}`,
         {
@@ -86,7 +86,7 @@ export const ManageBookings = () => {
   const fetchBookingByPackage = async (packageIds: number[]) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const requests = packageIds.map((id) =>
         axios.get(`${baseURL}bookings/byPackage/${id}`, {
@@ -110,7 +110,7 @@ export const ManageBookings = () => {
   // fetching user
   const fetchUsersByIds = async (userIds: number[]) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const requests = userIds.map((id) =>
         axios.get(`${baseURL}users/${id}`, {

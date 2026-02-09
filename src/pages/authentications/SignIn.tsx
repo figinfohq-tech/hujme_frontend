@@ -33,10 +33,10 @@ const SignIn = ({ packageId }) => {
           "Content-Type": "application/json",
         },
       });
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("role", response.data.user.role);
-      localStorage.setItem("userId", response.data.user.userId);
-      localStorage.setItem("userDetails", JSON.stringify(response.data.user));
+      sessionStorage.setItem("token", response.data.token);
+      sessionStorage.setItem("role", response.data.user.role);
+      sessionStorage.setItem("userId", response.data.user.userId);
+      sessionStorage.setItem("userDetails", JSON.stringify(response.data.user));
       
       toast.success("Login successful!");
         

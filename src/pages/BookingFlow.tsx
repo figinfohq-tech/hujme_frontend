@@ -142,8 +142,8 @@ export const BookingFlow: React.FC = () => {
 
   const bookingPackages = async (travelerCount: number) => {
     try {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
+      const token = sessionStorage.getItem("token");
+      const userId = sessionStorage.getItem("userId");
       const pricePerPerson = Number(packageData?.price || 0);
       const totalAmt = pricePerPerson * travelerCount;
       // ✅ Your payload object
@@ -158,7 +158,7 @@ export const BookingFlow: React.FC = () => {
         totalAmt: totalAmt,
         travelerCount: travelerCount,
         packageId: packageData?.id,
-        userId: userId, // 👈 userId from localStorage
+        userId: userId, // 👈 userId from sessionStorage
       };
       const response = await axios.post(`${baseURL}bookings`, payloadBooking, {
         headers: {
@@ -238,7 +238,7 @@ export const BookingFlow: React.FC = () => {
 
     try {
       bookingApiCalledRef.current = true;
-      const token = localStorage.getItem("token") || "";
+      const token = sessionStorage.getItem("token") || "";
 
       // ✅ BOOKING API — ONLY ONCE
       const newBooking = await bookingPackages(travelers.length);

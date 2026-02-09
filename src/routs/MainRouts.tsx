@@ -37,8 +37,8 @@ import ChoosePaymentOption from "@/pages/user/ChoosePaymentOption";
 import PaymentProcessComfirm from "@/pages/user/PaymentProcessComfirm";
 
 const MainRouts = () => {
-  const role = localStorage.getItem("role");
-  const token = localStorage.getItem("token");
+  const role = sessionStorage.getItem("role");
+  const token = sessionStorage.getItem("token");
   
   return (
     <>

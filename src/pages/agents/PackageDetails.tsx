@@ -121,7 +121,7 @@ const PackageDetails = () => {
   //   fetch package details
   const fetchPackages = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await axios.get(`${baseURL}packages/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -138,7 +138,7 @@ const PackageDetails = () => {
     if (!agentId) return;
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const res = await axios.get(`${baseURL}agents/get-logo/${agentId}`, {
         headers: {
@@ -158,7 +158,7 @@ const PackageDetails = () => {
   //   fetch package faciliteis
   const fetchPackagesFacilities = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await axios.get(
         `${baseURL}package-facilities/byPackage/${id}`,

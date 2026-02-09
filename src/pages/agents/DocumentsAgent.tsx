@@ -100,12 +100,12 @@ export const DocumentsAgent = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewType, setPreviewType] = useState<"image" | "pdf" | null>(null);
   
-  const agentId = localStorage.getItem("agentID");
+  const agentId = sessionStorage.getItem("agentID");
 
   const fetchViewImage = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await axios.get(
         `${baseURL}agent-documents/view/${viewDocument?.backendId}?mode=inline`,
@@ -150,7 +150,7 @@ export const DocumentsAgent = () => {
   const fetchDocumentsByBooking = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await axios.get(
         `${baseURL}agent-documents/byAgent/${agentId}`,
@@ -190,8 +190,8 @@ export const DocumentsAgent = () => {
   // replace document
   const handleReplaceDocument = async (doc: Document, file: File) => {
     try {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
+      const token = sessionStorage.getItem("token");
+      const userId = sessionStorage.getItem("userId");
 
       if (!doc.backendId) {
         toast.error("Document id not found");
@@ -276,7 +276,7 @@ export const DocumentsAgent = () => {
     const base64File = await fileToBase64(file);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       // ✅ FORM DATA
       const formData = new FormData();
       formData.append("agentId", String(agentId));
@@ -311,7 +311,7 @@ export const DocumentsAgent = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       await axios.delete(`${baseURL}agent-documents/${docToDelete.backendId}`, {
         headers: {
@@ -340,7 +340,7 @@ export const DocumentsAgent = () => {
 
  const handleDownloadDocument = async (doc: Document) => {
   try {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     const response = await axios.get(
       `${baseURL}agent-documents/view/${doc.backendId}?mode=download`,
@@ -419,8 +419,8 @@ export const DocumentsAgent = () => {
   const fetchBookingByUser = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
+      const token = sessionStorage.getItem("token");
+      const userId = sessionStorage.getItem("userId");
 
       const response = await axios.get(`${baseURL}bookings/byUser/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -441,7 +441,7 @@ export const DocumentsAgent = () => {
   const fetchPackages = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const packageRequests = bookingUser.map((user: any) =>
         axios.get(`${baseURL}packages/${user.packageId}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -469,7 +469,7 @@ export const DocumentsAgent = () => {
   // Fetch Booking Travelers
   const fetchTravelersByID = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `${baseURL}travelers/byBooking/${selectedBookingId}`,
         {

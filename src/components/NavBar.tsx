@@ -6,19 +6,19 @@ import LogoutButton from "./LogoutButton";
 
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [token, setToken] = useState(sessionStorage.getItem("token"));
 
   // Detect token changes
   useEffect(() => {
     const checkToken = () => {
-      setToken(localStorage.getItem("token"));
+      setToken(sessionStorage.getItem("token"));
     };
 
     checkToken();
   }, []);
 
   // user details
-  const userStr = localStorage.getItem("userDetails");
+  const userStr = sessionStorage.getItem("userDetails");
   const userDetails = userStr ? JSON.parse(userStr) : null;
 
   // user details

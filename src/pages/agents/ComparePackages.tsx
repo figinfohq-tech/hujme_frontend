@@ -161,6 +161,8 @@ const ComparePackages = () => {
     }
   };
 
+  console.log("packagess---->", packages);
+
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8">
@@ -243,7 +245,9 @@ const ComparePackages = () => {
                           </div>
 
                           <div className="text-xs text-muted-foreground">
-                            {pkg.agentName}
+                            <Badge variant="secondary">
+                            {pkg.packageType}
+                            </Badge>
                           </div>
                         </div>
                       </div>
@@ -295,25 +299,44 @@ const ComparePackages = () => {
                   <td className="border p-3 font-medium">Duration</td>
                   {packages.map((pkg) => (
                     <td key={pkg.packageId} className="border p-3 text-center">
+                      <Badge>
+
                       {`${pkg?.duration} Days`}
+                      </Badge>
                     </td>
                   ))}
                 </tr>
-                <tr>
+                {/* <tr>
                   <td className="border p-3 font-medium">Package Type</td>
                   {packages.map((pkg) => (
                     <td key={pkg.packageId} className="border p-3 text-center">
                       {pkg?.packageType}
                     </td>
                   ))}
-                </tr>
+                </tr> */}
                 <tr>
                   <td className="border p-3 font-medium">Rating</td>
-                  {packages.map((pkg) => (
-                    <td key={pkg.packageId} className="border p-3 text-center">
-                      {pkg?.ratingAverage}
-                    </td>
-                  ))}
+                  {packages.map((pkg) => {
+                    const rating = formatRating(pkg?.ratingAverage);
+                    const reviewCount = pkg?.reviewCount ?? 0;
+
+                    return (
+                      <td
+                        key={pkg.packageId}
+                        className="border p-3 align-middle"
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+
+                          <span className="font-medium text-sm">{rating}</span>
+
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            ({reviewCount} reviews)
+                          </span>
+                        </div>
+                      </td>
+                    );
+                  })}
                 </tr>
                 <tr className="bg-muted/40">
                   <td className="border p-3 font-medium">Price Per Seat</td>

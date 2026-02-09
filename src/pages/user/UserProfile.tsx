@@ -12,8 +12,8 @@ import { Shield } from "lucide-react";
 import { baseURL } from "@/utils/constant/url";
 
 const UserProfle = () => {
-  const userId = localStorage.getItem("userId");
-  const token = localStorage.getItem("token");
+  const userId = sessionStorage.getItem("userId");
+  const token = sessionStorage.getItem("token");
 
   // ------------------------ FORM ------------------------
 

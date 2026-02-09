@@ -150,7 +150,7 @@ const FlightDetails = ({ pkg, packageId }) => {
   };
   const fetchAirlines = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}airlines`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -163,7 +163,7 @@ const FlightDetails = ({ pkg, packageId }) => {
   };
   const fetchAirport = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}airports`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -177,7 +177,7 @@ const FlightDetails = ({ pkg, packageId }) => {
 
   const fetchAirlinesType = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}lookups/FLIGHT_CLASS`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -191,7 +191,7 @@ const FlightDetails = ({ pkg, packageId }) => {
 
   const fetchStates = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<StateType[]>(
         `${baseURL}states/byCountry/${selectedCountryId}`,
         {
@@ -208,7 +208,7 @@ const FlightDetails = ({ pkg, packageId }) => {
 
   const fetchStates2 = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<StateType[]>(
         `${baseURL}states/byCountry/${selectedCountryId2}`,
         {
@@ -225,7 +225,7 @@ const FlightDetails = ({ pkg, packageId }) => {
 
   const fetchCities = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<CityType[]>(
         `${baseURL}cities/byState/${selectedStateId}`,
         {
@@ -242,7 +242,7 @@ const FlightDetails = ({ pkg, packageId }) => {
 
   const fetchCities2 = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<CityType[]>(
         `${baseURL}cities/byState/${selectedStateId2}`,
         {
@@ -260,7 +260,7 @@ const FlightDetails = ({ pkg, packageId }) => {
   const getFlightByID = async (pkgId?: number) => {
     try {
       setIsLoader(true);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const finalId = pkgId ?? currentPackageId;
       if (!finalId) return;
@@ -282,7 +282,7 @@ const FlightDetails = ({ pkg, packageId }) => {
 
   const fetchAirportById = async (airportId: string) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}airports/${airportId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -487,7 +487,7 @@ const FlightDetails = ({ pkg, packageId }) => {
 
   const deleteFlightFromBackend = async (flightId: string) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       await axios.delete(`${baseURL}package-airlines/${flightId}`, {
         headers: {
@@ -557,7 +557,7 @@ const FlightDetails = ({ pkg, packageId }) => {
 
     try {
       setIsLoader(true);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       for (const flight of addedFlights) {
         const payload = {
