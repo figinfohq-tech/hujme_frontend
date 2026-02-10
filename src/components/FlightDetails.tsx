@@ -29,9 +29,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
+// import { Calendar } from "@/components/ui/calendar";
 import {
+  Calendar,
   CalendarIcon,
+  Clock,
+  MapPin,
   Plane,
   PlaneLanding,
   PlaneTakeoff,
@@ -349,7 +352,7 @@ const FlightDetails = ({ pkg, packageId }) => {
         // ✅ MOST IMPORTANT FIX
         airlineName: item.airlineDetails?.flightName,
 
-        flightNumber: item.flightNumber,
+        flightNumber: item.airlineDetails?.flightCode,
         flightClass: item.flightClass,
 
         departureCountryId: item.departureCountryId,
@@ -373,8 +376,8 @@ const FlightDetails = ({ pkg, packageId }) => {
         departureDate: new Date(item.departureDate),
         arrivalDate: new Date(item.arrivalDate),
 
-        departureTime: item.departureTime?.slice(11, 16),
-        arrivalTime: item.arrivalTime?.slice(11, 16),
+        departureTime: item.departureTime,
+        arrivalTime: item.arrivalTime,
 
         isExisting: true,
         isEdited: false,
@@ -567,14 +570,10 @@ const FlightDetails = ({ pkg, packageId }) => {
           flightClass: flight.flightClass,
 
           departureDate: flight.departureDate.toISOString(),
-          departureTime: new Date(
-            `1970-01-01T${flight.departureTime}:00`,
-          ).toISOString(),
 
           arrivalDate: flight.arrivalDate.toISOString(),
-          arrivalTime: new Date(
-            `1970-01-01T${flight.arrivalTime}:00`,
-          ).toISOString(),
+          departureTime: `${flight.departureTime}:00`,
+          arrivalTime: `${flight.arrivalTime}:00`,
 
           departureCountryId: flight.departureCountryId,
           departureStateId: flight.departureStateId,
@@ -615,12 +614,13 @@ const FlightDetails = ({ pkg, packageId }) => {
               },
             },
           );
+
           const newPackageId =
             response.data?.packageId || response.data?.package?.packageId;
 
           if (newPackageId) {
             setCurrentPackageId(newPackageId);
-            getFlightByID(newPackageId); // ✅ immediate refetch with correct ID
+            getFlightByID(newPackageId);
           }
         }
       }
@@ -736,6 +736,16 @@ const FlightDetails = ({ pkg, packageId }) => {
     return lastFlight?.arrivalDate ? new Date(lastFlight.arrivalDate) : null;
   };
 
+  const formatTime = (time: string) => {
+    const [h, m] = time.split(":");
+    const date = new Date();
+    date.setHours(+h, +m);
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <>
       {/* Added Flights List */}
@@ -746,19 +756,15 @@ const FlightDetails = ({ pkg, packageId }) => {
           </h4>
 
           {addedFlights.map((flight, index) => (
-            <div
-              key={flight.id}
-              className="rounded-lg border bg-card p-4 space-y-2"
-            >
-              <div className="flex items-start justify-between">
-                <div>
+            <div key={flight.id} className="w-full rounded-lg bg-card">
+              {/* <div>
                   <div className="flex items-center gap-2">
                     <Plane className="h-4 w-4 text-primary" />
                     <h5 className="font-semibold">
                       {flight.airlineName} - {flight.flightNumber}
-                    </h5>
-                    {/* Flight Class Badge */}
-                    {flight?.flightClass && (
+                    </h5> */}
+              {/* Flight Class Badge */}
+              {/* {flight?.flightClass && (
                       <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">
                         {flight?.flightClass} Class
                       </span>
@@ -770,37 +776,140 @@ const FlightDetails = ({ pkg, packageId }) => {
                   <div className="text-xs text-muted-foreground pt-1">
                     {`Departure: ${format(flight.departureDate, "PPP")} 
                     ${flight.departureTime} → Arrival: ${format(flight.arrivalDate, "PPP")} 
-                    ${flight.arrivalTime}`}
-                    {/* Departure: {format(flight.departureDate, "PPP")} at{" "}
+                    ${flight.arrivalTime}`} */}
+              {/* Departure: {format(flight.departureDate, "PPP")} at{" "}
                     {flight.departureTime}
                      <br />
                     Arrival: {format(flight.arrivalDate, "PPP")} at{" "}
                     {flight.arrivalTime} */}
-                  </div>
-                </div>
-                <div>
-                  {pkg ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditFlight(flight, index)}
-                    >
-                      Edit
-                    </Button>
-                  ) : null}
+              {/* </div>
+                </div> */}
+              <div className="flex gap-3">
+                {/* MAIN CARD */}
+                <div className="w-full border rounded-lg shadow-sm bg-white">
+                  {/* Header */}
+                  <div className="px-3 py-2 border-b flex items-center justify-between">
+                    <div className="space-y-0.5 text-sm">
+                      <div className="flex items-center gap-2">
+                        <PlaneTakeoff className="text-primary h-4 w-4" />
+                        <span className="font-medium">
+                          Flight No: {flight.flightNumber}
+                        </span>
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setFlightToDelete(flight);
-                      setOpenDeleteDialog(true);
-                    }}
-                    className="text-destructive"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                        {flight.flightClass && (
+                          <span className="px-2 py-0.5 text-[11px] rounded-full bg-blue-100 text-blue-700 font-medium">
+                            {flight.flightClass} Class
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-gray-600">
+                        <span className="font-medium">Flight Name:</span>{" "}
+                        {flight.airlineName}
+                      </p>
+                    </div>
+
+                    {/* ACTIONS (Professional placement) */}
+                    <div className="flex items-center gap-1">
+                      {pkg && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditFlight(flight, index)}
+                          className="h-8 w-8"
+                        >
+                          Edit
+                        </Button>
+                      )}
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setFlightToDelete(flight);
+                          setOpenDeleteDialog(true);
+                        }}
+                        className="h-8 w-8 text-destructive"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="px-3 py-2 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Journey Start */}
+                      <div className="border rounded-md p-2 bg-gray-50 space-y-1">
+                        <h3 className="font-medium text-primary flex items-center gap-1">
+                          <PlaneTakeoff size={14} />
+                          Journey Start
+                        </h3>
+
+                        <div className="flex items-center gap-1">
+                          <MapPin size={14} />
+                          <span className="text-gray-700">
+                            {flight.departureCityName},{" "}
+                            {flight.departureStateName},{" "}
+                            {flight.departureCountryName}
+                          </span>
+                        </div>
+                        <div className="flex gap-3">
+                          <div className="flex items-center gap-1">
+                            <Calendar size={14} />
+                            <span className="text-gray-700">
+                              {format(
+                                new Date(flight.departureDate),
+                                "yyyy-MM-dd",
+                              )}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <Clock size={14} />
+                            <span className="text-gray-700">
+                              {flight.departureTime}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Journey End */}
+                      <div className="border rounded-md p-2 bg-gray-50 space-y-1">
+                        <h3 className="font-medium text-primary flex items-center gap-1">
+                          <PlaneLanding size={14} />
+                          Journey End
+                        </h3>
+
+                        <div className="flex items-center gap-1">
+                          <MapPin size={14} />
+                          <span className="text-gray-700">
+                            {flight.arrivalCityName}, {flight.arrivalStateName},{" "}
+                            {flight.arrivalCountryName}
+                          </span>
+                        </div>
+                        <div className="flex gap-3">
+                          <div className="flex items-center gap-1">
+                            <Calendar size={14} />
+                            <span className="text-gray-700">
+                              {format(
+                                new Date(flight.arrivalDate),
+                                "yyyy-MM-dd",
+                              )}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <Clock size={14} />
+                            <span className="text-gray-700">
+                              {flight.arrivalTime}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

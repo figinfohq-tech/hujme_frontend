@@ -81,6 +81,8 @@ export const ManageBookings = () => {
       console.error("Package Fetch Error:", error);
     }
   };
+  console.log("agent booking-->", agentPackages);
+  
   // Fetch Booking By agent
   // Fetch Booking By agent
   const fetchBookingByPackage = async (packageIds: number[]) => {
@@ -203,6 +205,9 @@ export const ManageBookings = () => {
     pkg.packageName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  console.log("filteredPackages--->", filteredPackages);
+  
+
   if (loading) {
     return <Loader />;
   }
@@ -240,7 +245,8 @@ export const ManageBookings = () => {
         <div className="space-y-4">
           {filteredPackages.map((pkg) => {
             const bookings = getBookingsByPackageId(pkg.packageId);
-
+            console.log("bookins--->", bookings);
+            
             return (
               <Card key={pkg.packageId} className="p-0">
                 <Collapsible
@@ -257,11 +263,21 @@ export const ManageBookings = () => {
                             <ChevronRight className="h-5 w-5" />
                           )}
                           <div className="text-left">
-                            <CardTitle className="text-lg">
-                              {pkg.packageName}
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {pkg.departureAirlines} • {pkg.arrivalAirlines}
+                            <div className="flex items-center gap-2">
+                              <CardTitle className="text-lg font-semibold leading-none">
+                                {pkg.packageName}
+                              </CardTitle>
+
+                              <Badge
+                                // variant="secondary"
+                                // className="bg-yellow-100 text-yellow-800 border border-yellow-300"
+                              >
+                                {pkg.travelType}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {/* {pkg.stateName} • {pkg.arrivalAirlines} */}
+                              {`${pkg.stateName}, ${pkg.cityName}`}
                             </p>
                           </div>
                         </div>
@@ -305,25 +321,29 @@ export const ManageBookings = () => {
                           <table className="w-full">
                             <thead>
                               <tr className="border-b">
-                                <th className="text-left p-2 font-medium">
+                                <th className="text-center p-2 font-medium">
                                   Booking ID
                                 </th>
-                                <th className="text-left p-2 font-medium">
+                                <th className="text-center p-2 font-medium">
                                   Customer
                                 </th>
-                                <th className="text-left p-2 font-medium">
+                                <th className="text-center p-2 font-medium">
+                                  Phone
+                                </th>
+                                <th className="text-center p-2 font-medium">
+                                  Email Id
+                                </th>
+                                <th className="text-center p-2 font-medium">
                                   Travelers
                                 </th>
-                                <th className="text-left p-2 font-medium">
-                                  Amount
+                                <th className="text-center p-2 font-medium">
+                                  Document Status
                                 </th>
-                                <th className="text-left p-2 font-medium">
+                                <th className="text-center p-2 font-medium">
                                   Booking Status
                                 </th>
-                                <th className="text-left p-2 font-medium">
-                                  Payment Status
-                                </th>
-                                <th className="text-left p-2 font-medium">
+
+                                <th className="text-center p-2 font-medium">
                                   Actions
                                 </th>
                               </tr>
@@ -334,37 +354,40 @@ export const ManageBookings = () => {
                                   key={booking.bookingId}
                                   className="border-b hover:bg-primary/20"
                                 >
-                                  <td className="p-2">
+                                  <td className="text-center p-2">
                                     {booking?.bookingRef
                                       ? booking?.bookingRef
                                       : `BK-00${index}`}
                                   </td>
-                                  <td className="p-2">
+                                  <td className="text-center p-2">
                                     {usersMap[booking.userId]
                                       ? `${
                                           usersMap[booking.userId].firstName
                                         } ${usersMap[booking.userId].lastName}`
                                       : "Loading..."}
                                   </td>
-                                  <td className="p-2">
+                                  <td className="text-center p-2">
+                                    9765197170
+                                  </td>
+                                  <td className="text-center p-2">
+                                    faizahmed@test.com
+                                  </td>
+                                  <td className="text-center p-2">
                                     {booking.travelerCount}
                                   </td>
-                                  <td className="p-2">₹{booking.totalAmt}</td>
-                                  <td className="p-2">
+                                  <td className="text-center p-2">
+                                    <Badge>Pending</Badge>
+                                  </td>
+
+                                  <td className="text-center p-2">
                                     {getStatusBadge(
                                       booking?.bookingStatus
                                         ? booking?.bookingStatus
-                                        : "NA"
+                                        : "NA",
                                     )}
                                   </td>
-                                  <td className="p-2">
-                                    {getStatusBadge(
-                                      booking?.paymentStatus
-                                        ? booking?.paymentStatus
-                                        : "NA"
-                                    )}
-                                  </td>
-                                  <td className="p-2">
+
+                                  <td className="text-center p-2">
                                     <Button
                                       onClick={() => handleViewBooking(booking)}
                                       variant="ghost"

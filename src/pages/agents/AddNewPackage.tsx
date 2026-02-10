@@ -161,6 +161,7 @@ export function AddNewPackage({
         description: pkg.description || "",
         price: pkg.price || "",
         originalPrice: pkg.originalPrice || "",
+        minimumPrice: pkg.minBookingAmt || "",
         duration: pkg.duration || "",
         departureDate: pkg.departureDate?.split("T")[0] || "",
         arrivalDate: pkg.arrivalDate?.split("T")[0] || "",
@@ -331,6 +332,7 @@ export function AddNewPackage({
       description: "",
       price: "",
       originalPrice: "",
+      minimumPrice: "",
       duration: "",
       departureDate: "",
       arrivalDate: "",
@@ -375,6 +377,9 @@ export function AddNewPackage({
           travelType: String(values.travelType),
           price: Number(values.price),
           originalPrice: Number(values.originalPrice),
+          minBookingAmt: values.minimumPrice
+            ? Number(values.minimumPrice)
+            : null,
           totalSeats: Number(values.totalSeats),
           // Convert date inputs into ISO format
           departureDate: values.departureDate
@@ -714,6 +719,23 @@ export function AddNewPackage({
 
                         if (regex.test(value)) {
                           formik.setFieldValue("originalPrice", value);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Minimum Price</Label>
+                    <Input
+                      type="text"
+                      name="minimumPrice"
+                      placeholder="50000.00"
+                      value={formik.values.minimumPrice}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const regex = /^\d{0,36}(\.\d{0,2})?$/;
+
+                        if (regex.test(value)) {
+                          formik.setFieldValue("minimumPrice", value);
                         }
                       }}
                     />
