@@ -4,12 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useRef } from "react";
+import { useReactToPrint } from "react-to-print";
+
 import {
   Search,
   ChevronDown,
   ChevronRight,
   Users,
   AlertCircle,
+  Minus,
+  Plus,
 } from "lucide-react";
 import {
   Collapsible,
@@ -53,7 +58,7 @@ export const ManageBookings = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
@@ -62,6 +67,17 @@ export const ManageBookings = () => {
   const [agentPackages, setAgentPackages] = useState<any[]>([]);
   const [packageBookings, setPackageBookings] = useState<any[]>([]);
   const [usersMap, setUsersMap] = useState<Record<number, any>>({});
+
+  // Track which booking rows are expanded
+  const [expandedBookings, setExpandedBookings] = useState<Set<number>>(
+    new Set(),
+  );
+
+  // Store travelers data bookingId wise
+  const [travelersMap, setTravelersMap] = useState<Record<number, any[]>>({});
+
+  // Track loading for traveler fetch
+  const [travelerLoading, setTravelerLoading] = useState<number | null>(null);
 
   const navigate = useNavigate();
 
@@ -74,15 +90,14 @@ export const ManageBookings = () => {
         `${baseURL}packages/byAgent/${agentId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setAgentPackages(response.data);
     } catch (error) {
       console.error("Package Fetch Error:", error);
     }
   };
-  console.log("agent booking-->", agentPackages);
-  
+
   // Fetch Booking By agent
   // Fetch Booking By agent
   const fetchBookingByPackage = async (packageIds: number[]) => {
@@ -93,7 +108,7 @@ export const ManageBookings = () => {
       const requests = packageIds.map((id) =>
         axios.get(`${baseURL}bookings/byPackage/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
-        })
+        }),
       );
 
       const responses = await Promise.all(requests);
@@ -117,7 +132,7 @@ export const ManageBookings = () => {
       const requests = userIds.map((id) =>
         axios.get(`${baseURL}users/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
-        })
+        }),
       );
 
       const responses = await Promise.all(requests);
@@ -131,6 +146,47 @@ export const ManageBookings = () => {
     } catch (error) {
       console.error("User Fetch Error:", error);
     }
+  };
+
+  const fetchTravelersByBooking = async (bookingId: number) => {
+    try {
+      setTravelerLoading(bookingId);
+
+      const token = sessionStorage.getItem("token");
+
+      const response = await axios.get(
+        `${baseURL}travelers/byBooking/${bookingId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      setTravelersMap((prev) => ({
+        ...prev,
+        [bookingId]: response.data,
+      }));
+    } catch (error) {
+      console.error("Traveler Fetch Error:", error);
+    } finally {
+      setTravelerLoading(null);
+    }
+  };
+
+  const toggleBookingRow = (bookingId: number) => {
+    const newExpanded = new Set(expandedBookings);
+
+    if (newExpanded.has(bookingId)) {
+      newExpanded.delete(bookingId);
+    } else {
+      newExpanded.add(bookingId);
+
+      // Fetch travelers only first time
+      if (!travelersMap[bookingId]) {
+        fetchTravelersByBooking(bookingId);
+      }
+    }
+
+    setExpandedBookings(newExpanded);
   };
 
   useEffect(() => {
@@ -202,11 +258,107 @@ export const ManageBookings = () => {
   };
 
   const filteredPackages = agentPackages.filter((pkg) =>
-    pkg.packageName?.toLowerCase().includes(searchQuery.toLowerCase())
+    pkg.packageName?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+  const getBookingDocumentStatus = (bookingId: number) => {
+    const travelers = travelersMap[bookingId];
 
-  console.log("filteredPackages--->", filteredPackages);
-  
+    // If travelers not loaded yet
+    if (!travelers || travelers.length === 0) {
+      return "pending";
+    }
+
+    const hasPending = travelers.some(
+      (traveler) => traveler.documentStatus?.toLowerCase() !== "complete",
+    );
+
+    return hasPending ? "pending" : "complete";
+  };
+
+  const getDocumentStatusBadge = (status: string) => {
+    if (status === "complete") {
+      return (
+        <Badge className="bg-green-100 text-green-700 border border-green-300">
+          Complete
+        </Badge>
+      );
+    }
+
+    return (
+      <Badge className="bg-yellow-100 text-yellow-700 border border-yellow-300">
+        Pending
+      </Badge>
+    );
+  };
+  const getTravelerDocStatusBadge = (status?: string) => {
+    const normalized = status?.trim().toLowerCase();
+
+    if (normalized === "complete") {
+      return (
+        <Badge className="bg-green-100 text-green-700 border border-green-300">
+          Complete
+        </Badge>
+      );
+    }
+
+    return (
+      <Badge className="bg-yellow-100 text-yellow-700 border border-yellow-300">
+        Pending
+      </Badge>
+    );
+  };
+
+  const expandAllBookings = () => {
+    const allBookingIds = packageBookings.map((b: any) => b.bookingId);
+    setExpandedBookings(new Set(allBookingIds));
+  };
+
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = async () => {
+    expandAllBookings();
+
+    // wait for DOM to update
+    setTimeout(() => {
+      handleReactPrint();
+    }, 500);
+  };
+
+  const handleReactPrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "Bookings Report",
+    pageStyle: `
+    @page {
+      size: A4 landscape;
+      margin: 20mm;
+    }
+
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th, td {
+        border: 1px solid #ccc;
+        padding: 6px;
+        font-size: 11px;
+      }
+
+      thead {
+        display: table-header-group;
+      }
+
+      tr {
+        page-break-inside: avoid;
+      }
+    }
+  `,
+  });
 
   if (loading) {
     return <Loader />;
@@ -245,8 +397,7 @@ export const ManageBookings = () => {
         <div className="space-y-4">
           {filteredPackages.map((pkg) => {
             const bookings = getBookingsByPackageId(pkg.packageId);
-            console.log("bookins--->", bookings);
-            
+
             return (
               <Card key={pkg.packageId} className="p-0">
                 <Collapsible
@@ -269,8 +420,8 @@ export const ManageBookings = () => {
                               </CardTitle>
 
                               <Badge
-                                // variant="secondary"
-                                // className="bg-yellow-100 text-yellow-800 border border-yellow-300"
+                              // variant="secondary"
+                              // className="bg-yellow-100 text-yellow-800 border border-yellow-300"
                               >
                                 {pkg.travelType}
                               </Badge>
@@ -300,110 +451,245 @@ export const ManageBookings = () => {
                   </CollapsibleTrigger>
 
                   <CollapsibleContent>
-                    <CardContent className="pt-0">
-                      <div className="flex justify-end mb-4">
-                        <Button
-                          onClick={() => handleSendNotification(pkg)}
-                          variant="outline"
-                          size="sm"
-                          className="hover:bg-primary/30"
-                        >
-                          Send Notification
-                        </Button>
-                      </div>
-
-                      {bookings.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-8">
-                          No bookings yet for this package
-                        </p>
-                      ) : (
-                        <div className="overflow-x-auto">
-                          <table className="w-full">
-                            <thead>
-                              <tr className="border-b">
-                                <th className="text-center p-2 font-medium">
-                                  Booking ID
-                                </th>
-                                <th className="text-center p-2 font-medium">
-                                  Customer
-                                </th>
-                                <th className="text-center p-2 font-medium">
-                                  Phone
-                                </th>
-                                <th className="text-center p-2 font-medium">
-                                  Email Id
-                                </th>
-                                <th className="text-center p-2 font-medium">
-                                  Travelers
-                                </th>
-                                <th className="text-center p-2 font-medium">
-                                  Document Status
-                                </th>
-                                <th className="text-center p-2 font-medium">
-                                  Booking Status
-                                </th>
-
-                                <th className="text-center p-2 font-medium">
-                                  Actions
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {bookings?.map((booking, index) => (
-                                <tr
-                                  key={booking.bookingId}
-                                  className="border-b hover:bg-primary/20"
-                                >
-                                  <td className="text-center p-2">
-                                    {booking?.bookingRef
-                                      ? booking?.bookingRef
-                                      : `BK-00${index}`}
-                                  </td>
-                                  <td className="text-center p-2">
-                                    {usersMap[booking.userId]
-                                      ? `${
-                                          usersMap[booking.userId].firstName
-                                        } ${usersMap[booking.userId].lastName}`
-                                      : "Loading..."}
-                                  </td>
-                                  <td className="text-center p-2">
-                                    9765197170
-                                  </td>
-                                  <td className="text-center p-2">
-                                    faizahmed@test.com
-                                  </td>
-                                  <td className="text-center p-2">
-                                    {booking.travelerCount}
-                                  </td>
-                                  <td className="text-center p-2">
-                                    <Badge>Pending</Badge>
-                                  </td>
-
-                                  <td className="text-center p-2">
-                                    {getStatusBadge(
-                                      booking?.bookingStatus
-                                        ? booking?.bookingStatus
-                                        : "NA",
-                                    )}
-                                  </td>
-
-                                  <td className="text-center p-2">
-                                    <Button
-                                      onClick={() => handleViewBooking(booking)}
-                                      variant="ghost"
-                                      size="sm"
-                                      className="hover:bg-primary/30"
-                                    >
-                                      View Details
-                                    </Button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                    <div>
+                      <CardContent className="pt-0">
+                        <div className="flex justify-end mt-2 gap-2 mb-4">
+                          <Button
+                            onClick={handlePrint}
+                            size="sm"
+                            className="bg-primary hover:bg-primary/90 text-white shadow-md"
+                          >
+                            Export Report
+                          </Button>
+                          <Button
+                            onClick={() => handleSendNotification(pkg)}
+                            variant="outline"
+                            size="sm"
+                            className="hover:bg-primary/30"
+                          >
+                            Send Notification
+                          </Button>
                         </div>
-                      )}
-                    </CardContent>
+
+                        {bookings.length === 0 ? (
+                          <p className="text-center text-muted-foreground py-8">
+                            No bookings yet for this package
+                          </p>
+                        ) : (
+                          <div className="overflow-x-auto" ref={printRef}>
+                            <table className="w-full">
+                              <thead className="bg-primary/10">
+                                <tr className="border-b">
+                                  <td></td>
+                                  <th className="text-center p-2 font-medium">
+                                    Booking ID
+                                  </th>
+                                  <th className="text-center p-2 font-medium">
+                                    Customer
+                                  </th>
+                                  <th className="text-center p-2 font-medium">
+                                    Phone
+                                  </th>
+                                  <th className="p-2 font-medium">Email Id</th>
+                                  <th className="text-center p-2 font-medium">
+                                    Travelers
+                                  </th>
+                                  <th className="text-center p-2 font-medium">
+                                    Document Status
+                                  </th>
+                                  <th className="text-center p-2 font-medium">
+                                    Booking Status
+                                  </th>
+
+                                  <th className="text-center p-2 font-medium">
+                                    Actions
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {bookings?.map((booking, index) => (
+                                  <>
+                                    {/* MAIN BOOKING ROW */}
+                                    <tr
+                                      key={booking.bookingId}
+                                      className="border-b hover:bg-primary/10"
+                                    >
+                                      <td className="text-center p-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() =>
+                                            toggleBookingRow(booking.bookingId)
+                                          }
+                                        >
+                                          {expandedBookings.has(
+                                            booking.bookingId,
+                                          ) ? (
+                                            <Minus className="h-3 w-3" />
+                                          ) : (
+                                            <Plus className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </td>
+
+                                      <td className="text-center p-2">
+                                        {booking?.bookingRef
+                                          ? booking?.bookingRef
+                                          : `BK-00${index}`}
+                                      </td>
+
+                                      <td className="text-center p-2">
+                                        {usersMap[booking.userId]
+                                          ? `${usersMap[booking.userId].firstName} ${usersMap[booking.userId].lastName}`
+                                          : "Loading..."}
+                                      </td>
+
+                                      <td className="text-center p-2">
+                                        {usersMap[booking.userId]?.phone}
+                                      </td>
+
+                                      <td className="p-2">
+                                        {usersMap[booking.userId]?.email}
+                                      </td>
+
+                                      <td className="text-center p-2">
+                                        {booking.travelerCount}
+                                      </td>
+
+                                      <td className="text-center p-2">
+                                        {getDocumentStatusBadge(
+                                          getBookingDocumentStatus(
+                                            booking.bookingId,
+                                          ),
+                                        )}
+                                      </td>
+
+                                      <td className="text-center p-2">
+                                        {getStatusBadge(
+                                          booking?.bookingStatus
+                                            ? booking?.bookingStatus
+                                            : "NA",
+                                        )}
+                                      </td>
+
+                                      <td className="text-center p-2">
+                                        <Button
+                                          onClick={() =>
+                                            handleViewBooking(booking)
+                                          }
+                                          variant="ghost"
+                                          size="sm"
+                                          className="hover:bg-primary/30"
+                                        >
+                                          View Details
+                                        </Button>
+                                      </td>
+                                    </tr>
+
+                                    {/* NESTED COLLAPSE ROW */}
+                                    {expandedBookings.has(
+                                      booking.bookingId,
+                                    ) && (
+                                      <tr className="bg-muted/30">
+                                        <td colSpan={9} className="p-4">
+                                          {travelerLoading ===
+                                          booking.bookingId ? (
+                                            <p className="text-center">
+                                              Loading travelers...
+                                            </p>
+                                          ) : travelersMap[booking.bookingId]
+                                              ?.length > 0 ? (
+                                            <div className="overflow-x-auto">
+                                              <table className="w-full rounded-lg">
+                                                <thead className="bg-primary/10">
+                                                  <tr>
+                                                    <th className="p-2 font-medium text-center">
+                                                      Sr.No
+                                                    </th>
+                                                    <th className="p-2 font-medium text-center">
+                                                      Name
+                                                    </th>
+                                                    <th className="p-2 font-medium text-center">
+                                                      Mobile
+                                                    </th>
+                                                    <th className="p-2 font-medium text-center">
+                                                      Email Id
+                                                    </th>
+                                                    <th className="p-2 font-medium text-center">
+                                                      Gender
+                                                    </th>
+                                                    <th className="p-2 font-medium text-center">
+                                                      Passport
+                                                    </th>
+                                                    <th className="p-2 font-medium text-center">
+                                                      Visa Type
+                                                    </th>
+                                                    <th className="p-2 font-medium text-center">
+                                                      Document Status
+                                                    </th>
+                                                  </tr>
+                                                </thead>
+                                                <tbody>
+                                                  {travelersMap[
+                                                    booking.bookingId
+                                                  ]?.map((traveler, index) => (
+                                                    <tr
+                                                      key={traveler.travelerId}
+                                                      className="border-b text-center hover:bg-primary/10"
+                                                    >
+                                                      <td className="p-2 text-center">
+                                                        {index + 1}
+                                                      </td>
+                                                      <td className="p-2 text-center">
+                                                        {traveler.firstName}{" "}
+                                                        {traveler.firstName}{" "}
+                                                        {traveler.lastName}
+                                                      </td>
+                                                      <td className="p-2 text-center">
+                                                        {traveler.phoneNumber}
+                                                      </td>
+                                                      <td className="p-2 text-center">
+                                                        {traveler.emailId}
+                                                      </td>
+                                                      <td className="p-2 text-center">
+                                                        {traveler.gender}
+                                                      </td>
+                                                      <td className="p-2 text-center">
+                                                        {
+                                                          traveler.passportNumber
+                                                        }
+                                                      </td>
+                                                      <td className="p-2 text-center">
+                                                        {getTravelerDocStatusBadge(
+                                                          traveler.visaStatus,
+                                                        )}
+                                                      </td>
+                                                      <td className="p-2 text-center">
+                                                        {getTravelerDocStatusBadge(
+                                                          traveler.documentStatus,
+                                                        )}
+                                                      </td>
+                                                    </tr>
+                                                  ))}
+                                                </tbody>
+                                              </table>
+                                            </div>
+                                          ) : (
+                                            <p className="text-center text-muted-foreground">
+                                              No travelers found
+                                            </p>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </CardContent>
+                    </div>
                   </CollapsibleContent>
                 </Collapsible>
               </Card>

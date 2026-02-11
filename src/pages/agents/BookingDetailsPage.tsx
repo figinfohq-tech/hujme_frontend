@@ -25,6 +25,7 @@ import {
   X,
   AlertCircle,
   Users,
+  ArrowLeft,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { TravelerDocumentCard } from "@/components/TravelerDocumentCard";
@@ -313,15 +314,33 @@ export const BookingDetailsPage = ({
     if (booking.bookingId) {
       fetchTravelersWithDocuments();
     }
-  }, [booking.bookingId]);
+  }, [booking.bookingId]);  
 
   return (
     <>
       <div className="space-y-4">
         {/* header */}
-        <h1 className="text-3xl font-bold text-primary">
-          Booking Details - {booking.bookingId}
-        </h1>
+       {/* HEADER */}
+<div className="flex items-center justify-between">
+  {/* Left Section */}
+  <div className="flex items-center gap-4">
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => navigate(-1)}
+      className="h-9 w-9"
+    >
+      <ArrowLeft className="h-3 w-4" size={25} />
+    </Button>
+
+    <div>
+      <h1 className="text-2xl font-semibold">
+        Booking Details
+      </h1>
+    </div>
+  </div>
+</div>
+
         {/* Booking Summary */}
         <Card className="p-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

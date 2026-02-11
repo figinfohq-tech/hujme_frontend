@@ -40,7 +40,6 @@ const HotelViewDetails = ({ packageId }) => {
   if (isLoading) {
     return <Loader />;
   }
-  console.log("hotels--->", basicHotelDetails);
 
   return (
     <div className="w-full p-3">

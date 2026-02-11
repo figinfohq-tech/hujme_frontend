@@ -49,7 +49,7 @@ const PackageBasicView = ({ packageId }) => {
   return (
     <div className="p-2">
       {/* Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-3">
         {/* Seat Information */}
         <div className="shadow-lg p-2 border rounded-xl lg:col-span-2">
           <div>
@@ -78,7 +78,8 @@ const PackageBasicView = ({ packageId }) => {
           </div>
         </div>
         {/* Basic Details */}
-        <div className="shadow-md rounded-xl border border-gray-200 p-2">
+        <div className="shadow-md flex gap-20 px-5 rounded-xl border border-gray-200 p-2">
+        <div>
           {/* Title */}
           <div className="flex items-center text-lg font-semibold text-primary pb-0 pt-0">
             <User className="w-5 h-5 text-primary mr-1" />
@@ -98,14 +99,9 @@ const PackageBasicView = ({ packageId }) => {
 
             <span className="font-semibold text-primary">Duration:</span>
             <span>{basicDetails.duration} Days</span>
-
-            <span className="font-semibold text-primary">Description:</span>
-            <p className="text-gray-600">{basicDetails.description}</p>
           </div>
         </div>
-
-        {/* Prices */}
-        <div className="shadow-md rounded-xl border border-gray-200 p-2">
+         <div>
           {/* Title */}
           <div className="flex items-center text-lg font-semibold text-primary pb-0">
             {/* <DollarSign className="w-5 h-5 text-primary mr-1" /> */}
@@ -116,95 +112,18 @@ const PackageBasicView = ({ packageId }) => {
           {/* Content */}
           <div className="text-gray-700 text-sm mt-2 space-y-2">
             <div className="flex">
-              <span className="font-semibold text-primary w-50">Price : </span>₹
-              {basicDetails.price.toLocaleString()}
+              <span className="font-semibold text-primary w-50">Price : </span><span className="text-lg font-bold text-primary">₹
+              {basicDetails.price.toLocaleString()} </span>
             </div>
 
             <div className="flex">
               <span className="font-semibold text-primary w-50">
                 Original Price :{" "}
               </span>
-              ₹{basicDetails.originalPrice.toLocaleString()}
-            </div>
-
-            <div>
-              <span className="font-semibold text-primary">Notes : </span>
-              <span className="text-gray-600 leading-tight">
-                {basicDetails.notes || "N/A"}
-              </span>
+             <span className="text-lg font-bold text-primary">₹{basicDetails.originalPrice.toLocaleString()}</span>
             </div>
           </div>
         </div>
-
-        {/* Travel Details */}
-        <div className="shadow-md rounded-xl border border-gray-200 p-2">
-          {/* Title */}
-          <div className="flex items-center text-lg font-semibold text-primary pb-0">
-            <Plane className="w-5 h-5 text-primary mr-1" />
-            Travel Details
-          </div>
-
-          {/* Content */}
-          <div className="text-gray-700 text-sm mt-2 space-y-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-primary w-40">
-                Departure Date:
-              </span>
-              {basicDetails.departureDate?.slice(0, 10)}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-primary w-40">
-                Arrival Date:
-              </span>
-              {basicDetails.arrivalDate?.slice(0, 10)}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-primary w-40">
-                Departure Time:
-              </span>
-              {basicDetails.departureTime?.slice(11, 16)}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-primary w-40">
-                Arrival Time:
-              </span>
-              {basicDetails.arrivalTime?.slice(11, 16)}
-            </div>
-          </div>
-        </div>
-
-        {/* Location */}
-        <div className="shadow-lg rounded-xl border border-gray-200 p-2">
-          {/* Title */}
-          <div className="flex items-center text-primary text-lg font-semibold pb-0 gap-1">
-            <MapPin className="w-5 h-5 text-primary" />
-            Location
-          </div>
-
-          {/* Content */}
-          <div className="text-gray-700 text-sm mt-2 space-y-2">
-            <div className="flex">
-              <span className="font-semibold text-primary w-50">Country:</span>{" "}
-              {basicDetails.countryId}
-            </div>
-
-            <div className="flex">
-              <span className="font-semibold text-primary w-50">State:</span>{" "}
-              {basicDetails.stateName}
-            </div>
-
-            <div className="flex">
-              <span className="font-semibold text-primary w-50">City:</span>{" "}
-              {basicDetails.cityName}
-            </div>
-          </div>
         </div>
       </div>
     </div>

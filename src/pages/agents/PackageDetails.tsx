@@ -230,25 +230,25 @@ const PackageDetails = () => {
     <div className="min-h-screen bg-background">
       {/* <Header /> */}
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4">
         {/* Back Button */}
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
-          className="mb-6 text-muted-foreground hover:text-foreground"
+          className="mb-3 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Search Results
         </Button>
 
-        <div className="grid grid-cols-1 bg-white-900 border rounded-xl shadow p-10 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 bg-white-900 border rounded-xl shadow p-5 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2">
+          <div>
             {/* Package Header */}
-            <div className="mb-8 bg-background rounded-xl shadow-sm border overflow-hidden">
+            <div className="mb-5 bg-background rounded-xl shadow-sm border overflow-hidden">
               <div className="flex flex-col md:flex-row items-stretch overflow-hidden">
                 {/* LEFT: Image */}
-                <div className="md:w-1/3 w-full bg-white flex">
+                <div className="md:w-1/4 w-full bg-white flex">
                   <img
                     src={agentLogo || "/placeholder.svg"}
                     alt="Agent Logo"
@@ -306,18 +306,46 @@ const PackageDetails = () => {
                     </div>
 
                     {/* Facilities */}
-                    <div className="flex flex-wrap gap-2">
-                      {packageFacilities
-                        ?.filter((f) => f.featured)
-                        .map((f, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="text-sm"
-                          >
-                            {f.facilityDetails?.facilityName}
-                          </Badge>
-                        ))}
+                    {/* Facilities + Book Button */}
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4">
+                      {/* Featured Facilities */}
+                      <div className="flex flex-wrap gap-2">
+                        {packageFacilities
+                          ?.filter((f) => f.featured)
+                          .map((f, index) => (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="text-sm"
+                            >
+                              {f.facilityDetails?.facilityName}
+                            </Badge>
+                          ))}
+                      </div>
+
+                      {/* Book Now Button */}
+                      <div className="md:w-auto w-full flex justify-end">
+                        <Button
+                          disabled={!packageDetail}
+                          onClick={() => {
+                            if (!packageDetail) return;
+
+                            navigate("/booking-detail", {
+                              state: {
+                                packageData: {
+                                  id: packageDetail?.packageId,
+                                  title: packageDetail?.packageName,
+                                  price: packageDetail?.price,
+                                  duration: packageDetail?.duration,
+                                },
+                              },
+                            });
+                          }}
+                          className="px-6 bg-gradient-button text-primary-foreground hover:opacity-90 transition-all duration-200"
+                        >
+                          Book Now
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -475,7 +503,7 @@ const PackageDetails = () => {
           </div>
 
           {/* Booking Sidebar */}
-          <div className="lg:col-span-1">
+          {/* <div className="lg:col-span-1">
             <Card className="sticky top-4">
               <CardContent className="p-6">
                 <div className="text-center mb-6">
@@ -513,7 +541,7 @@ const PackageDetails = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
         </div>
       </main>
       {selectedPackage && (

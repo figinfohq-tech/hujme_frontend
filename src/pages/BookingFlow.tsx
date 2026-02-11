@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format as formatDateFn } from "date-fns";
-import { CalendarIcon, Plus, Trash2, Check } from "lucide-react";
+import { CalendarIcon, Plus, Trash2, Check, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -355,6 +355,17 @@ export const BookingFlow: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <Card>
+          <div className="flex mx-5 justify-start">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          </div>
+
           <CardHeader>
             <CardTitle>Booking Details</CardTitle>
           </CardHeader>
@@ -424,9 +435,7 @@ export const BookingFlow: React.FC = () => {
                       </div>
 
                       <div>
-                        <Label className="mb-2">
-                          Middle Name
-                        </Label>
+                        <Label className="mb-2">Middle Name</Label>
 
                         <Input
                           value={traveler.middleName}
@@ -595,7 +604,8 @@ export const BookingFlow: React.FC = () => {
 
                       <div>
                         <Label htmlFor={`passport-${index}`} className="mb-2">
-                          Passport Number <span className="text-red-500">*</span>
+                          Passport Number{" "}
+                          <span className="text-red-500">*</span>
                         </Label>
                         <Input
                           id={`passport-${index}`}

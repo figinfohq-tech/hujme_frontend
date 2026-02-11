@@ -161,8 +161,6 @@ const ComparePackages = () => {
     }
   };
 
-  console.log("packagess---->", packages);
-
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8">
@@ -245,9 +243,7 @@ const ComparePackages = () => {
                           </div>
 
                           <div className="text-xs text-muted-foreground">
-                            <Badge variant="secondary">
-                            {pkg.packageType}
-                            </Badge>
+                            <Badge variant="secondary">{pkg.packageType}</Badge>
                           </div>
                         </div>
                       </div>
@@ -299,10 +295,7 @@ const ComparePackages = () => {
                   <td className="border p-3 font-medium">Duration</td>
                   {packages.map((pkg) => (
                     <td key={pkg.packageId} className="border p-3 text-center">
-                      <Badge>
-
-                      {`${pkg?.duration} Days`}
-                      </Badge>
+                      <Badge>{`${pkg?.duration} Days`}</Badge>
                     </td>
                   ))}
                 </tr>
