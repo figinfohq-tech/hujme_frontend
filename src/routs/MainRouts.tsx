@@ -35,6 +35,7 @@ import SubscriptionPage from "@/pages/agents/SubscriptionPage";
 import UpgradeSubscriptionPage from "@/pages/agents/UpgradeSubscriptionPage";
 import ChoosePaymentOption from "@/pages/user/ChoosePaymentOption";
 import PaymentProcessComfirm from "@/pages/user/PaymentProcessComfirm";
+import UserBookingView from "@/pages/user/UserBookingView";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
@@ -95,7 +96,7 @@ const MainRouts = () => {
               <Route path="/customer/compare" element={<ComparePackages />} />
               <Route path="bookings" element={<BookingsPage />} />
               <Route path="ducoments" element={<DocumentsPage />} />
-              <Route path="booking-view" element={<BookingViewPage />} />
+              <Route path="booking-view" element={<UserBookingView />} />
               <Route path="profiles" element={<UserProfle />} />
               <Route path="analytics" element={<h1>Analytics Page</h1>} />
               <Route path="reviews" element={<ReviewsPage />} />

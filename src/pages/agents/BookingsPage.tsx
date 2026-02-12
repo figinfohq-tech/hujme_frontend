@@ -516,13 +516,13 @@ export const BookingsPage = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "confirmed":
+      case "CONFIRMED":
         return "bg-green-100 text-green-800 border-green-200";
-      case "pending":
+      case "PENDING":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "rejected":
+      case "REJECTED":
         return "bg-red-100 text-red-800 border-red-200";
-      case "cancelled":
+      case "CANCELLED":
         return "bg-gray-100 text-gray-800 border-gray-200";
       case "partially_cancelled":
         return "bg-orange-100 text-orange-800 border-orange-200";
@@ -535,13 +535,13 @@ export const BookingsPage = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "confirmed":
+      case "CONFIRMED":
         return <CheckCircle className="h-4 w-4" />;
-      case "pending":
+      case "PENDING":
         return <Clock className="h-4 w-4" />;
-      case "rejected":
+      case "REJECTED":
         return <XCircle className="h-4 w-4" />;
-      case "cancelled":
+      case "CANCELLED":
         return <XCircle className="h-4 w-4" />;
       case "partially_cancelled":
         return <AlertTriangle className="h-4 w-4" />;
@@ -1059,18 +1059,18 @@ export const BookingsPage = () => {
 
     if (isLoading) {
       return <Loader />;
-    }    
+    }
 
     return (
       <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <CardTitle className="text-lg">
+              <CardTitle className="text-lg text-primary">
                 {booking.packageDetails?.packageName}
               </CardTitle>
-              <CardDescription className="flex items-center gap-2">
-                <span>{booking?.agentName}</span>
+              <CardDescription className="flex items-center text-primary/70 gap-2">
+                <span>{booking.packageDetails?.agentName}</span>
                 <Badge variant="outline" className="text-xs">
                   {booking.packageDetails?.travelType}
                 </Badge>
@@ -1094,7 +1094,7 @@ export const BookingsPage = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="h-4 w-4 text-primary/70" />
               <span>
                 {booking.packageDetails?.departureDate
                   ? formatDate(booking.packageDetails?.departureDate)
@@ -1102,11 +1102,11 @@ export const BookingsPage = () => {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <MapPin className="h-4 w-4 text-primary/70" />
               <span>{booking.packageDetails?.cityName}, {booking.packageDetails?.stateName}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Users className="h-4 w-4 text-primary/70" />
               <span>
                 {booking.travelerCount} Active
                 {/* {cancelledCount > 0 && (
@@ -1117,8 +1117,11 @@ export const BookingsPage = () => {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>{booking.packageDetails?.duration}</span>
+              <Clock className="h-4 w-4 text-primary/70" />
+              {
+                booking.packageDetails?.duration ?
+                <span>{`${booking.packageDetails?.duration} Days`}</span>:""
+              }
             </div>
           </div>
 
@@ -1207,7 +1210,7 @@ export const BookingsPage = () => {
               <p
                 className={`text-sm ${getPaymentStatusColor(
                   booking.paymentStatus
-                )}`}
+                )} text-secondary`}
               >
                 Paid: {formatCurrency(booking.packageDetails?.price)}
               </p>

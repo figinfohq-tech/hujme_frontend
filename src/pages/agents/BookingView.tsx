@@ -275,23 +275,24 @@ const BookingViewPage = () => {
   return (
     <div className="pb-8 ">
       {/* Back Button */}
-      <Button
+      <div className="max-w-full container mx-auto px-4  ">
+        <div className="flex my-3">
+        <Button
         variant="ghost"
         onClick={() => navigate(-1)}
-        className="text-muted-foreground hover:text-foreground"
+        className="text-muted-foreground hover:text-foreground my-3"
       >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to My Bookings
+        <ArrowLeft className="w-5 h-5 mr-2" />
       </Button>
-      <div className="max-w-full container mx-auto px-4  ">
-        <div className="my-5">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Booking Details - {selectedBooking?.id}
+        <div className="my-2">
+          <h1 className="text-2xl font-bold text-primary">
+            Booking Details
           </h1>
 
-          <p className="text-gray-600 text-sm mt-1">
+          <p className="text-primary/90 text-sm mt-1">
             Complete information about your booking
           </p>
+        </div>
         </div>
 
         {selectedBooking && (
