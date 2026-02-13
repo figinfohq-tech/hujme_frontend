@@ -44,6 +44,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
+import Loader from "@/components/Loader";
 
 interface Document {
   id: string;
@@ -101,7 +102,7 @@ const requiredDocuments = [
 
 export const DocumentsPage = () => {
   const [selectedPilgrim, setSelectedPilgrim] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [selectedBookingId, setSelectedBookingId] = useState<any>();
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -128,7 +129,7 @@ export const DocumentsPage = () => {
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: "blob",
-        }
+        },
       );
 
       const blob = response.data;
@@ -172,7 +173,7 @@ export const DocumentsPage = () => {
         `${baseURL}documents/byTraveler/${selectedPilgrim}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       const apiDocs = response.data;
@@ -234,7 +235,7 @@ export const DocumentsPage = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       toast.success("Document replaced successfully");
@@ -258,14 +259,14 @@ export const DocumentsPage = () => {
   // get documents api called
 
   const currentPilgrim = travelers.find(
-    (t) => String(t.travelerId) === String(selectedPilgrim)
+    (t) => String(t.travelerId) === String(selectedPilgrim),
   );
 
   // Filter documents for selected pilgrim
   const pilgrimDocuments = documents.filter(
     (d) =>
       String(d.pilgrimId) === String(selectedPilgrim) &&
-      String(d.bookingId) === String(selectedBookingId)
+      String(d.bookingId) === String(selectedBookingId),
   );
 
   const fileToBase64 = (file: File): Promise<string> => {
@@ -318,7 +319,7 @@ export const DocumentsPage = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       toast.success("Document uploaded successfully");
       fetchDocumentsByBooking();
@@ -375,7 +376,7 @@ export const DocumentsPage = () => {
             Authorization: `Bearer ${token}`,
           },
           responseType: "blob",
-        }
+        },
       );
 
       //  Get content-type from backend response
@@ -472,7 +473,7 @@ export const DocumentsPage = () => {
       const packageRequests = bookingUser.map((user: any) =>
         axios.get(`${baseURL}packages/${user.packageId}`, {
           headers: { Authorization: `Bearer ${token}` },
-        })
+        }),
       );
 
       // sab APIs ek sath call hongi
@@ -501,7 +502,7 @@ export const DocumentsPage = () => {
         `${baseURL}travelers/byBooking/${selectedBookingId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setTravelers(response.data);
     } catch (error) {
@@ -522,6 +523,10 @@ export const DocumentsPage = () => {
       fetchTravelersByID();
     }
   }, [selectedBookingId]);
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <div className="space-y-8 p-4">

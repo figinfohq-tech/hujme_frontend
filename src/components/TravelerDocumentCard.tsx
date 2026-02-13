@@ -48,8 +48,10 @@ export const TravelerDocumentCard = ({
   const [previewType, setPreviewType] = useState<"image" | "pdf" | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [viewDocument, setViewDocument] = useState<TravelerDocument | null>(
-    null
+    null,
   );
+
+  console.log("document--->", document);
 
   const getStatusConfig = (status: string) => {
     const configs: Record<
@@ -70,7 +72,7 @@ export const TravelerDocumentCard = ({
       pending: {
         icon: Clock,
         variant: "secondary",
-        label: "Awaiting Review",
+        label: "Awaiting",
         color: "text-orange-600 dark:text-orange-400",
       },
       rejected: {
@@ -118,7 +120,7 @@ export const TravelerDocumentCard = ({
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: "blob",
-        }
+        },
       );
 
       const blob = response.data;
@@ -148,7 +150,7 @@ export const TravelerDocumentCard = ({
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: "blob",
-        }
+        },
       );
 
       const blob = response.data;
@@ -185,12 +187,80 @@ export const TravelerDocumentCard = ({
 
   return (
     <>
-      <Card
+      <div
         className={`p-3 ${
           isLocked ? "bg-green-50/50 dark:bg-green-950/20" : ""
         }`}
       >
-        <div className="flex items-start justify-between gap-3">
+        <div className="border rounded-xl p-4 bg-white dark:bg-muted/30 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-4 h-full">
+          {/* Top Section */}
+          <div className="space-y-2">
+            {/* Title Row */}
+            <div className="flex items-start justify-between gap-2">
+              <p className="font-semibold text-sm truncate">{document.type}</p>
+
+              {isLocked && (
+                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-900">
+                  <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
+                </div>
+              )}
+            </div>
+
+            {/* Status Badge */}
+            <Badge
+              variant={statusConfig.variant}
+              className="w-fit gap-1 text-xs capitalize"
+            >
+              <StatusIcon className="h-3 w-3" />
+              {document.status.replace("_", " ")}
+            </Badge>
+
+            {/* Upload Date */}
+            <p className="text-xs text-muted-foreground">
+              Uploaded on{" "}
+              <span className="font-medium">
+                {new Date(document.uploaded_at).toLocaleDateString()}
+              </span>
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          {!isLocked && (
+            <div className="flex items-center justify-between pt-2 border-t">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 hover:bg-primary/10"
+                onClick={() => {
+                  setViewDocument(document);
+                  fetchViewImage(document);
+                }}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowVerifyDialog(true)}
+                className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
+              >
+                <CheckCircle className="h-4 w-4" />
+              </Button>
+
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowRejectDialog(true)}
+                className="h-8 w-8 p-0 text-red-600 hover:bg-red-100"
+              >
+                <XCircle className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <p className="font-medium text-sm truncate">{document.type}</p>
@@ -240,7 +310,7 @@ export const TravelerDocumentCard = ({
               </Button>
             </div>
           )}
-        </div>
+        </div> */}
 
         {document.rejection_reason && (
           <div className="mt-3 p-2 bg-destructive/10 border border-destructive/20 rounded text-xs">
@@ -261,7 +331,7 @@ export const TravelerDocumentCard = ({
             This document has been verified and locked from further edits
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Document Preview Dialog */}
       <Dialog

@@ -70,6 +70,9 @@ export const BookingFlow: React.FC = () => {
   const { packageData } = (location.state || {}) as {
     packageData?: PackageData;
   };
+
+  const existingBooking = packageData?.booking || null;
+
   const bookingIdNumber = Number(packageData?.id) || 0;
 
   const [step, setStep] = useState<number>(1);
@@ -240,14 +243,33 @@ export const BookingFlow: React.FC = () => {
       bookingApiCalledRef.current = true;
       const token = sessionStorage.getItem("token") || "";
 
-      // ✅ BOOKING API — ONLY ONCE
-      const newBooking = await bookingPackages(travelers.length);
-      setBooking(newBooking);
+      let finalBookingId: number | null = existingBooking?.bookingId ?? null;
+
+      let bookingToSend = existingBooking ?? null;
+
+      // ✅ Only call booking API if no existing booking
+      if (!finalBookingId) {
+        const newBooking = await bookingPackages(travelers.length);
+
+        if (!newBooking?.bookingId) {
+          throw new Error("Booking creation failed");
+        }
+
+        setBooking(newBooking);
+        finalBookingId = newBooking.bookingId;
+
+        bookingToSend = newBooking;
+      }
+
+      // 🔒 Safety check
+      if (!finalBookingId) {
+        throw new Error("Booking ID not found");
+      }
 
       // Loop through ALL travelers
       for (let t of travelers) {
         const payload: TravelerPayload = {
-          bookingId: Number(newBooking?.bookingId),
+          bookingId: Number(finalBookingId),
           alternateNumber: t.alternateNumber || "",
           createdBy: t.createdBy || "string",
           dateOfBirth: formatDate(t.dateOfBirth),
@@ -282,8 +304,9 @@ export const BookingFlow: React.FC = () => {
 
       toast.success("All travelers submitted successfully!");
       navigate("/payment-option", {
-        state: { booking: newBooking },
+        state: { booking: bookingToSend },
       });
+
       // 🔥 RESET FORM HERE
       setTravelers([
         {
@@ -374,7 +397,7 @@ export const BookingFlow: React.FC = () => {
             <div className="p-4 bg-accent rounded-lg">
               <h3 className="font-semibold text-lg">{packageData?.title}</h3>
               <p className="text-sm text-muted-foreground">
-                {packageData?.duration}
+                {`${packageData?.duration} Days`}
               </p>
               <p className="font-semibold text-lg">
                 ₹{(packageData?.price || 0).toLocaleString()} per person

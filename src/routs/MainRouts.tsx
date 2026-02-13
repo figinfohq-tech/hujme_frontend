@@ -86,8 +86,7 @@ const MainRouts = () => {
           {/* Role Based */}
           {role === "USER" ? (
             <Route path="/" element={<UserSideBar />}>
-              <Route index element={<User />} />
-              <Route path="packages" element={<Home />} />
+              <Route index element={<Home />} />
               <Route path="/customer/search" element={<SearchResults />} />
               <Route
                 path="/customer/package/:id"
@@ -110,8 +109,7 @@ const MainRouts = () => {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<h1>Overview Page</h1>} />
-              <Route path="packages" element={<Packages />} />
+              <Route index element={<Packages />} />
               <Route path="add-package" element={<AddNewPackage />} />
               <Route path="view-package" element={<PackageView />} />
               <Route path="bookings" element={<ManageBookings />} />

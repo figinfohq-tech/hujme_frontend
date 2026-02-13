@@ -427,7 +427,7 @@ export const BookingsPage = () => {
   const [isProcessingRefund, setIsProcessingRefund] = useState(false);
   const [selectedPilgrims, setSelectedPilgrims] = useState<string[]>([]);
   const [cancellationType, setCancellationType] = useState<"full" | "partial">(
-    "full"
+    "full",
   );
   const [refundMethod, setRefundMethod] = useState<
     "bank_account" | "original_payment" | "wallet"
@@ -474,14 +474,14 @@ export const BookingsPage = () => {
         bookingList.map(async (booking) => {
           const res = await axios.get(
             `${baseURL}packages/${booking.packageId}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: { Authorization: `Bearer ${token}` } },
           );
 
           return {
             ...booking,
             packageDetails: res.data, // 🔥 attach package
           };
-        })
+        }),
       );
 
       setBookings1(updatedBookings); // ✅ bookings now enriched
@@ -655,7 +655,7 @@ export const BookingsPage = () => {
   const calculateRefundAmount = (booking: Booking, pilgrimIds?: string[]) => {
     const daysToDeparture = Math.ceil(
       (booking.departureDate.getTime() - new Date().getTime()) /
-        (1000 * 60 * 60 * 24)
+        (1000 * 60 * 60 * 24),
     );
 
     // Find applicable refund percentage
@@ -701,7 +701,7 @@ export const BookingsPage = () => {
 
     if (amount <= 0 || amount > remainingAmount) {
       toast.error(
-        `Please enter a valid amount (max: ${formatCurrency(remainingAmount)})`
+        `Please enter a valid amount (max: ${formatCurrency(remainingAmount)})`,
       );
       return;
     }
@@ -746,8 +746,8 @@ export const BookingsPage = () => {
                     ? "confirmed"
                     : booking.status,
               }
-            : booking
-        )
+            : booking,
+        ),
       );
 
       // Update selected booking for immediate UI update
@@ -763,7 +763,7 @@ export const BookingsPage = () => {
       setSelectedBooking(updatedBooking);
 
       toast.success(
-        `Payment of ${formatCurrency(amount)} processed successfully!`
+        `Payment of ${formatCurrency(amount)} processed successfully!`,
       );
       setPaymentAmount("");
       setPaymentMethod("");
@@ -797,7 +797,7 @@ export const BookingsPage = () => {
         cancellationType === "full" ? undefined : selectedPilgrims;
       const refundCalculation = calculateRefundAmount(
         selectedBooking,
-        pilgrimIdsToCancel
+        pilgrimIdsToCancel,
       );
 
       // Create refund transaction if there's a refund amount
@@ -851,10 +851,10 @@ export const BookingsPage = () => {
             });
 
             const activePilgrims = updatedPilgrims.filter(
-              (p) => p.status === "active"
+              (p) => p.status === "active",
             );
             const cancelledPilgrims = updatedPilgrims.filter(
-              (p) => p.status === "cancelled"
+              (p) => p.status === "cancelled",
             );
 
             if (activePilgrims.length === 0) {
@@ -883,20 +883,20 @@ export const BookingsPage = () => {
               ? [...booking.refundTransactions, refundTransaction]
               : booking.refundTransactions,
           };
-        })
+        }),
       );
 
       if (refundCalculation.refundAmount > 0) {
         toast.success(
           `Cancellation successful! Refund of ${formatCurrency(
-            refundCalculation.refundAmount
-          )} has been initiated.`
+            refundCalculation.refundAmount,
+          )} has been initiated.`,
         );
 
         // Auto-open refund dialog for bank details if needed
         if (refundCalculation.refundAmount > 0) {
           const updatedBooking = bookings.find(
-            (b) => b.id === selectedBooking.id
+            (b) => b.id === selectedBooking.id,
           );
           if (updatedBooking) {
             setSelectedBooking(updatedBooking);
@@ -905,7 +905,7 @@ export const BookingsPage = () => {
         }
       } else {
         toast.success(
-          "Cancellation successful. No refund applicable as per cancellation policy."
+          "Cancellation successful. No refund applicable as per cancellation policy.",
         );
       }
 
@@ -926,7 +926,7 @@ export const BookingsPage = () => {
     if (!selectedBooking) return;
 
     const pendingRefund = selectedBooking.refundTransactions.find(
-      (r) => r.status === "initiated"
+      (r) => r.status === "initiated",
     );
     if (!pendingRefund) {
       toast.error("No pending refund found");
@@ -966,11 +966,11 @@ export const BookingsPage = () => {
             ? {
                 ...booking,
                 refundTransactions: booking.refundTransactions.map((refund) =>
-                  refund.id === pendingRefund.id ? updatedRefund : refund
+                  refund.id === pendingRefund.id ? updatedRefund : refund,
                 ),
               }
-            : booking
-        )
+            : booking,
+        ),
       );
 
       // Simulate refund completion after delay
@@ -980,35 +980,36 @@ export const BookingsPage = () => {
             booking.id === selectedBooking.id
               ? {
                   ...booking,
-                  refundTransactions: booking.refundTransactions.map((refund) =>
-                    refund.id === pendingRefund.id
-                      ? {
-                          ...refund,
-                          status: "completed" as const,
-                          actualCompletionDate: new Date(),
-                        }
-                      : refund
+                  refundTransactions: booking.refundTransactions.map(
+                    (refund) =>
+                      refund.id === pendingRefund.id
+                        ? {
+                            ...refund,
+                            status: "completed" as const,
+                            actualCompletionDate: new Date(),
+                          }
+                        : refund,
                   ),
                 }
-              : booking
-          )
+              : booking,
+          ),
         );
 
         toast.success(
           `Refund of ${formatCurrency(
-            pendingRefund.amount
-          )} completed successfully!`
+            pendingRefund.amount,
+          )} completed successfully!`,
         );
       }, 5000);
 
       toast.success(
         `Refund processing initiated. You will receive ${formatCurrency(
-          pendingRefund.amount
+          pendingRefund.amount,
         )} in ${
           refundMethod === "bank_account"
             ? "3-5 business days"
             : "1-2 business days"
-        }.`
+        }.`,
       );
       setIsRefundOpen(false);
       setBankDetails({
@@ -1103,7 +1104,10 @@ export const BookingsPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-primary/70" />
-              <span>{booking.packageDetails?.cityName}, {booking.packageDetails?.stateName}</span>
+              <span>
+                {booking.packageDetails?.cityName},{" "}
+                {booking.packageDetails?.stateName}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-primary/70" />
@@ -1118,10 +1122,11 @@ export const BookingsPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary/70" />
-              {
-                booking.packageDetails?.duration ?
-                <span>{`${booking.packageDetails?.duration} Days`}</span>:""
-              }
+              {booking.packageDetails?.duration ? (
+                <span>{`${booking.packageDetails?.duration} Days`}</span>
+              ) : (
+                ""
+              )}
             </div>
           </div>
 
@@ -1140,7 +1145,7 @@ export const BookingsPage = () => {
                 <div className="mt-2">
                   <Badge
                     className={getRefundStatusColor(
-                      booking.refundTransactions[0].status
+                      booking.refundTransactions[0].status,
                     )}
                   >
                     <RefreshCw className="h-3 w-3 mr-1" />
@@ -1167,7 +1172,7 @@ export const BookingsPage = () => {
                 <div className="mt-2">
                   <Badge
                     className={getRefundStatusColor(
-                      booking.refundTransactions[0].status
+                      booking.refundTransactions[0].status,
                     )}
                   >
                     <RefreshCw className="h-3 w-3 mr-1" />
@@ -1188,7 +1193,7 @@ export const BookingsPage = () => {
                 <span>Trip Progress</span>
                 <span>
                   {Math.round(
-                    getOverallMilestoneProgress(booking.travelerCount)
+                    getOverallMilestoneProgress(booking.travelerCount),
                   )}
                   %
                 </span>
@@ -1204,12 +1209,12 @@ export const BookingsPage = () => {
             <div className="space-y-1">
               <p className="text-lg font-semibold">
                 {formatCurrency(
-                  booking.packageDetails?.price * booking.travelerCount
+                  booking.packageDetails?.price * booking.travelerCount,
                 )}
               </p>
               <p
                 className={`text-sm ${getPaymentStatusColor(
-                  booking.paymentStatus
+                  booking.paymentStatus,
                 )} text-secondary`}
               >
                 Paid: {formatCurrency(booking.packageDetails?.price)}
@@ -1262,29 +1267,62 @@ export const BookingsPage = () => {
               )} */}
 
               {/* Cancel Button */}
-              {(booking.status === "confirmed" ||
-                booking.status === "pending" ||
-                booking.status === "partially_cancelled") &&
-                activeCount > 0 && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedBooking(booking);
-                      setSelectedPilgrims([]);
-                      setCancellationType(
-                        booking.pilgrims.filter((p) => p.status === "active")
-                          .length > 1
-                          ? "full"
-                          : "full"
-                      );
-                      setIsCancelOpen(true);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                )}
+              {activeCount > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  // onClick={() => {
+                  //   setSelectedBooking(booking);
+                  //   setSelectedPilgrims([]);
+                  //   setCancellationType(
+                  //     booking.pilgrims.filter((p) => p.status === "active")
+                  //       .length > 1
+                  //       ? "full"
+                  //       : "full"
+                  //   );
+                  //   setIsCancelOpen(true);
+                  // }}
+                >
+                  Cancel
+                </Button>
+              )}
             </div>
+          </div>
+          <div>
+            {/* <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-primary border-primary hover:bg-primary/5"
+                // onClick={() => {
+                //   setSelectedBooking(booking)
+                //   resetAddPilgrimForm()
+                //   setIsAddPilgrimOpen(true)
+                // }}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add New Pilgrim
+              </Button> */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-primary border-primary hover:bg-primary/5"
+              onClick={() =>
+                navigate("/booking-detail", {
+                  state: {
+                    packageData: {
+                      booking: booking,
+                      id: booking?.packageId.toLocaleString(),
+                      title: booking?.packageDetails?.packageName,
+                      price: booking?.totalAmt,
+                      duration: booking?.packageDetails?.duration,
+                    },
+                  },
+                })
+              }
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add New Pilgrim
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -1560,7 +1598,7 @@ export const BookingsPage = () => {
                           <span className="font-medium text-red-600">
                             {formatCurrency(
                               selectedBooking.totalAmount -
-                                selectedBooking.amountPaid
+                                selectedBooking.amountPaid,
                             )}
                           </span>
                         </div>
@@ -1571,7 +1609,7 @@ export const BookingsPage = () => {
                         </span>
                         <Badge
                           className={getPaymentStatusColor(
-                            selectedBooking.paymentStatus
+                            selectedBooking.paymentStatus,
                           )}
                         >
                           {selectedBooking.paymentStatus
@@ -1592,7 +1630,7 @@ export const BookingsPage = () => {
                               {Math.round(
                                 (selectedBooking.amountPaid /
                                   selectedBooking.totalAmount) *
-                                  100
+                                  100,
                               )}
                               %
                             </span>
@@ -1627,7 +1665,7 @@ export const BookingsPage = () => {
                                   </span>
                                   <Badge
                                     className={getRefundStatusColor(
-                                      refund.status
+                                      refund.status,
                                     )}
                                   >
                                     {refund.status.charAt(0).toUpperCase() +
@@ -1650,7 +1688,7 @@ export const BookingsPage = () => {
                                       </span>
                                       <span className="text-sm">
                                         {formatDate(
-                                          refund.actualCompletionDate
+                                          refund.actualCompletionDate,
                                         )}
                                       </span>
                                     </div>
@@ -1659,7 +1697,7 @@ export const BookingsPage = () => {
                                   selectedBooking.refundTransactions.length -
                                     1 && <Separator />}
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       )}
@@ -1689,7 +1727,7 @@ export const BookingsPage = () => {
                             <p className="text-2xl font-bold text-red-600">
                               {formatCurrency(
                                 selectedBooking.totalAmount -
-                                  selectedBooking.amountPaid
+                                  selectedBooking.amountPaid,
                               )}
                             </p>
                             <p className="text-sm text-muted-foreground">
@@ -1708,7 +1746,7 @@ export const BookingsPage = () => {
                                 {Math.round(
                                   (selectedBooking.amountPaid /
                                     selectedBooking.totalAmount) *
-                                    100
+                                    100,
                                 )}
                                 %
                               </span>
@@ -1774,8 +1812,8 @@ export const BookingsPage = () => {
                                     transaction.status === "completed"
                                       ? "bg-green-100 text-green-800"
                                       : transaction.status === "pending"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-red-100 text-red-800"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-800"
                                   }
                                 >
                                   {transaction.status}
@@ -1785,7 +1823,7 @@ export const BookingsPage = () => {
                                 </p>
                               </div>
                             </div>
-                          )
+                          ),
                         )}
 
                         {/* Refund Transactions */}
@@ -1952,7 +1990,7 @@ export const BookingsPage = () => {
                                       )}
                                     </div>
                                   </div>
-                                )
+                                ),
                               )}
                             </div>
                           </div>
@@ -2015,7 +2053,7 @@ export const BookingsPage = () => {
                                 {key.replace(/([A-Z])/g, " $1").trim()}
                               </span>
                             </div>
-                          )
+                          ),
                         )}
                       </div>
 
@@ -2024,7 +2062,7 @@ export const BookingsPage = () => {
                           <span>Progress for {pilgrim.name}</span>
                           <span>
                             {Math.round(
-                              getMilestoneProgress(pilgrim.milestones)
+                              getMilestoneProgress(pilgrim.milestones),
                             )}
                             %
                           </span>
@@ -2091,7 +2129,7 @@ export const BookingsPage = () => {
                                 )}
                               </div>
                             </div>
-                          )
+                          ),
                         )}
                       </div>
                     </CardContent>
@@ -2183,7 +2221,7 @@ export const BookingsPage = () => {
                               {rule.description}
                             </span>
                           </div>
-                        )
+                        ),
                       )}
                     </div>
 
@@ -2199,7 +2237,7 @@ export const BookingsPage = () => {
                           <p className="text-lg font-bold text-yellow-900">
                             {formatCurrency(
                               calculateRefundAmount(selectedBooking)
-                                .refundAmount
+                                .refundAmount,
                             )}
                             <span className="text-sm font-normal ml-2">
                               (
@@ -2245,7 +2283,8 @@ export const BookingsPage = () => {
                   <div>
                     <p className="text-lg font-bold text-red-600">
                       {formatCurrency(
-                        selectedBooking.totalAmount - selectedBooking.amountPaid
+                        selectedBooking.totalAmount -
+                          selectedBooking.amountPaid,
                       )}
                     </p>
                     <p className="text-sm text-muted-foreground">Remaining</p>
@@ -2269,7 +2308,7 @@ export const BookingsPage = () => {
                   <p className="text-xs text-muted-foreground">
                     Maximum:{" "}
                     {formatCurrency(
-                      selectedBooking.totalAmount - selectedBooking.amountPaid
+                      selectedBooking.totalAmount - selectedBooking.amountPaid,
                     )}
                   </p>
                 </div>
@@ -2371,7 +2410,7 @@ export const BookingsPage = () => {
                         checked={cancellationType === "full"}
                         onChange={(e) =>
                           setCancellationType(
-                            e.target.value as "full" | "partial"
+                            e.target.value as "full" | "partial",
                           )
                         }
                       />
@@ -2389,7 +2428,7 @@ export const BookingsPage = () => {
                         checked={cancellationType === "partial"}
                         onChange={(e) =>
                           setCancellationType(
-                            e.target.value as "full" | "partial"
+                            e.target.value as "full" | "partial",
                           )
                         }
                       />
@@ -2424,7 +2463,7 @@ export const BookingsPage = () => {
                                 ]);
                               } else {
                                 setSelectedPilgrims((prev) =>
-                                  prev.filter((id) => id !== pilgrim.id)
+                                  prev.filter((id) => id !== pilgrim.id),
                                 );
                               }
                             }}
@@ -2454,7 +2493,7 @@ export const BookingsPage = () => {
                         : undefined;
                     const refundInfo = calculateRefundAmount(
                       selectedBooking,
-                      pilgrimIds
+                      pilgrimIds,
                     );
                     return (
                       <>
@@ -2474,7 +2513,7 @@ export const BookingsPage = () => {
                               ? `${formatCurrency(
                                   (selectedBooking.amountPaid /
                                     selectedBooking.pilgrims.length) *
-                                    selectedPilgrims.length
+                                    selectedPilgrims.length,
                                 )} (${selectedPilgrims.length} pilgrim${
                                   selectedPilgrims.length > 1 ? "s" : ""
                                 })`
@@ -2577,7 +2616,7 @@ export const BookingsPage = () => {
                       <p className="text-2xl font-bold text-blue-600">
                         {selectedBooking.refundTransactions.length > 0
                           ? formatCurrency(
-                              selectedBooking.refundTransactions[0].amount
+                              selectedBooking.refundTransactions[0].amount,
                             )
                           : "₹0"}
                       </p>
@@ -2800,8 +2839,8 @@ export const BookingsPage = () => {
                         {refundMethod === "original_payment"
                           ? "1-2"
                           : refundMethod === "bank_account"
-                          ? "3-5"
-                          : "0-1"}{" "}
+                            ? "3-5"
+                            : "0-1"}{" "}
                         business days)
                       </span>
                     </div>

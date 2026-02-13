@@ -17,6 +17,7 @@ const ChoosePaymentOption = () => {
 
   const location = useLocation();
   const booking = location.state?.booking;
+
   const totalAmount = booking?.totalAmt;
   const minPartialAmount = Math.ceil(booking?.totalAmt * 0.2);
 

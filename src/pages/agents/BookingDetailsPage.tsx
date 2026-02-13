@@ -84,7 +84,7 @@ export const BookingDetailsPage = ({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isTraveler, setIsTraveler] = useState<any>([]);
   const [selectedTravelerId, setSelectedTravelerId] = useState<string | null>(
-    null
+    null,
   );
   const [travelersWithDocs, setTravelersWithDocs] = useState<any[]>([]);
 
@@ -232,7 +232,7 @@ export const BookingDetailsPage = ({
   const totalAmount = booking.total_amount;
   const totalReceived = installments.reduce(
     (sum, inst) => sum + inst.amount,
-    0
+    0,
   );
   const balanceRemaining = totalAmount - totalReceived;
 
@@ -257,7 +257,7 @@ export const BookingDetailsPage = ({
 
   const handlePartialCancel = async (
     travelerId: string,
-    travelerName: string
+    travelerName: string,
   ) => {
     const refundAmount = Math.floor(totalAmount / travelers.length);
     toast({
@@ -284,7 +284,7 @@ export const BookingDetailsPage = ({
       // 1️⃣ Fetch travelers by booking
       const travelerRes = await axios.get(
         `${baseURL}travelers/byBooking/${booking.bookingId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       const travelers = travelerRes.data;
@@ -294,14 +294,14 @@ export const BookingDetailsPage = ({
         travelers.map(async (traveler: any) => {
           const docRes = await axios.get(
             `${baseURL}documents/byTraveler/${traveler.travelerId}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: { Authorization: `Bearer ${token}` } },
           );
 
           return {
             traveler,
             documents: docRes.data,
           };
-        })
+        }),
       );
 
       setTravelersWithDocs(travelersData);
@@ -314,32 +314,30 @@ export const BookingDetailsPage = ({
     if (booking.bookingId) {
       fetchTravelersWithDocuments();
     }
-  }, [booking.bookingId]);  
+  }, [booking.bookingId]);
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-4 pb-4">
         {/* header */}
-       {/* HEADER */}
-<div className="flex items-center justify-between">
-  {/* Left Section */}
-  <div className="flex items-center gap-4">
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => navigate(-1)}
-      className="h-9 w-9"
-    >
-      <ArrowLeft className="h-3 w-4" size={25} />
-    </Button>
+        {/* HEADER */}
+        <div className="flex items-center justify-between">
+          {/* Left Section */}
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(-1)}
+              className="h-9 w-9"
+            >
+              <ArrowLeft className="h-3 w-4" size={25} />
+            </Button>
 
-    <div>
-      <h1 className="text-2xl font-semibold">
-        Booking Details
-      </h1>
-    </div>
-  </div>
-</div>
+            <div>
+              <h1 className="text-2xl font-semibold">Booking Details</h1>
+            </div>
+          </div>
+        </div>
 
         {/* Booking Summary */}
         <Card className="p-4">
@@ -466,7 +464,7 @@ export const BookingDetailsPage = ({
         </div>
 
         {/* Travelers List with Documents */}
-        <Card className="p-6 mb-3">
+        <Card className="p-6">
           <h3 className="text-lg font-semibold">Travelers & Documents</h3>
 
           {/* NO TRAVELERS STATE */}
@@ -484,46 +482,85 @@ export const BookingDetailsPage = ({
               {travelersWithDocs.map(({ traveler, documents }) => (
                 <div
                   key={traveler.travelerId}
-                  className="border rounded-lg p-4"
+                  className="border rounded-lg p-2"
                 >
                   {/* Traveler Info (ALWAYS VISIBLE) */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h4 className="font-semibold text-lg">
-                        {traveler.firstName} {traveler.lastName}
-                      </h4>
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <div>
+                        <h4 className="font-semibold text-lg">
+                          {traveler.firstName} {traveler.lastName}
+                        </h4>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm mt-2">
-                        <div>
-                          <p className="text-muted-foreground">Email</p>
-                          <p className="font-medium">{traveler.emailId}</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mt-2">
+                          <div>
+                            <p className="text-muted-foreground">Email</p>
+                            <p className="font-medium">{traveler.emailId}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Phone</p>
+                            <p className="font-medium">
+                              {traveler.phoneNumber}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">DOB</p>
+                            <p className="font-medium">
+                              {new Date(
+                                traveler.dateOfBirth,
+                              ).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Passport</p>
+                            <p className="font-medium">
+                              {traveler.passportNumber}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-muted-foreground">Phone</p>
-                          <p className="font-medium">{traveler.phoneNumber}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">DOB</p>
-                          <p className="font-medium">
-                            {new Date(
-                              traveler.dateOfBirth
-                            ).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Passport</p>
-                          <p className="font-medium">
-                            {traveler.passportNumber}
-                          </p>
-                        </div>
+                      </div>
+                      <div className="border-t border-grey pt-4"></div>
+                      <div>
+                        <h4 className="font-semibold flex gap-2 items-center text-lg">
+                          <FileText className="h-5 w-5" />
+                          Documents ({documents.length})
+                        </h4>
+                        {documents.length === 0 ? (
+                          <div className="text-center py-6">
+                            <p className="text-sm font-medium">
+                              No documents uploaded
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Documents will appear here once uploaded for this
+                              traveler.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 md:grid.cols-3 lg:grid-cols-6 gap-2">
+                            {documents.map((doc: any) => (
+                              <div key={doc.documentId}>
+                                <TravelerDocumentCard
+                                  document={{
+                                    id: doc.documentId,
+                                    type: doc.documentType,
+                                    status: doc.documentStatus.toLowerCase(),
+                                    uploaded_at: doc.createdAt,
+                                    rejection_reason: doc.remarks,
+                                  }}
+                                  onStatusUpdate={() => {}}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  <Separator className="my-3" />
+                  {/* <Separator className="my-3" /> */}
 
                   {/* Documents (COLLAPSIBLE) */}
-                  <Collapsible defaultOpen={false}>
+                  {/* <Collapsible defaultOpen={false}>
                     <CollapsibleTrigger asChild>
                       <button className="flex items-center justify-between w-full text-sm font-medium">
                         <span className="flex items-center gap-2">
@@ -563,7 +600,7 @@ export const BookingDetailsPage = ({
                         </div>
                       )}
                     </CollapsibleContent>
-                  </Collapsible>
+                  </Collapsible> */}
                 </div>
               ))}
             </div>

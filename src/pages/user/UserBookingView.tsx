@@ -68,11 +68,7 @@ const UserBookingView = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [documentsData, setDocumentsData] = useState<Record<number, any[]>>({});
 
-  console.log("documents--->", documentsData);
-
   const selectedBooking = booking;
-
-  console.log("selectedBooking---->", selectedBooking);
 
   const fetchTravelersByID = async () => {
     try {
@@ -88,8 +84,6 @@ const UserBookingView = () => {
       console.error("Package Fetch Error:", error);
     }
   };
-
-  console.log("PilgrimData--->", pilgrimData);
 
   const fetchDocumentsByTravelers = async (travelers: any[]) => {
     try {
@@ -137,8 +131,6 @@ const UserBookingView = () => {
     }
   };
 
-  console.log("contact details---->", details);
-
   const fetchBookingDetails = async () => {
     try {
       const token = sessionStorage.getItem("token");
@@ -153,9 +145,6 @@ const UserBookingView = () => {
       console.error("Package Fetch Error:", error);
     }
   };
-  console.log("token-->", sessionStorage.getItem("token"));
-
-  console.log("detaislll===>", bookingDetails);
 
   useEffect(() => {
     if (pilgrimData) {
@@ -333,18 +322,18 @@ const UserBookingView = () => {
     };
   };
 
+  const TOTAL_REQUIRED_DOCS = 6;
+
   const getDocumentProgress = (travelerId: number) => {
     const docs = documentsData[travelerId];
 
     if (!docs || docs.length === 0) return 0;
 
-    const totalDocs = docs.length;
-
     const uploadedDocs = docs.filter(
       (doc: any) => doc.documentStatus === "UPLOADED",
     ).length;
 
-    return Math.round((uploadedDocs / totalDocs) * 100);
+    return Math.round((uploadedDocs / TOTAL_REQUIRED_DOCS) * 100);
   };
 
   const calculateAge = (dob: string) => {

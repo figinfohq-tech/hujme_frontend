@@ -19,7 +19,7 @@ const UserSideBar = () => {
     {
       name: "Browse Packages",
       icon: <Package size={20} />,
-      path: "/packages",
+      path: "/",
     },
     {
       name: "My Bookings",
