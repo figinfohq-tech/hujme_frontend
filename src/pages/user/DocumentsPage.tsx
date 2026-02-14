@@ -45,6 +45,7 @@ import { Separator } from "@/components/ui/separator";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
 import Loader from "@/components/Loader";
+import { useLocation } from "react-router";
 
 interface Document {
   id: string;
@@ -118,6 +119,21 @@ export const DocumentsPage = () => {
   const [previewType, setPreviewType] = useState<"image" | "pdf" | null>(null);
 
   const isSelectionDone = Boolean(selectedBookingId && selectedPilgrim);
+
+  const location = useLocation();
+
+  const bookingIdFromState = location.state?.bookingId;
+  const travelerIdFromState = location.state?.travelerId;
+
+  useEffect(() => {
+    if (bookingIdFromState) {
+      setSelectedBookingId(String(bookingIdFromState));
+    }
+
+    if (travelerIdFromState) {
+      setSelectedPilgrim(String(travelerIdFromState));
+    }
+  }, [bookingIdFromState, travelerIdFromState]);
 
   const fetchViewImage = async () => {
     setIsLoading(true);
@@ -580,6 +596,7 @@ export const DocumentsPage = () => {
             <div className="space-y-2">
               <Label htmlFor="pilgrim-select">Pilgrim</Label>
               <Select
+                value={selectedPilgrim}
                 onValueChange={(value) => {
                   setSelectedPilgrim(value);
                 }}
@@ -591,7 +608,7 @@ export const DocumentsPage = () => {
                   {travelers?.map((pilgrim) => (
                     <SelectItem
                       key={pilgrim.travelerId}
-                      value={pilgrim.travelerId}
+                      value={String(pilgrim.travelerId)}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">

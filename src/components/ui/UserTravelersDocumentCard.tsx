@@ -36,7 +36,7 @@ interface TravelerDocumentCardProps {
   onStatusUpdate: (docId: string, newStatus: string, reason?: string) => void;
 }
 
-export const TravelerDocumentCard = ({
+export const UserTravelersDocumentCard = ({
   document,
   onStatusUpdate,
 }: TravelerDocumentCardProps) => {
@@ -226,6 +226,7 @@ export const TravelerDocumentCard = ({
           </div>
 
           {/* Action Buttons */}
+          {/* Action Section */}
           {!isLocked && (
             <div className=" flex items-center justify-end">
               <Button
@@ -405,38 +406,14 @@ export const TravelerDocumentCard = ({
                   <FileText className="h-24 w-24 text-muted-foreground" />
                 )}
               </div>
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-                {/* LEFT: Download */}
-                <div className="flex justify-center">
-                  <Button onClick={() => handleDownloadDocument(viewDocument)}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Document
-                  </Button>
-                </div>
 
-                {/* RIGHT: Action Buttons */}
-                <div className="flex gap-2 w-full sm:w-auto justify-end">
-                  <Button
-                    size="sm"
-                    onClick={() => setShowVerifyDialog(true)}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Verify
-                  </Button>
-
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => setShowRejectDialog(true)}
-                  >
-                    <XCircle className="h-4 w-4 mr-1" />
-                    Reject
-                  </Button>
-                </div>
+              <div className="flex justify-center">
+                <Button onClick={() => handleDownloadDocument(viewDocument)}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Document
+                </Button>
               </div>
             </div>
-            // </div>
           )}
         </DialogContent>
       </Dialog>

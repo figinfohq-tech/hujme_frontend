@@ -38,6 +38,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface TravelerDocument {
   id: string;
@@ -354,12 +355,12 @@ export const BookingDetailsPage = ({
               <p className="text-sm text-muted-foreground">Status</p>
               <Badge
                 variant={
-                  booking.booking_status === "confirmed"
+                  booking.bookingStatus === "confirmed"
                     ? "default"
                     : "secondary"
                 }
               >
-                {booking.paymentStatus}
+                {booking.bookingStatus}
               </Badge>
             </div>
             <div>
@@ -380,32 +381,20 @@ export const BookingDetailsPage = ({
         {/* Payment Information */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
-          <div className="grid grid-cols-3 gap-6 mb-6">
-            <div className="text-center p-4 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
-              <p className="text-2xl font-bold">
-                ₹{booking?.totalAmt?.toLocaleString()}
-              </p>
-            </div>
-            <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-1">
-                Amount Received
-              </p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                ₹{booking?.receivedAmt?.toLocaleString()}
-              </p>
-            </div>
-            <div className="text-center p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-1">
-                Balance Remaining
-              </p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                ₹{booking?.balanceAmt?.toLocaleString()}
-              </p>
-            </div>
+          <div className="flex justify-between">
+            <span className="text-primary/90">Total Amount</span>
+            <span className="font-semibold">
+              {formatCurrency(booking?.totalAmt)}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-primary/90">Amount Paid</span>
+            <span className={`font-semibold}`}>
+              {formatCurrency(booking?.receivedAmt)}
+            </span>
           </div>
 
-          <Separator className="my-4" />
+          <Separator className="my-1" />
 
           <div>
             <h4 className="font-medium mb-3">Payment History</h4>

@@ -28,6 +28,16 @@ import {
   Receipt,
   ArrowLeft,
   XCircle,
+  Upload,
+  Eye,
+  AlertCircle,
+  MapPin,
+  Star,
+  Calendar,
+  PlaneLanding,
+  PlaneTakeoff,
+  Hotel,
+  UploadIcon,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -53,12 +63,35 @@ import {
 } from "@/components/ui/select";
 import { toast } from "react-toastify";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { UserTravelersDocumentCard } from "@/components/ui/UserTravelersDocumentCard";
+import { format } from "date-fns";
+
+// Hardcoded payment installments
+const installments = [
+  {
+    id: "p1",
+    amount: 50000,
+    paid_at: "2024-01-10",
+    payment_method: "Credit Card",
+  },
+  { id: "p2", amount: 30000, paid_at: "2024-02-15", payment_method: "UPI" },
+];
 
 const UserBookingView = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [pilgrimData, setPilgrimData] = useState<any>([]);
   const [details, setDetails] = useState<any>({});
+  const [hotelDetails, setHotelDetails] = useState<any>([]);
+  const [flightDetails, setFlightDetails] = useState<any>([]);
   const [bookingDetails, setBookingDetails] = useState<any>("");
   const [isLoading, setIsLoading] = useState(false);
   const { booking, myPackage, bookingUser } = location.state || {};
@@ -69,6 +102,35 @@ const UserBookingView = () => {
   const [documentsData, setDocumentsData] = useState<Record<number, any[]>>({});
 
   const selectedBooking = booking;
+
+  const fetchHotelByPackageID = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get(
+        `${baseURL}package-hotels/byPackage/${selectedBooking?.packageDetails?.packageId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      setHotelDetails(response.data);
+    } catch (error) {
+      console.error("Package Fetch Error:", error);
+    }
+  };
+  const fetchFlightByPackageID = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get(
+        `${baseURL}package-airlines/byPackage/${selectedBooking?.packageDetails?.packageId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      setFlightDetails(response.data);
+    } catch (error) {
+      console.error("Package Fetch Error:", error);
+    }
+  };
 
   const fetchTravelersByID = async () => {
     try {
@@ -145,6 +207,13 @@ const UserBookingView = () => {
       console.error("Package Fetch Error:", error);
     }
   };
+
+  useEffect(() => {
+    if (selectedBooking) {
+      fetchHotelByPackageID();
+      fetchFlightByPackageID();
+    }
+  }, [selectedBooking]);
 
   useEffect(() => {
     if (pilgrimData) {
@@ -323,7 +392,6 @@ const UserBookingView = () => {
   };
 
   const TOTAL_REQUIRED_DOCS = 6;
-
   const getDocumentProgress = (travelerId: number) => {
     const docs = documentsData[travelerId];
 
@@ -335,6 +403,85 @@ const UserBookingView = () => {
 
     return Math.round((uploadedDocs / TOTAL_REQUIRED_DOCS) * 100);
   };
+
+  const getDocumentStatusBadge = (status) => {
+    switch (status) {
+      case "PENDING_VERIFICATION":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">
+            <Clock className="h-3 w-3 mr-1" />
+            Pending Verification
+          </Badge>
+        );
+
+      case "VERIFIED":
+        return (
+          <Badge className="bg-green-100 text-green-800">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Verified
+          </Badge>
+        );
+
+      case "REJECT":
+        return (
+          <Badge className="bg-red-100 text-red-800">
+            <XCircle className="h-3 w-3 mr-1" />
+            Rejected
+          </Badge>
+        );
+
+      case "PENDING_UPLOAD":
+        return (
+          <Badge className="bg-blue-100 text-blue-800">
+            <Upload className="h-3 w-3 mr-1" />
+            Pending Upload
+          </Badge>
+        );
+
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
+    }
+  };
+  const getStatusConfig = (status: string) => {
+    const configs: Record<
+      string,
+      {
+        icon: any;
+        variant: "default" | "secondary" | "destructive" | "outline";
+        label: string;
+        color: string;
+      }
+    > = {
+      verified: {
+        icon: CheckCircle,
+        variant: "default",
+        label: "Verified",
+        color: "text-green-600 dark:text-green-400",
+      },
+      pending: {
+        icon: Clock,
+        variant: "secondary",
+        label: "Awaiting",
+        color: "text-orange-600 dark:text-orange-400",
+      },
+      rejected: {
+        icon: XCircle,
+        variant: "destructive",
+        label: "Rejected",
+        color: "text-red-600 dark:text-red-400",
+      },
+      needs_reupload: {
+        icon: AlertCircle,
+        variant: "outline",
+        label: "Needs Attention",
+        color: "text-amber-600 dark:text-amber-400",
+      },
+    };
+    return configs[status] || configs.pending;
+  };
+
+  const statusConfig = getStatusConfig(document.status);
+  const StatusIcon = statusConfig.icon;
 
   const calculateAge = (dob: string) => {
     if (!dob) return "";
@@ -354,6 +501,16 @@ const UserBookingView = () => {
     }
 
     return age;
+  };
+
+  const safeFormatDate = (dateValue: any, formatStr = "PPP") => {
+    if (!dateValue) return "-";
+
+    const date = new Date(dateValue);
+
+    if (isNaN(date.getTime())) return "-";
+
+    return format(date, formatStr);
   };
 
   return (
@@ -384,11 +541,11 @@ const UserBookingView = () => {
           <Card className="mb-4">
             <CardHeader>
               <CardTitle className="text-primary text-2xl">
-                Trip Details
+                {selectedBooking?.bookingRef}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-5 gap-4">
                 <div>
                   <Label className="text-primary/90">Package Type</Label>
                   <p className="font-medium capitalize">
@@ -417,11 +574,255 @@ const UserBookingView = () => {
                     {selectedBooking?.packageDetails?.duration} days
                   </p>
                 </div>
-                <div>
-                  <Label className="text-primary/90">Room Preference</Label>
-                  <p className="font-medium capitalize">
-                    {selectedBooking?.roomPreference}
-                  </p>
+              </div>
+              <Separator />
+              {/* Hotel Section */}
+              <div className="mb-6">
+                <div className="mb-4">
+                  <div>
+                    <div className="flex text-center gap-2">
+                      <h3 className="text-xl font-semibold text-primary">
+                        Hotel Details
+                      </h3>
+                      {hotelDetails?.length > 0 && (
+                        <span className="text-xs font-medium px-3 py-1 bg-primary/10 text-primary rounded-full">
+                          {hotelDetails.length}{" "}
+                          {hotelDetails.length > 1 ? "Hotels" : "Hotel"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* Hotels List */}
+                <div className="space-y-4">
+                  {hotelDetails && hotelDetails.length > 0 ? (
+                    hotelDetails.map((hotel: any, index: any) => {
+                      return (
+                        <div
+                          key={index}
+                          className="rounded-lg border bg-card p-4 space-y-2"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="space-y-2 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded">
+                                  {hotel?.hotelDetails?.hotelId}
+                                </span>
+                                <h5 className="font-semibold text-foreground">
+                                  {hotel?.hotelDetails?.hotelName}
+                                </h5>
+                              </div>
+
+                              <div className="space-y-1 text-sm">
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                  <span className="text-xs text-muted-foreground">
+                                    {`${hotel?.hotelDetails?.address}, ${hotel?.hotelDetails?.cityName}, ${hotel?.hotelDetails?.stateName}, ${hotel?.hotelDetails?.countryName}`}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div className="flex items-center gap-1">
+                                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                                    <span className="text-xs font-medium">
+                                      {hotel?.hotelDetails?.rating} Star
+                                    </span>
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    •
+                                  </span>
+                                  <span className="text-xs font-medium text-primary">
+                                    {hotel?.hotelDetails?.distance} from Haram
+                                  </span>
+                                  <div className="text-xs text-muted-foreground">
+                                    <span className="font-medium">
+                                      Days Stay:
+                                    </span>{" "}
+                                    {hotel?.daysStay}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
+                                <div>
+                                  <span className="font-medium">Check-in:</span>{" "}
+                                  {hotel?.checkinDate
+                                    ? format(new Date(hotel.checkinDate), "PPP")
+                                    : "-"}{" "}
+                                  at {hotel?.checkinTime}
+                                </div>
+                                <div>
+                                  <span className="font-medium">
+                                    Check-out:
+                                  </span>{" "}
+                                  {hotel?.checkoutDate
+                                    ? format(
+                                        new Date(hotel?.checkoutDate),
+                                        "PPP",
+                                      )
+                                    : "-"}{" "}
+                                  at {hotel?.checkoutTime}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="border rounded-lg p-6 text-center bg-muted/30">
+                      <Hotel className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                      <h4 className="text-sm font-medium text-foreground">
+                        No Hotel Details Available
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Hotel accommodation information has not been added for
+                        this booking.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <Separator />
+
+              {/* flight Section */}
+              <div className="mb-6">
+                <div className="mb-4">
+                  <div>
+                    <div className="flex text-center gap-2">
+                      <h3 className="text-xl font-semibold text-primary">
+                        Flight Details
+                      </h3>
+                      {flightDetails?.length > 0 && (
+                        <span className="text-xs font-medium px-3 py-1 bg-primary/10 text-primary rounded-full">
+                          {flightDetails.length}{" "}
+                          {flightDetails.length > 1 ? "Hotels" : "Hotel"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* flight List */}
+                <div className="space-y-4">
+                  {flightDetails && flightDetails.length > 0 ? (
+                    flightDetails.map((flight: any, index: any) => (
+                      <div key={index} className="w-full rounded-lg bg-card">
+                        <div className="flex gap-3">
+                          {/* MAIN CARD */}
+                          <div className="w-full border rounded-lg shadow-sm bg-white">
+                            {/* Header */}
+                            <div className="px-3 py-2 border-b flex items-center justify-between">
+                              <div className="space-y-0.5 text-sm">
+                                <div className="flex items-center gap-2">
+                                  <PlaneTakeoff className="text-primary h-4 w-4" />
+                                  <span className="font-medium">
+                                    Flight No: {flight.flightNumber}
+                                  </span>
+
+                                  {flight.flightClass && (
+                                    <span className="px-2 py-0.5 text-[11px] rounded-full bg-blue-100 text-blue-700 font-medium">
+                                      {flight.flightClass} Class
+                                    </span>
+                                  )}
+                                </div>
+
+                                <p className="text-xs text-gray-600">
+                                  <span className="font-medium">
+                                    Flight Name:
+                                  </span>{" "}
+                                  {flight.airlineName}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="px-3 py-2 text-xs">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {/* Journey Start */}
+                                <div className="border rounded-md p-2 bg-gray-50 space-y-1">
+                                  <h3 className="font-medium text-primary flex items-center gap-1">
+                                    <PlaneTakeoff size={14} />
+                                    Journey Start
+                                  </h3>
+
+                                  <div className="flex items-center gap-1">
+                                    <MapPin size={14} />
+                                    <span className="text-gray-700">
+                                      {flight.departureCityName},{" "}
+                                      {flight.departureStateName},{" "}
+                                      {flight.departureCountryName}
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-3">
+                                    <div className="flex items-center gap-1">
+                                      <Calendar size={14} />
+                                      <span className="text-gray-700">
+                                        {format(
+                                          new Date(flight.departureDate),
+                                          "yyyy-MM-dd",
+                                        )}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-1">
+                                      <Clock size={14} />
+                                      <span className="text-gray-700">
+                                        {flight.departureTime}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Journey End */}
+                                <div className="border rounded-md p-2 bg-gray-50 space-y-1">
+                                  <h3 className="font-medium text-primary flex items-center gap-1">
+                                    <PlaneLanding size={14} />
+                                    Journey End
+                                  </h3>
+
+                                  <div className="flex items-center gap-1">
+                                    <MapPin size={14} />
+                                    <span className="text-gray-700">
+                                      {flight.arrivalCityName},{" "}
+                                      {flight.arrivalStateName},{" "}
+                                      {flight.arrivalCountryName}
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-3">
+                                    <div className="flex items-center gap-1">
+                                      <Calendar size={14} />
+                                      <span className="text-gray-700">
+                                        {format(
+                                          new Date(flight.arrivalDate),
+                                          "yyyy-MM-dd",
+                                        )}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-1">
+                                      <Clock size={14} />
+                                      <span className="text-gray-700">
+                                        {flight.arrivalTime}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="border rounded-lg p-6 text-center bg-muted/30">
+                      <PlaneTakeoff className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                      <h4 className="text-sm font-medium text-foreground">
+                        No Flight Details Available
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Flight information has not been added for this booking.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -435,29 +836,6 @@ const UserBookingView = () => {
                   </p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          <Card className="mb-4">
-            <CardHeader>
-              <CardTitle className="text-primary text-2xl">
-                Agent Contact
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 text-primary/90" />
-                <span>{details?.phone}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-primary/90" />
-                <span>{details?.email}</span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <MessageSquare className="h-4 w-4 text-primary/90" />
-                <span>{details?.phone}</span>
-              </div>
             </CardContent>
           </Card>
 
@@ -483,18 +861,35 @@ const UserBookingView = () => {
                 </span>
               </div>
               <Separator />
-              <div className="flex justify-between">
-                <span className="text-primary/90 font-medium">
-                  Remaining Amount
-                </span>
-                <span className="font-bold text-lg">
-                  {formatCurrency(
-                    selectedBooking.totalAmount - selectedBooking.amountPaid,
-                  )}
-                </span>
+              <div>
+                <h4 className="font-medium text-primary mb-3">
+                  Payment History
+                </h4>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Payment Method</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {installments.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell>
+                          {new Date(payment.paid_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          ₹{payment.amount.toLocaleString()}
+                        </TableCell>
+                        <TableCell>{payment.payment_method}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
 
-              {selectedBooking.paymentStatus !== "completed" &&
+              {/* {selectedBooking.paymentStatus !== "completed" &&
                 selectedBooking.status !== "cancelled" &&
                 selectedBooking.status !== "rejected" && (
                   <Button
@@ -504,7 +899,7 @@ const UserBookingView = () => {
                     <CreditCard className="h-4 w-4 mr-2" />
                     Make Payment
                   </Button>
-                )}
+                )} */}
             </CardContent>
           </Card>
 
@@ -611,7 +1006,7 @@ const UserBookingView = () => {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="text-primary text-2xl">
-                Travelers / Pilgrims Details
+                Travelers & Documents
               </CardTitle>
             </CardHeader>
 
@@ -627,26 +1022,39 @@ const UserBookingView = () => {
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
-                          <CardTitle className="text-lg text-primary">
+                          <Label className="text-primary/90">
                             {`${pilgrim?.firstName} ${pilgrim.lastName}`}
-                          </CardTitle>
+                          </Label>
                           <CardDescription className="text-primary/90">
                             {calculateAge(pilgrim.dateOfBirth)} years •{" "}
                             {pilgrim.gender} • {pilgrim?.relationship}
                           </CardDescription>
                         </div>
+                        <div>
+                          <Label className="text-primary/90">
+                            Passport Number
+                          </Label>
+                          <p className="font-medium">
+                            {pilgrim?.passportNumber}
+                          </p>
+                        </div>
+                        {/*  Upload Button Per Pilgrim */}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            navigate("/ducoments", {
+                              state: {
+                                bookingId: selectedBooking?.bookingId,
+                                travelerId: pilgrim?.travelerId,
+                              },
+                            })
+                          }
+                        >
+                          <UploadIcon /> Upload
+                        </Button>
 
-                        {pilgrim?.status === "cancelled" ? (
-                          <Badge className="bg-red-100 text-red-800">
-                            <XCircle className="h-3 w-3 mr-1" />
-                            Cancelled
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-green-100 text-green-800">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Active
-                          </Badge>
-                        )}
+                        {getDocumentStatusBadge(pilgrim?.documentStatus)}
                       </div>
                     </CardHeader>
 
@@ -665,35 +1073,42 @@ const UserBookingView = () => {
                             )}
                           </div>
                         )}
-
-                      <div>
-                        <Label className="text-primary/90">
-                          Passport Number
-                        </Label>
-                        <p className="font-medium">{pilgrim?.passportNumber}</p>
-                      </div>
-
                       <div>
                         <Label className="text-primary/90 mb-2 block">
                           Document Status
                         </Label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 md:grid.cols-3 lg:grid-cols-6 gap-2">
                           {documentsData[pilgrim.travelerId]?.length > 0 ? (
                             documentsData[pilgrim.travelerId].map(
                               (doc: any) => (
-                                <div
-                                  key={doc.documentId}
-                                  className="flex items-center gap-2"
-                                >
-                                  {doc.documentStatus === "UPLOADED" ? (
-                                    <CheckCircle className="h-4 w-4 text-green-600" />
-                                  ) : (
-                                    <XCircle className="h-4 w-4 text-red-600" />
-                                  )}
-                                  <span className="text-sm capitalize">
-                                    {doc.documentType}
-                                  </span>
-                                </div>
+                                <>
+                                  {/* <div
+                                    key={doc.documentId}
+                                    className="flex items-center gap-2"
+                                  >
+                                    {doc.documentStatus === "UPLOADED" ? (
+                                      <CheckCircle className="h-4 w-4 text-green-600" />
+                                    ) : (
+                                      <XCircle className="h-4 w-4 text-red-600" />
+                                    )}
+                                    <span className="text-sm capitalize">
+                                      {doc.documentType}
+                                    </span>
+                                  </div> */}
+                                  <div key={doc.documentId}>
+                                    <UserTravelersDocumentCard
+                                      document={{
+                                        id: doc.documentId,
+                                        type: doc.documentType,
+                                        status:
+                                          doc.documentStatus.toLowerCase(),
+                                        uploaded_at: doc.createdAt,
+                                        rejection_reason: doc.remarks,
+                                      }}
+                                      onStatusUpdate={() => {}}
+                                    />
+                                  </div>
+                                </>
                               ),
                             )
                           ) : (
@@ -704,7 +1119,7 @@ const UserBookingView = () => {
                         </div>
                       </div>
 
-                      <div>
+                      {/* <div>
                         <Label className="text-primary/90 mb-2 block">
                           Progress
                         </Label>
@@ -720,7 +1135,7 @@ const UserBookingView = () => {
                             className="h-2"
                           />
                         </div>
-                      </div>
+                      </div> */}
                     </CardContent>
                   </Card>
                 ))
@@ -731,6 +1146,29 @@ const UserBookingView = () => {
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle className="text-primary text-2xl">
+                Agent Contact
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Phone className="h-4 w-4 text-primary/90" />
+                <span>{details?.phone}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="h-4 w-4 text-primary/90" />
+                <span>{details?.email}</span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <MessageSquare className="h-4 w-4 text-primary/90" />
+                <span>{details?.phone}</span>
+              </div>
             </CardContent>
           </Card>
         </div>
