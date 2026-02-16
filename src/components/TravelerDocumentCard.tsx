@@ -93,17 +93,19 @@ export const TravelerDocumentCard = ({
   const StatusIcon = statusConfig.icon;
   const isLocked = document.status === "verified";
 
-  const handleVerify = () => {
-    onStatusUpdate(document.id, "verified");
+  const handleVerify = async () => {
+    await onStatusUpdate(document.id, "verified");
     setShowVerifyDialog(false);
+    setViewDocument(null); // preview dialog bhi close
   };
 
-  const handleReject = () => {
-    if (!rejectionReason.trim()) {
-      return;
-    }
-    onStatusUpdate(document.id, "needs_reupload", rejectionReason);
+  const handleReject = async () => {
+    if (!rejectionReason.trim()) return;
+
+    await onStatusUpdate(document.id, "rejected", rejectionReason);
+
     setShowRejectDialog(false);
+    setViewDocument(null); // preview dialog close
     setRejectionReason("");
   };
 
@@ -226,22 +228,22 @@ export const TravelerDocumentCard = ({
           </div>
 
           {/* Action Buttons */}
-          {!isLocked && (
-            <div className=" flex items-center justify-end">
-              <Button
-                size="sm"
-                variant="outline"
-                className=" px-3 text-xs gap-1"
-                onClick={() => {
-                  setViewDocument(document);
-                  fetchViewImage(document);
-                }}
-              >
-                <Eye className="h-4 w-4" />
-                View
-              </Button>
+          {/* {!isLocked && ( */}
+          <div className=" flex items-center justify-end">
+            <Button
+              size="sm"
+              variant="outline"
+              className=" px-3 text-xs gap-1"
+              onClick={() => {
+                setViewDocument(document);
+                fetchViewImage(document);
+              }}
+            >
+              <Eye className="h-4 w-4" />
+              View
+            </Button>
 
-              {/* <Button
+            {/* <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => setShowVerifyDialog(true)}
@@ -258,8 +260,8 @@ export const TravelerDocumentCard = ({
               >
                 <XCircle className="h-4 w-4" />
               </Button> */}
-            </div>
-          )}
+          </div>
+          {/* )} */}
         </div>
 
         {/* <div className="flex items-start justify-between gap-3">

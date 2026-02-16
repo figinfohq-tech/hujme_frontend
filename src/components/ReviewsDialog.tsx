@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Star, ThumbsUp } from "lucide-react";
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { baseURL } from "@/utils/constant/url";
 
 /* ================= TYPES ================= */
@@ -37,43 +42,42 @@ export const ReviewsDialog = ({
 
   /* ================= FETCH REVIEWS ================= */
 
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      const token = sessionStorage.getItem("token");
+
+      const res = await axios.get(
+        `${baseURL}customer-reviews/byAgent/${agentId}`,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+        },
+      );
+
+      const formatted: ReviewItem[] = Array.isArray(res.data)
+        ? res.data.map((item: any) => ({
+            id: item.reviewId?.toString(),
+            userName: item.customerName || "Anonymous",
+            rating: item.rating,
+            comment: item.reviewText,
+            date: item.postedAt,
+            helpfulCount: item.helpfulVotes ?? 0,
+          }))
+        : [];
+
+      setReviews(formatted);
+    } catch (error) {
+      console.error("Failed to fetch reviews", error);
+      setReviews([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!isOpen || !agentId) return;
-
-    const fetchReviews = async () => {
-      try {
-        setLoading(true);
-        const token = sessionStorage.getItem("token");
-
-        const res = await axios.get(
-          `${baseURL}customer-reviews/byAgent/${agentId}`,
-          {
-            headers: {
-              Authorization: token ? `Bearer ${token}` : undefined,
-            },
-          }
-        );        
-
-        const formatted: ReviewItem[] = Array.isArray(res.data)
-          ? res.data.map((item: any) => ({
-              id: item.reviewId?.toString(),
-              userName: item.customerName || "Anonymous",
-              rating: item.rating,
-              comment: item.reviewText,
-              date: item.postedAt,
-              helpfulCount: item.helpfulVotes ?? 0,
-            }))
-          : [];
-
-        setReviews(formatted);
-      } catch (error) {
-        console.error("Failed to fetch reviews", error);
-        setReviews([]); // ❌ no fallback
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchReviews();
   }, [isOpen, agentId]);
 
@@ -90,6 +94,43 @@ export const ReviewsDialog = ({
     reviews.forEach((r) => dist[r.rating]++);
     return dist;
   }, [reviews]);
+
+  const handleHelpfulVote = async (reviewId: string) => {
+    try {
+      const token = sessionStorage.getItem("token");
+
+      // ✅ Optimistic UI update
+      // setReviews((prev) =>
+      //   prev.map((r) =>
+      //     r.id === reviewId
+      //       ? { ...r, helpfulCount: r.helpfulCount + 1 }
+      //       : r
+      //   )
+      // );
+
+      const response = await axios.patch(
+        `${baseURL}customer-reviews/helpful-votes/${reviewId}`,
+        {},
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+        },
+      );
+      fetchReviews();
+    } catch (error) {
+      console.error("Failed to update helpful vote", error);
+
+      // ❌ rollback if failed
+      // setReviews((prev) =>
+      //   prev.map((r) =>
+      //     r.id === reviewId
+      //       ? { ...r, helpfulCount: r.helpfulCount - 1 }
+      //       : r
+      //   )
+      // );
+    }
+  };
 
   /* ================= UI ================= */
 
@@ -137,8 +178,8 @@ export const ReviewsDialog = ({
                       s >= 4
                         ? "bg-emerald-500"
                         : s === 3
-                        ? "bg-yellow-500"
-                        : "bg-red-500"
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
                     }`}
                     style={{
                       width: reviews.length
@@ -204,10 +245,17 @@ export const ReviewsDialog = ({
 
                 <p className="text-sm mb-2">{r.comment}</p>
 
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                {/* <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <ThumbsUp className="w-3 h-3" />
                   {r.helpfulCount} people found this helpful
-                </div>
+                </div> */}
+                <button
+                  onClick={() => handleHelpfulVote(r.id)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition cursor-pointer"
+                >
+                  <ThumbsUp className="w-3 h-3" />
+                  {r.helpfulCount} people found this helpful
+                </button>
               </div>
             ))}
         </div>

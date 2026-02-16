@@ -22,6 +22,8 @@ import {
   CalendarDays,
   ArrowUpDown,
   ArrowLeft,
+  Eye,
+  Search,
 } from "lucide-react";
 // import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -115,14 +117,7 @@ const SearchResults = () => {
 
   useEffect(() => {
     fetchSearchResult();
-  }, [
-    selectedCountryId,
-    selectedStateId,
-    selectedCityId,
-    selectedTravelTypeId,
-    sortBy,
-    sortOrder,
-  ]);
+  }, []);
 
   useEffect(() => {
     fetchCountries();
@@ -400,6 +395,15 @@ const SearchResults = () => {
 
   const filteredResults = getFilteredResults();
 
+  const handleSearchClick = () => {
+    if (!selectedStateId) {
+      setErrors((prev) => ({ ...prev, state: true }));
+      return;
+    }
+
+    fetchSearchResult();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* <Header /> */}
@@ -551,6 +555,15 @@ const SearchResults = () => {
                   ))}
                 </SelectContent>
               </Select>
+              {/* SEARCH BUTTON */}
+              <div className="w-full lg:w-auto flex justify-end">
+                <Button
+                  onClick={handleSearchClick}
+                  className="bg-primary hover:bg-primary/90 text-white px-6 shadow-md transition-all duration-200"
+                >
+                  <Search className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
             {/* DIVIDER */}
@@ -753,9 +766,17 @@ const SearchResults = () => {
                         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
                           {/* LEFT CONTENT */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-lg md:text-xl font-semibold text-foreground mb-1 break-words">
-                              {result.packageName}
-                            </h3>
+                            <div className="flex flex-col md:flex-row md:items-center gap-2">
+                              {/* Package Name */}
+                              <h3 className="text-lg md:text-xl font-semibold text-foreground break-words">
+                                {result.packageName}
+                              </h3>
+
+                              {/* Launch Date */}
+                              <span className="text-sm mt-1 text-muted-foreground">
+                                Launched: {result?.packageTimeline}
+                              </span>
+                            </div>
 
                             <p className="text-muted-foreground text-sm mb-2 truncate">
                               <a
@@ -843,6 +864,10 @@ const SearchResults = () => {
                             >
                               {result.packageType}
                             </Badge>
+                            <div className="flex items-center gap-1 text-sm font-semibold text-muted-foreground">
+                              <Eye className="h-4 w-4" />
+                              <span>{result?.viewCount ?? 0} views</span>
+                            </div>
                           </div>
                         </div>
 
@@ -866,8 +891,11 @@ const SearchResults = () => {
                               <span className="text-2xl font-bold text-primary">
                                 ₹{result.price.toLocaleString()}
                               </span>
-                              <span className="text-sm text-muted-foreground line-through">
+                              <span className="text-sm text-muted-foreground font-bold line-through">
                                 ₹{result.originalPrice.toLocaleString()}
+                              </span>
+                              <span className="text-sm font-semibold text-red-600">
+                                {`${result.percentageOff}`}
                               </span>
                             </div>
                             <p className="text-xs text-muted-foreground">
@@ -875,7 +903,7 @@ const SearchResults = () => {
                             </p>
 
                             {/* Seats Info */}
-                            <p className="text-xs mt-1">
+                            {/* <p className="text-xs mt-1">
                               <span className="text-muted-foreground">
                                 Total Seats:
                               </span>{" "}
@@ -899,8 +927,9 @@ const SearchResults = () => {
                                   {result.availableSeats} Available
                                 </span>
                               )}
-                            </p>
+                            </p> */}
                           </div>
+                          <div></div>
                           <div className="flex gap-2">
                             <Button
                               variant={
@@ -946,6 +975,34 @@ const SearchResults = () => {
                               View Details
                             </Button>
                           </div>
+                        </div>
+                        <div>
+                          {/* Seats Info */}
+                          <p className="text-xs flex justify-center gap-1 mt-1">
+                            <span className="text-muted-foreground">
+                              Total Seats:
+                            </span>{" "}
+                            <span className="font-medium">
+                              {result.totalSeats}
+                            </span>{" "}
+                            •{" "}
+                            {result.availableSeats === 0 ||
+                            result.availableSeats === null ? (
+                              <span className="text-gray-500 font-medium">
+                                Closed
+                              </span>
+                            ) : (
+                              <span
+                                className={
+                                  result.availableSeats <= 5
+                                    ? "text-red-600 font-medium"
+                                    : "text-green-600 font-medium"
+                                }
+                              >
+                                {result.availableSeats} Available
+                              </span>
+                            )}
+                          </p>
                         </div>
                       </div>
                     </div>

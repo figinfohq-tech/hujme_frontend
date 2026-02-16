@@ -268,14 +268,48 @@ export const BookingDetailsPage = ({
     onBookingUpdated();
   };
 
-  const getDocumentStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      verified: "Verified",
-      pending: "Awaiting Review",
-      rejected: "Rejected",
-      needs_reupload: "Needs Attention",
-    };
-    return labels[status] || status;
+  const handleDocumentStatusUpdate = async (
+    docId: string,
+    newStatus: string,
+    reason?: string,
+  ) => {
+    try {
+      const token = sessionStorage.getItem("token");
+
+      // Find document full data
+      let selectedDoc: any;
+
+      travelersWithDocs.forEach(({ documents }) => {
+        const found = documents.find((d: any) => d.documentId === docId);
+        if (found) selectedDoc = found;
+      });
+
+      if (!selectedDoc) return;
+
+      const payload = {
+        userId: selectedDoc.userId,
+        travelerId: selectedDoc.travelerId,
+        bookingId: selectedDoc.bookingId,
+        documentType: selectedDoc.documentType,
+        filePath: selectedDoc.filePath,
+        documentStatus: newStatus,
+        remarks: reason || "",
+        createdBy: selectedDoc.createdBy,
+        updatedBy: 1, // logged in admin id
+      };
+
+      await axios.put(`${baseURL}documents/${docId}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      toast.success(`Document ${newStatus} successfully`);
+
+      // Refresh list
+      fetchTravelersWithDocuments();
+    } catch (error) {
+      console.error("Document Update Error:", error);
+      toast.error("Failed to update document");
+    }
   };
 
   const fetchTravelersWithDocuments = async () => {
@@ -536,7 +570,7 @@ export const BookingDetailsPage = ({
                                     uploaded_at: doc.createdAt,
                                     rejection_reason: doc.remarks,
                                   }}
-                                  onStatusUpdate={() => {}}
+                                  onStatusUpdate={handleDocumentStatusUpdate}
                                 />
                               </div>
                             ))}

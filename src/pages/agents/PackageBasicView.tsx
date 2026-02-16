@@ -17,6 +17,28 @@ import Loader from "@/components/Loader";
 const PackageBasicView = ({ packageId }) => {
   const [basicDetails, setBasicDetails] = useState<any>("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const updateViewCount = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const responce = await axios.patch(
+        `${baseURL}packages/view-count/${packageId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+    } catch (error) {
+      console.error("Error updating view count:", error);
+    }
+  };
+  useEffect(() => {
+    if (packageId) {
+      updateViewCount();
+    }
+  }, [packageId]);
+
   const getPackagesByID = async () => {
     try {
       setIsLoading(true);
@@ -79,51 +101,65 @@ const PackageBasicView = ({ packageId }) => {
         </div>
         {/* Basic Details */}
         <div className="shadow-md flex gap-20 px-5 rounded-xl border border-gray-200 p-2">
-        <div>
-          {/* Title */}
-          <div className="flex items-center text-lg font-semibold text-primary pb-0 pt-0">
-            <User className="w-5 h-5 text-primary mr-1" />
-            Basic Information
-          </div>
-
-          {/* Content */}
-          <div className="grid grid-cols-[150px_1fr] gap-y-2 text-sm mt-2">
-            <span className="font-semibold text-primary">Package Name:</span>
-            <span>{basicDetails.packageName}</span>
-
-            <span className="font-semibold text-primary">Type:</span>
-            <span>{basicDetails.packageType}</span>
-
-            <span className="font-semibold text-primary">Travel Type:</span>
-            <span>{basicDetails.travelType}</span>
-
-            <span className="font-semibold text-primary">Duration:</span>
-            <span>{basicDetails.duration} Days</span>
-          </div>
-        </div>
-         <div>
-          {/* Title */}
-          <div className="flex items-center text-lg font-semibold text-primary pb-0">
-            {/* <DollarSign className="w-5 h-5 text-primary mr-1" /> */}
-            <span>₹</span>
-            <span className="ml-1">Pricing</span>
-          </div>
-
-          {/* Content */}
-          <div className="text-gray-700 text-sm mt-2 space-y-2">
-            <div className="flex">
-              <span className="font-semibold text-primary w-50">Price : </span><span className="text-lg font-bold text-primary">₹
-              {basicDetails.price.toLocaleString()} </span>
+          <div>
+            {/* Title */}
+            <div className="flex items-center text-lg font-semibold text-primary pb-0 pt-0">
+              <User className="w-5 h-5 text-primary mr-1" />
+              Basic Information
             </div>
 
-            <div className="flex">
-              <span className="font-semibold text-primary w-50">
-                Original Price :{" "}
-              </span>
-             <span className="text-lg font-bold text-primary">₹{basicDetails.originalPrice.toLocaleString()}</span>
+            {/* Content */}
+            <div className="grid grid-cols-[150px_1fr] gap-y-2 text-sm mt-2">
+              <span className="font-semibold text-primary">Package Name:</span>
+              <span>{basicDetails.packageName}</span>
+
+              <span className="font-semibold text-primary">Type:</span>
+              <span>{basicDetails.packageType}</span>
+
+              <span className="font-semibold text-primary">Travel Type:</span>
+              <span>{basicDetails.travelType}</span>
+
+              <span className="font-semibold text-primary">Duration:</span>
+              <span>{basicDetails.duration} Days</span>
             </div>
           </div>
-        </div>
+          <div>
+            {/* Title */}
+            <div className="flex items-center text-lg font-semibold text-primary pb-0">
+              {/* <DollarSign className="w-5 h-5 text-primary mr-1" /> */}
+              <span>₹</span>
+              <span className="ml-1">Pricing</span>
+            </div>
+
+            {/* Content */}
+            <div className="text-gray-700 text-sm mt-2 space-y-2">
+              <div className="flex">
+                <span className="font-semibold text-primary w-50">
+                  Current Price :{" "}
+                </span>
+                <span className="text-lg font-bold text-primary">
+                  ₹{basicDetails?.price?.toLocaleString()}{" "}
+                </span>
+              </div>
+
+              <div className="flex">
+                <span className="font-semibold text-primary w-50">
+                  Original Price :{" "}
+                </span>
+                <span className="text-lg font-bold text-primary">
+                  ₹{basicDetails?.originalPrice?.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex">
+                <span className="font-semibold text-primary w-50">
+                  Minimum Booking Amount :{" "}
+                </span>
+                <span className="text-lg font-bold text-primary">
+                  ₹{basicDetails?.minBookingAmt?.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

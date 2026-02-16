@@ -346,7 +346,30 @@ export function AddNewPackage({
     validationSchema: Yup.object({
       packageName: Yup.string().required("Package name is required"),
       travelType: Yup.string().required("Travel type required"),
-      price: Yup.number().required("Price is required"),
+      price: Yup.number().required("Current Price  is required"),
+      minimumPrice: Yup.number().required("Minimum Booking Amount is required"),
+      totalSeats: Yup.number()
+    .typeError("Total Seats must be a number")
+    .required("Total Seats is required")
+    .moreThan(0, "Total Seats must be greater than 0"),
+      departureDate: Yup.date()
+        .required("Departure date is required")
+        .min(
+          new Date(new Date().setHours(0, 0, 0, 0)),
+          "Departure date cannot be in the past",
+        ),
+
+      arrivalDate: Yup.date()
+        .required("Arrival date is required")
+        .test(
+          "arrival-after-departure",
+          "Arrival date cannot be before departure date",
+          function (value) {
+            const { departureDate } = this.parent;
+            if (!departureDate || !value) return true;
+            return new Date(value) >= new Date(departureDate);
+          },
+        ),
       description: Yup.string().max(
         100,
         "Description can be maximum 100 characters",
@@ -504,7 +527,10 @@ export function AddNewPackage({
                 {/* Package Name */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="grid gap-2">
-                    <Label>Package Name *</Label>
+                      <Label className="flex items-center gap-1 text-sm font-medium">
+                      Package Name
+                      <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       name="packageName"
                       placeholder="Enter the package name..."
@@ -523,7 +549,10 @@ export function AddNewPackage({
 
                   {/* Travel Type Dropdown */}
                   <div className="grid gap-2">
-                    <Label>Travel Type *</Label>
+                     <Label className="flex items-center gap-1 text-sm font-medium">
+                      Travel Type
+                      <span className="text-red-500">*</span>
+                    </Label>
                     <Select
                       onValueChange={(value) => {
                         formik.setFieldValue("travelType", value);
@@ -552,7 +581,10 @@ export function AddNewPackage({
                   </div>
                   {/* State Dropdown */}
                   <div className="grid gap-2">
-                    <Label>Select Country *</Label>
+                     <Label className="flex items-center gap-1 text-sm font-medium">
+                      Select Country
+                      <span className="text-red-500">*</span>
+                    </Label>
                     <Select
                       value={"1"}
                       // value={formik.values.countryId}
@@ -578,7 +610,10 @@ export function AddNewPackage({
                   </div>
 
                   <div className="grid gap-2">
-                    <Label>Select State *</Label>
+                     <Label className="flex items-center gap-1 text-sm font-medium">
+                      Select State
+                      <span className="text-red-500">*</span>
+                    </Label>
                     {/* <Select
                       value={formik.values.stateId}
                       onValueChange={(value) => {
@@ -614,7 +649,10 @@ export function AddNewPackage({
 
                   {/* City Dropdown */}
                   <div className="grid gap-2">
-                    <Label>Select City *</Label>
+                    <Label className="flex items-center gap-1 text-sm font-medium">
+                      Select City
+                      <span className="text-red-500">*</span>
+                    </Label>
                     <SearchableSelect
                       value={formik.values.cityId}
                       placeholder="Select City"
@@ -630,7 +668,10 @@ export function AddNewPackage({
 
                   {/* packageType Dropdown */}
                   <div className="grid gap-2">
-                    <Label>Packege Type *</Label>
+                    <Label className="flex items-center gap-1 text-sm font-medium">
+                      Packege Type
+                      <span className="text-red-500">*</span>
+                    </Label>
                     <SearchableSelect
                       value={formik.values.packageType}
                       placeholder="Select Package Type"
@@ -664,7 +705,10 @@ export function AddNewPackage({
 
                   {/* Price */}
                   <div className="grid gap-2">
-                    <Label>Price *</Label>
+                    <Label className="flex items-center gap-1 text-sm font-medium">
+                      Current Price
+                      <span className="text-red-500">*</span>
+                    </Label>
                     {/* <Input
                       type="number"
                       name="price"
@@ -724,7 +768,11 @@ export function AddNewPackage({
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label>Minimum Price</Label>
+                    <Label className="flex items-center gap-1 text-sm font-medium">
+                      Minimum Booking Amount
+                      <span className="text-red-500">*</span>
+                    </Label>
+
                     <Input
                       type="text"
                       name="minimumPrice"
@@ -739,6 +787,11 @@ export function AddNewPackage({
                         }
                       }}
                     />
+                    {formik.errors.minimumPrice && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.minimumPrice}
+                      </p>
+                    )}
                   </div>
 
                   {/* Departure Date & Time */}
@@ -756,11 +809,18 @@ export function AddNewPackage({
                     <div className="grid gap-2">
                       <Label>Departure Time</Label>
                       <Input
-                        type="time"
-                        name="departureTime"
+                        type="date"
+                        name="departureDate"
+                        min={new Date().toISOString().split("T")[0]} // prevents past selection
                         onChange={formik.handleChange}
-                        value={formik.values.departureTime}
+                        value={formik.values.departureDate}
                       />
+
+                      {formik.errors.departureDate && (
+                        <p className="text-red-500 text-sm">
+                          {formik.errors.departureDate}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -775,6 +835,12 @@ export function AddNewPackage({
                         onChange={formik.handleChange}
                         value={formik.values.arrivalDate}
                       />
+
+                      {formik.errors.arrivalDate && (
+                        <p className="text-red-500 text-sm">
+                          {formik.errors.arrivalDate}
+                        </p>
+                      )}
                     </div>
                     {/* Arrival Time */}
                     <div className="grid gap-2">
@@ -801,14 +867,24 @@ export function AddNewPackage({
 
                   {/* Seats */}
                   <div className="grid gap-2">
-                    <Label>Total Seats</Label>
+                    <Label className="flex items-center gap-1 text-sm font-medium">
+                      Total Seats
+                      <span className="text-red-500">*</span>
+                    </Label>
+
                     <Input
                       type="number"
                       name="totalSeats"
                       placeholder="350"
                       onChange={formik.handleChange}
                       value={formik.values.totalSeats}
+                      min="1"
                     />
+                    {formik.errors.totalSeats && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.totalSeats}
+                      </p>
+                    )}
                   </div>
 
                   {/* Notes */}

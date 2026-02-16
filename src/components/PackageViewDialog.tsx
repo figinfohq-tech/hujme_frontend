@@ -66,7 +66,7 @@ export function PackageViewDialog({ open, onOpenChange, package: pkg }: PackageV
           {/* Main Details */}
           <section className="grid grid-cols-2 gap-6">
             <div>
-              <h4 className="font-semibold mb-1">Price</h4>
+              <h4 className="font-semibold mb-1">Current Price </h4>
               <p className="text-2xl font-bold text-primary">₹{pkg.price.toLocaleString()}</p>
               <p className="text-sm line-through text-muted-foreground">
                 ₹{pkg.originalPrice.toLocaleString()}

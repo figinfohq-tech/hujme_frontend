@@ -238,7 +238,7 @@ export function PackageFormDialog({
     validationSchema: Yup.object({
       packageName: Yup.string().required("Package name is required"),
       travelType: Yup.string().required("Travel type required"),
-      price: Yup.number().required("Price is required"),
+      price: Yup.number().required("Current Price  is required"),
     }),
 
     onSubmit: async (values, { resetForm }) => {
@@ -505,7 +505,7 @@ export function PackageFormDialog({
 
           {/* Price */}
           <div className="grid gap-2">
-            <Label>Price *</Label>
+            <Label>Current Price  *</Label>
             <Input
               type="number"
               name="price"

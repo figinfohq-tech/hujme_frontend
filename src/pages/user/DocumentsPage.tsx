@@ -62,37 +62,37 @@ interface Document {
 
 const requiredDocuments = [
   {
-    id: "passport",
+    id: "Passport",
     name: "Passport (Scanned Copy)",
     description: "Clear scan of all pages with personal information",
     required: true,
   },
   {
-    id: "aadhaar",
+    id: "Aadhaar",
     name: "Aadhaar Card",
     description: "Government issued identity card",
     required: true,
   },
   {
-    id: "pan",
+    id: "Pan",
     name: "PAN Card",
     description: "Permanent Account Number card",
     required: true,
   },
   {
-    id: "photo",
+    id: "Photo",
     name: "Passport Size Photo",
     description: "Recent photograph as per passport standards",
     required: true,
   },
   {
-    id: "medical",
+    id: "Medical",
     name: "Medical Fitness Certificate",
     description: "Certificate from registered medical practitioner",
     required: true,
   },
   {
-    id: "vaccination",
+    id: "Vaccination",
     name: "Vaccination Certificate",
     description: "COVID-19 and other required vaccinations",
     required: true,
@@ -179,14 +179,14 @@ export const DocumentsPage = () => {
     };
   }, [previewUrl]);
 
-  // get documents api called
-  const fetchDocumentsByBooking = async () => {
-    setIsLoading(true);
+  const fetchDocumentsByBookingId = async () => {
+    if (!selectedBookingId) return;
+
     try {
       const token = sessionStorage.getItem("token");
 
       const response = await axios.get(
-        `${baseURL}documents/byTraveler/${selectedPilgrim}`,
+        `${baseURL}documents/byBooking/${selectedBookingId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -194,7 +194,6 @@ export const DocumentsPage = () => {
 
       const apiDocs = response.data;
 
-      // MAP API DATA → UI DOCUMENT FORMAT
       const mappedDocuments: Document[] = apiDocs.map((doc: any) => ({
         id: `${doc.documentType}-${doc.travelerId}`,
         backendId: doc.documentId,
@@ -206,20 +205,16 @@ export const DocumentsPage = () => {
         pilgrimId: String(doc.travelerId),
         bookingId: String(doc.bookingId),
         comments: doc.remarks || "",
-        file: {
-          name: doc.fileName,
-        } as File,
+        file: { name: doc.fileName } as File,
       }));
 
-      //  STATE UPDATE
       setDocuments(mappedDocuments);
     } catch (error) {
-      console.error("Document Fetch Error:", error);
-    } finally {
-      setIsLoading(false);
+      console.error("Booking Documents Fetch Error:", error);
     }
   };
 
+  // get documents api called
   // replace document
   const handleReplaceDocument = async (doc: Document, file: File) => {
     try {
@@ -257,7 +252,7 @@ export const DocumentsPage = () => {
       toast.success("Document replaced successfully");
 
       // refresh documents
-      fetchDocumentsByBooking();
+      fetchDocumentsByBookingId();
     } catch (error) {
       console.error("Replace error:", error);
       toast.error("Failed to replace document");
@@ -267,10 +262,10 @@ export const DocumentsPage = () => {
   // replace document
 
   useEffect(() => {
-    if (selectedPilgrim) {
-      fetchDocumentsByBooking();
+    if (selectedBookingId) {
+      fetchDocumentsByBookingId();
     }
-  }, [selectedPilgrim]);
+  }, [selectedBookingId]);
 
   // get documents api called
 
@@ -338,7 +333,7 @@ export const DocumentsPage = () => {
         },
       );
       toast.success("Document uploaded successfully");
-      fetchDocumentsByBooking();
+      fetchDocumentsByBookingId();
     } catch (error) {
       console.error(error);
       toast.error("Upload failed");
@@ -364,7 +359,7 @@ export const DocumentsPage = () => {
 
       toast.success("Document deleted successfully");
 
-      fetchDocumentsByBooking();
+      fetchDocumentsByBookingId();
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("Failed to delete document");
@@ -540,6 +535,14 @@ export const DocumentsPage = () => {
     }
   }, [selectedBookingId]);
 
+  const getUploadedCountByTraveler = (travelerId: string | number) => {
+    return documents.filter(
+      (doc) =>
+        String(doc.pilgrimId) === String(travelerId) &&
+        String(doc.bookingId) === String(selectedBookingId),
+    ).length;
+  };
+
   if (isLoading) {
     return <Loader />;
   }
@@ -605,22 +608,29 @@ export const DocumentsPage = () => {
                   <SelectValue placeholder="Select a pilgrim" />
                 </SelectTrigger>
                 <SelectContent>
-                  {travelers?.map((pilgrim) => (
-                    <SelectItem
-                      key={pilgrim.travelerId}
-                      value={String(pilgrim.travelerId)}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          {pilgrim.firstName + " " + pilgrim.lastName}
+                  {travelers?.map((pilgrim) => {
+                    const count = getUploadedCountByTraveler(
+                      pilgrim.travelerId,
+                    );
+
+                    return (
+                      <SelectItem
+                        key={pilgrim.travelerId}
+                        value={String(pilgrim.travelerId)}
+                      >
+                        <div className="flex items-center justify-between gap-2 w-full">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            {pilgrim.firstName + " " + pilgrim.lastName}
+                          </div>
+
+                          <Badge variant="outline" className="text-xs">
+                            {count}/{6}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="text-xs">
-                          {uploadedCount}/{requiredDocuments.length}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

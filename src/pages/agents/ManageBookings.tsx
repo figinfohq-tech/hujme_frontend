@@ -67,6 +67,7 @@ export const ManageBookings = () => {
   const [agentPackages, setAgentPackages] = useState<any[]>([]);
   const [packageBookings, setPackageBookings] = useState<any[]>([]);
   const [usersMap, setUsersMap] = useState<Record<number, any>>({});
+  const [customerSearch, setCustomerSearch] = useState("");
 
   // Track which booking rows are expanded
   const [expandedBookings, setExpandedBookings] = useState<Set<number>>(
@@ -239,6 +240,40 @@ export const ManageBookings = () => {
     });
   };
 
+  const filterBookings = (bookings: any[]) => {
+    if (!customerSearch.trim()) return bookings;
+
+    const query = customerSearch.toLowerCase();
+
+    return bookings.filter((booking) => {
+      const user = usersMap[booking.userId];
+
+      // 🔹 Check customer fields
+      const customerMatch =
+        user &&
+        (`${user.firstName} ${user.lastName}`.toLowerCase().includes(query) ||
+          user.email?.toLowerCase().includes(query) ||
+          user.phone?.toLowerCase().includes(query));
+
+      // 🔹 Check traveler fields (if loaded)
+      const travelers = travelersMap[booking.bookingId];
+
+      const travelerMatch =
+        travelers &&
+        travelers.some(
+          (traveler: any) =>
+            `${traveler.firstName} ${traveler.lastName}`
+              .toLowerCase()
+              .includes(query) ||
+            traveler.emailId?.toLowerCase().includes(query) ||
+            traveler.passportNumber?.toLowerCase().includes(query) ||
+            traveler.phoneNumber?.toLowerCase().includes(query),
+        );
+
+      return customerMatch || travelerMatch;
+    });
+  };
+
   const handleSendNotification = (pkg: Package) => {
     setSelectedPackage(pkg);
     setShowNotificationDialog(true);
@@ -274,6 +309,33 @@ export const ManageBookings = () => {
 
     return hasPending ? "pending" : "complete";
   };
+
+  useEffect(() => {
+    if (!customerSearch.trim()) return;
+
+    const matchedBookingIds = packageBookings
+      .filter((booking) => {
+        const user = usersMap[booking.userId];
+        const travelers = travelersMap[booking.bookingId];
+
+        const query = customerSearch.toLowerCase();
+
+        const customerMatch =
+          user &&
+          `${user.firstName} ${user.lastName}`.toLowerCase().includes(query);
+
+        const travelerMatch =
+          travelers &&
+          travelers.some((t: any) =>
+            `${t.firstName} ${t.lastName}`.toLowerCase().includes(query),
+          );
+
+        return customerMatch || travelerMatch;
+      })
+      .map((b) => b.bookingId);
+
+    setExpandedBookings(new Set(matchedBookingIds));
+  }, [customerSearch]);
 
   const getDocumentStatusBadge = (status: string) => {
     if (status === "complete") {
@@ -396,8 +458,8 @@ export const ManageBookings = () => {
       ) : (
         <div className="space-y-4">
           {filteredPackages.map((pkg) => {
-            const bookings = getBookingsByPackageId(pkg.packageId);
-
+            const allBookings = getBookingsByPackageId(pkg.packageId);
+            const bookings = filterBookings(allBookings);
             return (
               <Card key={pkg.packageId} className="p-0">
                 <Collapsible
@@ -453,22 +515,39 @@ export const ManageBookings = () => {
                   <CollapsibleContent>
                     <div>
                       <CardContent className="pt-0">
-                        <div className="flex justify-end mt-2 gap-2 mb-4">
-                          <Button
-                            onClick={handlePrint}
-                            size="sm"
-                            className="bg-primary hover:bg-primary/90 text-white shadow-md"
-                          >
-                            Export Report
-                          </Button>
-                          <Button
-                            onClick={() => handleSendNotification(pkg)}
-                            variant="outline"
-                            size="sm"
-                            className="hover:bg-primary/30"
-                          >
-                            Send Notification
-                          </Button>
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 p-4 bg-muted/30 rounded-lg border">
+                          {/* LEFT SIDE - SEARCH */}
+                          <div className="relative w-full md:max-w-sm">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                            <Input
+                              placeholder="Search customer or traveler..."
+                              value={customerSearch}
+                              onChange={(e) =>
+                                setCustomerSearch(e.target.value)
+                              }
+                              className="pl-10 h-9 bg-background"
+                            />
+                          </div>
+
+                          {/* RIGHT SIDE - ACTION BUTTONS */}
+                          <div className="flex items-center gap-3 justify-end">
+                            <Button
+                              onClick={handlePrint}
+                              size="sm"
+                              className="bg-primary hover:bg-primary/90 text-white px-4"
+                            >
+                              Export Report
+                            </Button>
+
+                            <Button
+                              onClick={() => handleSendNotification(pkg)}
+                              variant="outline"
+                              size="sm"
+                              className="px-4"
+                            >
+                              Send Notification
+                            </Button>
+                          </div>
                         </div>
 
                         {bookings.length === 0 ? (

@@ -19,6 +19,15 @@ import {
   MapPin,
   CalendarDays,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+
 import { PackageFormDialog } from "@/components/PackageFormDialog";
 import axios from "axios";
 import { PackageViewDialog } from "@/components/PackageViewDialog";
@@ -45,6 +54,8 @@ const Packages = () => {
   const [packageFacilities, setPackageFacilities] = useState({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [agentSubscription, setAgentSubscription] = useState<any[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingPackage, setPendingPackage] = useState<any>(null);
 
   const navigate = useNavigate();
 
@@ -255,7 +266,7 @@ const Packages = () => {
     }
   };
 
-  const togglePackageStatus = async (pkg: any) => {
+  const togglePackageStatus = async (pkg: any, isFromConfirmation = false) => {
     const token = sessionStorage.getItem("token");
 
     const updatedStatus =
@@ -273,32 +284,41 @@ const Packages = () => {
     setUpdatingId(pkg.packageId);
 
     try {
-      const payload = {
-        agentId: pkg.agentId,
-        countryId: pkg.countryId,
-        stateId: pkg.stateId,
-        cityId: pkg.cityId,
-        packageName: pkg.packageName,
-        packageType: pkg.packageType,
-        travelType: pkg.travelType,
-        description: pkg.description,
-        price: pkg.price,
-        originalPrice: pkg.originalPrice,
-        duration: pkg.duration,
-        departureDate: pkg.departureDate,
-        arrivalDate: pkg.arrivalDate,
-        departureTime: pkg.departureTime,
-        arrivalTime: pkg.arrivalTime,
-        flightStops: pkg.flightStops,
-        departureAirlines: pkg.departureAirlines,
-        arrivalAirlines: pkg.arrivalAirlines,
-        bookedSeats: pkg.bookedSeats,
-        totalSeats: pkg.totalSeats,
-        availableSeats: pkg.availableSeats,
-        featured: pkg.featured,
-        notes: pkg.notes,
-        packageStatus: updatedStatus, // ONLY CHANGE
+      // const payload = {
+      //   agentId: pkg.agentId,
+      //   countryId: pkg.countryId,
+      //   stateId: pkg.stateId,
+      //   cityId: pkg.cityId,
+      //   packageName: pkg.packageName,
+      //   packageType: pkg.packageType,
+      //   travelType: pkg.travelType,
+      //   description: pkg.description,
+      //   price: pkg.price,
+      //   originalPrice: pkg.originalPrice,
+      //   duration: pkg.duration,
+      //   departureDate: pkg.departureDate,
+      //   arrivalDate: pkg.arrivalDate,
+      //   departureTime: pkg.departureTime,
+      //   arrivalTime: pkg.arrivalTime,
+      //   flightStops: pkg.flightStops,
+      //   departureAirlines: pkg.departureAirlines,
+      //   arrivalAirlines: pkg.arrivalAirlines,
+      //   bookedSeats: pkg.bookedSeats,
+      //   totalSeats: pkg.totalSeats,
+      //   availableSeats: pkg.availableSeats,
+      //   featured: pkg.featured,
+      //   notes: pkg.notes,
+      //   packageStatus: updatedStatus, // ONLY CHANGE
+      // };
+      const payload: any = {
+        ...pkg, // ✅ ALL existing fields included
+        packageStatus: updatedStatus,
       };
+
+      // 🔥 ONLY if NEW → ACTIVE
+      if (pkg.packageStatus === "NEW" && isFromConfirmation) {
+        payload.launchDate = format(new Date(), "yyyy-MM-dd");
+      }
 
       const response = await axios.put(
         `${baseURL}packages/${pkg.packageId}`,
@@ -310,7 +330,6 @@ const Packages = () => {
           },
         },
       );
-
       toast.success(
         `Package ${updatedStatus === "ACTIVE" ? "Activated" : "Deactivated"}`,
       );
@@ -328,6 +347,16 @@ const Packages = () => {
       fetchPackages();
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleStatusChange = (pkg: any) => {
+    // ONLY if NEW → ACTIVE
+    if (pkg.packageStatus === "NEW") {
+      setPendingPackage(pkg);
+      setConfirmOpen(true);
+    } else {
+      togglePackageStatus(pkg);
     }
   };
 
@@ -361,6 +390,12 @@ const Packages = () => {
         return {
           label: "Completed",
           className: "bg-gray-500 text-white hover:bg-gray-500",
+        };
+
+      case "CLOSED":
+        return {
+          label: "Closed",
+          className: "bg-orange-500 text-white hover:bg-orange-500",
         };
 
       default:
@@ -548,11 +583,18 @@ const Packages = () => {
                                 </Badge>
 
                                 {canToggleStatus(pkg.packageStatus) && (
+                                  // <Switch
+                                  //   checked={pkg.packageStatus === "ACTIVE"}
+                                  //   disabled={updatingId === pkg.packageId}
+                                  //   onCheckedChange={() =>
+                                  //     togglePackageStatus(pkg)
+                                  //   }
+                                  // />
                                   <Switch
                                     checked={pkg.packageStatus === "ACTIVE"}
                                     disabled={updatingId === pkg.packageId}
                                     onCheckedChange={() =>
-                                      togglePackageStatus(pkg)
+                                      handleStatusChange(pkg)
                                     }
                                   />
                                 )}
@@ -678,6 +720,42 @@ const Packages = () => {
           />
         )}
       </main>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Activate Package</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to activate this package? Once activated, it
+              will be available for users to book seats.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setConfirmOpen(false);
+                setPendingPackage(null);
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              onClick={() => {
+                if (pendingPackage) {
+                  togglePackageStatus(pendingPackage, true);
+                }
+                setConfirmOpen(false);
+                setPendingPackage(null);
+              }}
+            >
+              Yes, Activate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
