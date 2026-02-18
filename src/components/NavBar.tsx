@@ -89,7 +89,7 @@ const NavBar = () => {
         {isMenuOpen && (
           <div className="md:hidden border-t py-4">
             <nav className="flex flex-col space-y-4">
-              {/* <Link to="/packages" className="text-foreground hover:text-primary transition-smooth">{t('navigation.packages')}</Link>
+              {/* <Link to="/" className="text-foreground hover:text-primary transition-smooth">{t('navigation.packages')}</Link>
               <a href="#about" className="text-foreground hover:text-primary transition-smooth">{t('navigation.about')}</a> */}
               <div className="flex flex-col space-y-2 pt-4 border-t">
                 {/* <LanguageSelector /> */}

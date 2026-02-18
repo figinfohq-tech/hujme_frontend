@@ -1375,7 +1375,7 @@ export const BookingsPage = () => {
             </Select>
 
             <Button variant="outline" className="hover:bg-secondary" asChild>
-              <Link to="/packages">Book New Package</Link>
+              <Link to="/">Book New Package</Link>
             </Button>
           </div>
         </CardContent>
@@ -1399,7 +1399,7 @@ export const BookingsPage = () => {
                 : "Start your spiritual journey by booking a package"}
             </p>
             <Button asChild>
-              <Link to="/packages">Browse Packages</Link>
+              <Link to="/">Browse Packages</Link>
             </Button>
           </CardContent>
         </Card>

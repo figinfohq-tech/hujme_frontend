@@ -101,6 +101,7 @@ export function AddNewPackage({
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
 
   const [travelType, setTravelType] = useState<LookupType[]>([]);
+  const [roomType, setRoomType] = useState<LookupType[]>([]);
   const [packageType, setPackageType] = useState<LookupType[]>([]);
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState<StateType[]>([]);
@@ -158,6 +159,7 @@ export function AddNewPackage({
         packageName: pkg.packageName || "",
         packageType: pkg.packageType?.toString() || "",
         travelType: pkg.travelType || "",
+        roomType: pkg.roomType || "",
         description: pkg.description || "",
         price: pkg.price || "",
         originalPrice: pkg.originalPrice || "",
@@ -196,7 +198,8 @@ export function AddNewPackage({
       states.length > 0 &&
       cities.length > 0 &&
       travelType.length > 0 &&
-      packageType.length > 0
+      packageType.length > 0 &&
+      roomType.length > 0
     ) {
       formik.setValues({
         ...formik.values,
@@ -204,6 +207,7 @@ export function AddNewPackage({
         stateId: pkg.stateId?.toString() || "",
         cityId: pkg.cityId?.toString() || "",
         travelType: pkg.travelType?.toString() || "",
+        roomType: pkg.roomType?.toString() || "",
         packageType: pkg.packageType?.toString() || "",
       });
 
@@ -212,7 +216,7 @@ export function AddNewPackage({
       setSelectedCitiesId(pkg.cityId?.toString());
       setIsEditInitialized(true);
     }
-  }, [pkg, countries, states, cities, travelType, packageType]);
+  }, [pkg, countries, states, cities, travelType, roomType, packageType]);
 
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageFormSchema),
@@ -236,6 +240,7 @@ export function AddNewPackage({
     fetchCountries();
     fetchPackageType();
     fetchTravelType();
+    fetchRoomType();
     fetchStates();
   }, []);
 
@@ -305,6 +310,22 @@ export function AddNewPackage({
       console.error("Error fetching products:", error);
     }
   };
+  const fetchRoomType = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get<LookupType[]>(
+        `${baseURL}lookups/ROOM_TYPE`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setRoomType(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
 
   const fetchPackageType = async () => {
     try {
@@ -329,6 +350,7 @@ export function AddNewPackage({
       packageName: "",
       packageType: "",
       travelType: "",
+      roomType: "",
       description: "",
       price: "",
       originalPrice: "",
@@ -345,13 +367,14 @@ export function AddNewPackage({
 
     validationSchema: Yup.object({
       packageName: Yup.string().required("Package name is required"),
-      travelType: Yup.string().required("Travel type required"),
+      travelType: Yup.string().required("Travel type is required"),
+      roomType: Yup.string().required("Room type is required"),
       price: Yup.number().required("Current Price  is required"),
       minimumPrice: Yup.number().required("Minimum Booking Amount is required"),
       totalSeats: Yup.number()
-    .typeError("Total Seats must be a number")
-    .required("Total Seats is required")
-    .moreThan(0, "Total Seats must be greater than 0"),
+        .typeError("Total Seats must be a number")
+        .required("Total Seats is required")
+        .moreThan(0, "Total Seats must be greater than 0"),
       departureDate: Yup.date()
         .required("Departure date is required")
         .min(
@@ -398,6 +421,7 @@ export function AddNewPackage({
           cityId: Number(values.cityId),
           packageType: String(values.packageType),
           travelType: String(values.travelType),
+          roomType: String(values.roomType),
           price: Number(values.price),
           originalPrice: Number(values.originalPrice),
           minBookingAmt: values.minimumPrice
@@ -484,7 +508,7 @@ export function AddNewPackage({
         {/* Back Button */}
         <Button
           variant="ghost"
-          onClick={() => navigate("/packages")}
+          onClick={() => navigate(-1)}
           className="mb-6 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -527,7 +551,7 @@ export function AddNewPackage({
                 {/* Package Name */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="grid gap-2">
-                      <Label className="flex items-center gap-1 text-sm font-medium">
+                    <Label className="flex items-center gap-1 text-sm font-medium">
                       Package Name
                       <span className="text-red-500">*</span>
                     </Label>
@@ -549,7 +573,7 @@ export function AddNewPackage({
 
                   {/* Travel Type Dropdown */}
                   <div className="grid gap-2">
-                     <Label className="flex items-center gap-1 text-sm font-medium">
+                    <Label className="flex items-center gap-1 text-sm font-medium">
                       Travel Type
                       <span className="text-red-500">*</span>
                     </Label>
@@ -581,7 +605,7 @@ export function AddNewPackage({
                   </div>
                   {/* State Dropdown */}
                   <div className="grid gap-2">
-                     <Label className="flex items-center gap-1 text-sm font-medium">
+                    <Label className="flex items-center gap-1 text-sm font-medium">
                       Select Country
                       <span className="text-red-500">*</span>
                     </Label>
@@ -610,7 +634,7 @@ export function AddNewPackage({
                   </div>
 
                   <div className="grid gap-2">
-                     <Label className="flex items-center gap-1 text-sm font-medium">
+                    <Label className="flex items-center gap-1 text-sm font-medium">
                       Select State
                       <span className="text-red-500">*</span>
                     </Label>
@@ -667,21 +691,55 @@ export function AddNewPackage({
                   </div>
 
                   {/* packageType Dropdown */}
-                  <div className="grid gap-2">
-                    <Label className="flex items-center gap-1 text-sm font-medium">
-                      Packege Type
-                      <span className="text-red-500">*</span>
-                    </Label>
-                    <SearchableSelect
-                      value={formik.values.packageType}
-                      placeholder="Select Package Type"
-                      items={packageType}
-                      labelKey="lookupName"
-                      valueKey="lookupName"
-                      onChange={(value) => {
-                        formik.setFieldValue("packageType", value);
-                      }}
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid">
+                      <Label className="flex items-center gap-1 text-sm font-medium">
+                        Packege Type
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <SearchableSelect
+                        value={formik.values.packageType}
+                        placeholder="Select Package Type"
+                        items={packageType}
+                        labelKey="lookupName"
+                        valueKey="lookupName"
+                        onChange={(value) => {
+                          formik.setFieldValue("packageType", value);
+                        }}
+                      />
+                    </div>
+                    {/* Travel Room Type Dropdown */}
+                    <div className="grid">
+                      <Label className="flex items-center gap-1 text-sm font-medium">
+                        Room Type
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <Select
+                        onValueChange={(value) => {
+                          formik.setFieldValue("roomType", value);
+                        }}
+                        value={formik.values.roomType}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choose Room Type" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {roomType.map((items) => {
+                            return (
+                              <SelectItem value={items.lookupName}>
+                                {items.lookupName}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      {formik.errors.roomType && (
+                        <p className="text-red-500 text-sm">
+                          {formik.errors.roomType}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Description */}
@@ -800,6 +858,7 @@ export function AddNewPackage({
                       <Label>Departure Date</Label>
                       <Input
                         type="date"
+                        min={new Date().toISOString().split("T")[0]}
                         name="departureDate"
                         onChange={formik.handleChange}
                         value={formik.values.departureDate}
@@ -809,18 +868,11 @@ export function AddNewPackage({
                     <div className="grid gap-2">
                       <Label>Departure Time</Label>
                       <Input
-                        type="date"
-                        name="departureDate"
-                        min={new Date().toISOString().split("T")[0]} // prevents past selection
+                        type="time"
+                        name="departureTime"
                         onChange={formik.handleChange}
-                        value={formik.values.departureDate}
+                        value={formik.values.departureTime}
                       />
-
-                      {formik.errors.departureDate && (
-                        <p className="text-red-500 text-sm">
-                          {formik.errors.departureDate}
-                        </p>
-                      )}
                     </div>
                   </div>
 

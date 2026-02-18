@@ -49,15 +49,15 @@ const FacilitiesViewDetails = ({ packageId }) => {
   }, [packageId]);
 
   // Grouping by facilityDetails.category
-  const groupedFacilities = basicFacilitiesDetails?.reduce(
-    (acc: any, item: any) => {
-      const category = item.facilityDetails?.category;
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(item);
-      return acc;
-    },
-    {},
-  );
+  // const groupedFacilities = basicFacilitiesDetails?.reduce(
+  //   (acc: any, item: any) => {
+  //     const category = item.facilityDetails?.category;
+  //     if (!acc[category]) acc[category] = [];
+  //     acc[category].push(item);
+  //     return acc;
+  //   },
+  //   {},
+  // );
 
   if (isLoading) {
     return <Loader />;
@@ -78,60 +78,45 @@ const FacilitiesViewDetails = ({ packageId }) => {
           No Facilities Added
         </p>
       ) : (
-        <div className="space-y-6">
-          {Object.keys(groupedFacilities).map((category: string, i: number) => (
-            <div key={i} className="border rounded-xl bg-white shadow-sm">
-              {/* Category Header */}
-              <div className="px-5 py-3 border-b bg-muted/40 rounded-t-xl">
-                <h2 className="text-base font-semibold text-gray-800">
-                  {category}
-                </h2>
-              </div>
+        <div className="border rounded-xl bg-white shadow-sm">
+          <div className="p-4 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[80px]">Sr.No</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Type</TableHead>
+                </TableRow>
+              </TableHeader>
 
-              {/* Table */}
-              <div className="p-4 overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[80px]">Sr.No</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Type</TableHead>
-                    </TableRow>
-                  </TableHeader>
+              <TableBody>
+                {basicFacilitiesDetails.map((item: any, index: number) => (
+                  <TableRow key={index}>
+                    {/* Continuous numbering */}
+                    <TableCell className="font-medium">{index + 1}</TableCell>
 
-                  <TableBody>
-                    {groupedFacilities[category].map(
-                      (item: any, index: number) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            {index + 1}
-                          </TableCell>
+                    <TableCell className="font-semibold text-gray-800">
+                      {item.facilityDetails?.facilityName}
+                    </TableCell>
 
-                          <TableCell>
-                            {item.facilityDetails?.facilityName}
-                          </TableCell>
+                    <TableCell className="text-gray-600">
+                      {item.facilityDetails?.description || "-"}
+                    </TableCell>
 
-                          <TableCell>
-                            {item.facilityDetails?.description}
-                          </TableCell>
-
-                          <TableCell>
-                            {item.featured && (
-                              <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">
-                                <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                                Featured
-                              </span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ),
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          ))}
+                    <TableCell>
+                      {item.featured ? (
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 font-medium">
+                          <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                          Featured
+                        </span>
+                      ) : null}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
     </div>

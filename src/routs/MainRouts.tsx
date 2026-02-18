@@ -9,7 +9,6 @@ import AgentSidebar from "@/components/AgentSideBar";
 import { User } from "@/pages/user/User";
 import ProtectedRoute from "@/pages/agents/ProtectedRoute";
 import AgentRegistration from "@/pages/agents/AgentRegistration";
-import Packages from "@/pages/agents/Packages";
 import SearchResults from "@/pages/SearchResult";
 import UserSideBar from "@/components/UserSideBar";
 import PackageDetails from "@/pages/agents/PackageDetails";
@@ -36,6 +35,7 @@ import UpgradeSubscriptionPage from "@/pages/agents/UpgradeSubscriptionPage";
 import ChoosePaymentOption from "@/pages/user/ChoosePaymentOption";
 import PaymentProcessComfirm from "@/pages/user/PaymentProcessComfirm";
 import UserBookingView from "@/pages/user/UserBookingView";
+import Packages from "@/pages/agents/Packages";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");

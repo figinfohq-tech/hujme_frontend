@@ -95,40 +95,21 @@ export const ReviewsDialog = ({
     return dist;
   }, [reviews]);
 
-  const handleHelpfulVote = async (reviewId: string) => {
+  const handleHelpfulVote = async (reviewId: Number) => {
     try {
       const token = sessionStorage.getItem("token");
-
-      // ✅ Optimistic UI update
-      // setReviews((prev) =>
-      //   prev.map((r) =>
-      //     r.id === reviewId
-      //       ? { ...r, helpfulCount: r.helpfulCount + 1 }
-      //       : r
-      //   )
-      // );
-
-      const response = await axios.patch(
-        `${baseURL}customer-reviews/helpful-votes/${reviewId}`,
-        {},
+      await axios.patch(
+        `${baseURL}customer-reviews/helpful-votes/${Number(reviewId)}`,
         {
           headers: {
             Authorization: token ? `Bearer ${token}` : undefined,
           },
         },
       );
+
       fetchReviews();
     } catch (error) {
       console.error("Failed to update helpful vote", error);
-
-      // ❌ rollback if failed
-      // setReviews((prev) =>
-      //   prev.map((r) =>
-      //     r.id === reviewId
-      //       ? { ...r, helpfulCount: r.helpfulCount - 1 }
-      //       : r
-      //   )
-      // );
     }
   };
 

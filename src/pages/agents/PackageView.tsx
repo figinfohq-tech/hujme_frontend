@@ -21,7 +21,7 @@ const PackageView = () => {
         {/* Back Button */}
         <Button
           variant="ghost"
-          onClick={() => navigate("/packages")}
+          onClick={() => navigate("/")}
           className="mb-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 " />

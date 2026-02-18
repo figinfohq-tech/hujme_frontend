@@ -38,6 +38,7 @@ import {
   PlaneTakeoff,
   Hotel,
   UploadIcon,
+  XCircleIcon,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -100,6 +101,11 @@ const UserBookingView = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [documentsData, setDocumentsData] = useState<Record<number, any[]>>({});
+  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
+  const [selectedTravelerId, setSelectedTravelerId] = useState<number | null>(
+    null,
+  );
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const selectedBooking = booking;
 
@@ -391,6 +397,34 @@ const UserBookingView = () => {
     };
   };
 
+  const handleRemoveTraveler = async () => {
+    if (!selectedTravelerId) return;
+
+    try {
+      setIsRemoving(true);
+      const token = sessionStorage.getItem("token");
+
+      await axios.delete(`${baseURL}travelers/${selectedTravelerId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success("Traveler removed successfully");
+
+      setIsRemoveDialogOpen(false);
+      setSelectedTravelerId(null);
+
+      // Refresh travelers list
+      fetchTravelersByID();
+    } catch (error) {
+      console.error("Delete Error:", error);
+      toast.error("Failed to remove traveler");
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
   const TOTAL_REQUIRED_DOCS = 6;
   const getDocumentProgress = (travelerId: number) => {
     const docs = documentsData[travelerId];
@@ -532,7 +566,7 @@ const UserBookingView = () => {
               </h1>
 
               <p className="text-primary/90 text-sm mt-1">
-                Complete information about your booking
+                Complete information about your boo
               </p>
             </div>
           </div>
@@ -710,13 +744,20 @@ const UserBookingView = () => {
                           {/* MAIN CARD */}
                           <div className="w-full border rounded-lg shadow-sm bg-white">
                             {/* Header */}
-                            <div className="px-3 py-2 border-b flex items-center justify-between">
+                            {/* <div className="px-3 py-2 border-b flex items-center justify-between">
                               <div className="space-y-0.5 text-sm">
                                 <div className="flex items-center gap-2">
                                   <PlaneTakeoff className="text-primary h-4 w-4" />
                                   <span className="font-medium">
                                     Flight No: {flight.flightNumber}
                                   </span>
+
+                                   <p className="text-xs text-gray-600">
+                                  <span className="font-medium">
+                                    Flight Name:
+                                  </span>{" "}
+                                  {flight.airlineDetails.flightName}
+                                </p>
 
                                   {flight.flightClass && (
                                     <span className="px-2 py-0.5 text-[11px] rounded-full bg-blue-100 text-blue-700 font-medium">
@@ -725,12 +766,31 @@ const UserBookingView = () => {
                                   )}
                                 </div>
 
-                                <p className="text-xs text-gray-600">
-                                  <span className="font-medium">
-                                    Flight Name:
-                                  </span>{" "}
-                                  {flight.airlineName}
-                                </p>
+                               
+                              </div>
+                            </div> */}
+                            <div className="px-3 py-2 border-b flex items-center justify-between">
+                              <div className="space-y-0.5 text-sm">
+                                <div className="flex items-center gap-2">
+                                  <PlaneTakeoff className="text-primary h-4 w-4" />
+
+                                  {/* Flight Number */}
+                                  <span className="font-semibold tracking-wide text-foreground">
+                                    Flight No: {flight.flightNumber}
+                                  </span>
+
+                                  {/* Flight Name (Differentiated Font Only) */}
+                                  <p className="text-sm font-semibold text-primary tracking-wide ml-2">
+                                    {flight.airlineDetails.flightName}
+                                  </p>
+
+                                  {/* Flight Class */}
+                                  {flight.flightClass && (
+                                    <span className="px-2 py-0.5 text-[11px] rounded-full bg-blue-100 text-blue-700 font-medium">
+                                      {flight.flightClass} Class
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
 
@@ -1053,6 +1113,19 @@ const UserBookingView = () => {
                         >
                           <UploadIcon /> Upload
                         </Button>
+                        {/* remove pilgrims */}
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="gap-1"
+                          onClick={() => {
+                            setSelectedTravelerId(pilgrim?.travelerId);
+                            setIsRemoveDialogOpen(true);
+                          }}
+                        >
+                          <XCircleIcon className="w-4 h-4" />
+                          Remove
+                        </Button>
 
                         {getDocumentStatusBadge(pilgrim?.documentStatus)}
                       </div>
@@ -1265,6 +1338,51 @@ const UserBookingView = () => {
                 <>
                   <CreditCard className="h-4 w-4 mr-2" />
                   Pay Now
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* remove dialog */}
+      {/* Remove Traveler Confirmation Dialog */}
+      <Dialog open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <XCircleIcon className="w-5 h-5" />
+              Remove Traveler
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove this traveler? This action cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRemoveDialogOpen(false)}
+              disabled={isRemoving}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              variant="destructive"
+              onClick={handleRemoveTraveler}
+              disabled={isRemoving}
+            >
+              {isRemoving ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                <>
+                  <XCircleIcon className="w-4 h-4 mr-2" />
+                  Yes, Remove
                 </>
               )}
             </Button>

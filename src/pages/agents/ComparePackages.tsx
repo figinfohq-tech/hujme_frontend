@@ -47,7 +47,7 @@ const ComparePackages = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://31.97.205.55:8080/api/packages/compare",
+        "http://31.97.205.55:8080/api//compare",
         packageIds,
         {
           headers: {

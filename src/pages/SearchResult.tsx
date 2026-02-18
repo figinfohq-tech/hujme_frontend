@@ -24,6 +24,7 @@ import {
   ArrowLeft,
   Eye,
   Search,
+  Bed,
 } from "lucide-react";
 // import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -763,7 +764,7 @@ const SearchResults = () => {
 
                       {/* Package Details */}
                       <div className="md:col-span-2 p-3">
-                        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                           {/* LEFT CONTENT */}
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-col md:flex-row md:items-center gap-2">
@@ -823,24 +824,6 @@ const SearchResults = () => {
                                 </span>
                               </div>
                             )}
-
-                            {/* FACILITIES */}
-                            {packageFacilities[result.packageId]?.length >
-                              0 && (
-                              <div className="flex flex-wrap gap-2">
-                                {packageFacilities[result.packageId].map(
-                                  (facility, index) => (
-                                    <Badge
-                                      key={index}
-                                      variant="outline"
-                                      className="text-xs whitespace-nowrap"
-                                    >
-                                      {facility}
-                                    </Badge>
-                                  ),
-                                )}
-                              </div>
-                            )}
                           </div>
 
                           {/* RIGHT CONTENT */}
@@ -870,22 +853,25 @@ const SearchResults = () => {
                             </div>
                           </div>
                         </div>
-
-                        {/* Features */}
-                        {/* <div className="flex flex-wrap gap-2 mb-4">
-                          {result.features.map((feature, index) => (
-                            <Badge
-                              key={index}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {feature}
-                            </Badge>
-                          ))}
-                        </div> */}
-
-                        {/* Price and Actions */}
-                        <div className="flex justify-between items-center">
+                        {/* FACILITIES */}
+                        <div>
+                          {packageFacilities[result.packageId]?.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {packageFacilities[result.packageId].map(
+                                (facility, index) => (
+                                  <Badge
+                                    key={index}
+                                    variant="outline"
+                                    className="text-xs whitespace-nowrap"
+                                  >
+                                    {facility}
+                                  </Badge>
+                                ),
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex justify-between">
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="text-2xl font-bold text-primary">
@@ -929,6 +915,60 @@ const SearchResults = () => {
                               )}
                             </p> */}
                           </div>
+                          <div>
+                            {/* Seats Info */}
+                            <p className="text-medium flex justify-center gap-1 mt-1">
+                              <span className="text-muted-foreground">
+                                Total Seats:
+                              </span>{" "}
+                              <span className="font-medium">
+                                {result.totalSeats}
+                              </span>{" "}
+                              •{" "}
+                              {result.availableSeats === 0 ||
+                              result.availableSeats === null ? (
+                                <span className="text-gray-500 font-medium">
+                                  Closed
+                                </span>
+                              ) : (
+                                <span
+                                  className={
+                                    result.availableSeats <= 5
+                                      ? "text-red-600 font-medium"
+                                      : "text-green-600 font-medium"
+                                  }
+                                >
+                                  {result.availableSeats} Available
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Features */}
+                        {/* <div className="flex flex-wrap gap-2 mb-4">
+                          {result.features.map((feature, index) => (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {feature}
+                            </Badge>
+                          ))}
+                        </div> */}
+
+                        {/* Price and Actions */}
+                        <div className="flex justify-between mt-2 items-center">
+                          {result?.roomType ? (
+                            // <div className="flex justify-end">
+                            <div className="flex items-center gap-2 px-3 py-1.5 mb-2 bg-secondary/30 rounded-lg border-2 border-secondary/50 text-sm font-medium shadow-sm">
+                              <Bed className="w-4 h-4" />
+                              <span>{result.roomType}</span>
+                            </div>
+                          ) : // </div>
+
+                          null}
                           <div></div>
                           <div className="flex gap-2">
                             <Button
@@ -975,34 +1015,6 @@ const SearchResults = () => {
                               View Details
                             </Button>
                           </div>
-                        </div>
-                        <div>
-                          {/* Seats Info */}
-                          <p className="text-xs flex justify-center gap-1 mt-1">
-                            <span className="text-muted-foreground">
-                              Total Seats:
-                            </span>{" "}
-                            <span className="font-medium">
-                              {result.totalSeats}
-                            </span>{" "}
-                            •{" "}
-                            {result.availableSeats === 0 ||
-                            result.availableSeats === null ? (
-                              <span className="text-gray-500 font-medium">
-                                Closed
-                              </span>
-                            ) : (
-                              <span
-                                className={
-                                  result.availableSeats <= 5
-                                    ? "text-red-600 font-medium"
-                                    : "text-green-600 font-medium"
-                                }
-                              >
-                                {result.availableSeats} Available
-                              </span>
-                            )}
-                          </p>
                         </div>
                       </div>
                     </div>

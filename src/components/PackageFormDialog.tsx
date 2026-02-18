@@ -279,7 +279,7 @@ export function PackageFormDialog({
           //       UPDATE API (PUT)
           // ---------------------------------
           response = await axios.put(
-            `http://31.97.205.55:8080/api/packages/${pkg.packageId}`,
+            `http://31.97.205.55:8080/api//${pkg.packageId}`,
             payload,
             {
               headers: {
@@ -296,7 +296,7 @@ export function PackageFormDialog({
           // ---------------------------------
           
           response = await axios.post(
-            "http://31.97.205.55:8080/api/packages/create",
+            "http://31.97.205.55:8080/api//create",
             payload,
             {
               headers: {
