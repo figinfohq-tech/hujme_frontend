@@ -149,6 +149,7 @@ export function AddNewPackage({
     const date = new Date(isoString);
     return date.toISOString().slice(11, 16); // HH:mm
   };
+
   useEffect(() => {
     if (pkg) {
       formik.setValues({
@@ -451,9 +452,13 @@ export function AddNewPackage({
           // ---------------------------------
           //       UPDATE API (PUT)
           // ---------------------------------
+          const updatePayload = {
+            ...payload,
+            packageStatus: pkg.packageStatus, // 👈 only for update
+          };
           response = await axios.put(
             `${baseURL}packages/${pkg.packageId}`,
-            payload,
+            updatePayload,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
