@@ -10,6 +10,7 @@ import {
   FileText,
   Star,
   Crown,
+  Landmark,
 } from "lucide-react";
 
 const AgentSidebar = () => {
@@ -32,6 +33,7 @@ const AgentSidebar = () => {
       path: "/documents",
     },
     { name: "Profiles", icon: <User size={20} />, path: "/profiles" },
+    { name: "Bank Accounts", icon: <Landmark size={20} />, path: "/bank-account" },
     { name: "Subscriptions", icon: <Crown size={20} />, path: "/subscription-details" },
     {
       name: "Analytics",

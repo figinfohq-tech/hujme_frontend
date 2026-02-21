@@ -92,10 +92,10 @@ const UserBookingView = () => {
   const [pilgrimData, setPilgrimData] = useState<any>([]);
   const [details, setDetails] = useState<any>({});
   const [hotelDetails, setHotelDetails] = useState<any>([]);
+  const [facilities, setFacilities] = useState<any>([]);
   const [flightDetails, setFlightDetails] = useState<any>([]);
   const [bookingDetails, setBookingDetails] = useState<any>("");
   const [isLoading, setIsLoading] = useState(false);
-  const { booking, myPackage, bookingUser } = location.state || {};
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
@@ -107,6 +107,7 @@ const UserBookingView = () => {
   );
   const [isRemoving, setIsRemoving] = useState(false);
 
+  const { booking, myPackage, bookingUser } = location.state || {};
   const selectedBooking = booking;
 
   const fetchHotelByPackageID = async () => {
@@ -123,6 +124,21 @@ const UserBookingView = () => {
       console.error("Package Fetch Error:", error);
     }
   };
+  const fetchFacilitiesByPackageID = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get(
+        `${baseURL}package-facilities/byPackage/${selectedBooking?.packageDetails?.packageId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      setFacilities(response.data);
+    } catch (error) {
+      console.error("Package Fetch Error:", error);
+    }
+  };
+
   const fetchFlightByPackageID = async () => {
     try {
       const token = sessionStorage.getItem("token");
@@ -218,6 +234,7 @@ const UserBookingView = () => {
     if (selectedBooking) {
       fetchHotelByPackageID();
       fetchFlightByPackageID();
+      fetchFacilitiesByPackageID();
     }
   }, [selectedBooking]);
 
@@ -1222,13 +1239,48 @@ const UserBookingView = () => {
             </CardContent>
           </Card>
 
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-primary text-2xl">
+                Package Facilities
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent>
+              {facilities && facilities.length > 0 ? (
+                <div className="flex flex-wrap gap-3">
+                  {facilities.map((facility: any, index: number) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="px-2 py-1 hover:bg-green-100  text-sm flex items-center gap-2 hover:shadow-md transition-all duration-200"
+                    >
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      {facility?.facilityDetails?.facilityName}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <div className="border rounded-lg p-6 text-center bg-muted/30">
+                  <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                  <h4 className="text-sm font-medium text-foreground">
+                    No Facilities Available
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Facilities information has not been added for this package.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Card className="mb-4">
             <CardHeader>
               <CardTitle className="text-primary text-2xl">
                 Agent Contact
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="flex items-center gap-8">
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-primary/90" />
                 <span>{details?.phone}</span>

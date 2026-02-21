@@ -36,6 +36,7 @@ import ChoosePaymentOption from "@/pages/user/ChoosePaymentOption";
 import PaymentProcessComfirm from "@/pages/user/PaymentProcessComfirm";
 import UserBookingView from "@/pages/user/UserBookingView";
 import Packages from "@/pages/agents/Packages";
+import BankAccountsPage from "@/pages/agents/BankAccountsPage";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
@@ -117,6 +118,7 @@ const MainRouts = () => {
               <Route path="documents" element={<DocumentsAgent />} />
               <Route path="booking-view" element={<BookingViewPage />} />
               <Route path="profiles" element={<ProfilePage />} />
+              <Route path="bank-account" element={<BankAccountsPage />} />
               <Route path="subscription" element={<SubscriptionPage />} />
               <Route
                 path="subscription-details"
