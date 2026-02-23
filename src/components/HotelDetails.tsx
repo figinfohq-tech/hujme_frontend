@@ -180,16 +180,13 @@ const HotelDetails = ({ pkg, packageId }: any) => {
   }, [selectedState]);
 
   // GET package hotels
-  const getPackagesByID = async (pkgId?: number) => {
+  const getPackagesByID = async (pkgId: number) => {
     try {
       setIsLoading(true);
       const token = sessionStorage.getItem("token");
 
-      const finalId = pkgId ?? currentPackageId;
-      if (!finalId) return;
-
       const response = await axios.get(
-        `${baseURL}package-hotels/byPackage/${finalId}`,
+        `${baseURL}package-hotels/byPackage/${pkgId}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
@@ -200,6 +197,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       setIsLoading(false);
     }
   };
+
   const getPackagesByHotelId = async () => {
     try {
       setIsLoading(true);
@@ -218,8 +216,11 @@ const HotelDetails = ({ pkg, packageId }: any) => {
   };
 
   useEffect(() => {
-    if (id) getPackagesByID();
-  }, [id]);
+    if (currentPackageId) {
+      getPackagesByID(currentPackageId);
+    }
+  }, [currentPackageId]);
+
   useEffect(() => {
     if (selectedHotel) getPackagesByHotelId();
   }, [selectedHotel]);
@@ -422,8 +423,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       hotelName: hotelInfo?.hotelName ?? target.hotelName,
       address: hotelInfo?.address ?? target.address,
       rating: hotelInfo?.starRating ?? target.rating,
-      distanceFromHaram:
-        hotelInfo?.distance ?? target.distance,
+      distanceFromHaram: hotelInfo?.distance ?? target.distance,
 
       // ✅ LOCATION UPDATE
       countryId: selectedCountry,
@@ -549,7 +549,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
           getPackagesByID(newPackageId);
         }
       }
-      await getPackagesByID();
+      await getPackagesByID(currentPackageId ?? id ?? packageId);
       toast.success(
         pkg ? "Hotels updated successfully!" : "All hotels added successfully!",
       );

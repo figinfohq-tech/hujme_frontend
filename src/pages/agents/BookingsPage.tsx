@@ -497,7 +497,7 @@ export const BookingsPage = () => {
     if (bookingUser?.length > 0) {
       fetchPackages(bookingUser);
     }
-  }, [bookingUser]);
+  }, [bookingUser]);  
 
   const filteredBookings = bookings1.filter((booking) => {
     const matchesSearch =
@@ -507,11 +507,11 @@ export const BookingsPage = () => {
       booking.packageDetails?.agentName
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-    //   booking.id.toLowerCase().includes(searchTerm.toLowerCase());
-    // const matchesStatus =
-    //   statusFilter === "all" || booking.status === statusFilter;
+      // booking.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || booking.bookingStatus === statusFilter;
 
-    return matchesSearch;
+    return matchesSearch && matchesStatus;
   });
 
   const getStatusColor = (status: string) => {
@@ -1363,14 +1363,14 @@ export const BookingsPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
                 <SelectItem value="partially_cancelled">
                   Partially Cancelled
                 </SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
               </SelectContent>
             </Select>
 

@@ -41,8 +41,8 @@ const OtpVerification = ({
 
       const url =
         type === "email"
-          ? `http://31.97.205.55:8080/api/otp/email/send-otp?email=${String(value)}`
-          : `http://31.97.205.55:8080/api/otp/whatsapp/send-otp?phoneNumber=${String(value)}`;
+          ? `${baseURL}otp/email/send-otp?email=${String(value)}`
+          : `${baseURL}otp/whatsapp/send-otp?phoneNumber=${String(value)}`;
 
       await axios.post(
         url,

@@ -56,6 +56,9 @@ interface FlightSegment {
   airlineId: number;
   airlineName: string;
 
+  departureAirportId?: number;
+  arrivalAirportId?: number;
+
   flightNumber: string;
   flightClass: string;
 
@@ -348,12 +351,16 @@ const FlightDetails = ({ pkg, packageId }) => {
         id: String(item.id),
 
         airlineId: Number(item.airlineDetails?.airlineId),
-
-        // ✅ MOST IMPORTANT FIX
         airlineName: item.airlineDetails?.flightName,
 
-        flightNumber: item.airlineDetails?.flightCode,
+        flightNumber: item.flightNumber,
         flightClass: item.flightClass,
+
+        departureAirportId: item.departureAirportDetails?.airportId,
+        arrivalAirportId: item.arrivalAirportDetails?.airportId,
+
+        departureAirportName: item.departureAirportDetails?.airportName,
+        arrivalAirportName: item.arrivalAirportDetails?.airportName,
 
         departureCountryId: item.departureCountryId,
         departureCountryName: item.departureCountryName,
@@ -437,6 +444,9 @@ const FlightDetails = ({ pkg, packageId }) => {
 
         flightNumber: values.flightNumber,
         flightClass: values.flightClass,
+
+        departureAirportId: Number(values.departureAirport),
+        arrivalAirportId: Number(values.arrivalAirport),
 
         departureCountryId: Number(values.departureCountries),
 
@@ -564,8 +574,10 @@ const FlightDetails = ({ pkg, packageId }) => {
 
       for (const flight of addedFlights) {
         const payload = {
-          packageId: id ?? packageId,
+          packageId: id,
           airlineId: flight.airlineId,
+          departureAirportId: flight.departureAirportId,
+          arrivalAirportId: flight.arrivalAirportId,
           flightNumber: flight.flightNumber,
           flightClass: flight.flightClass,
 
@@ -850,6 +862,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                         <div className="flex items-center gap-1">
                           <MapPin size={14} />
                           <span className="text-gray-700">
+                            {flight.arrivalAirportName},{" "}
                             {flight.departureCityName},{" "}
                             {flight.departureStateName},{" "}
                             {flight.departureCountryName}
@@ -885,6 +898,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                         <div className="flex items-center gap-1">
                           <MapPin size={14} />
                           <span className="text-gray-700">
+                            {flight.arrivalAirportName},{" "}
                             {flight.arrivalCityName}, {flight.arrivalStateName},{" "}
                             {flight.arrivalCountryName}
                           </span>

@@ -18,6 +18,7 @@ import {
   Delete,
   MapPin,
   CalendarDays,
+  Bed,
 } from "lucide-react";
 import {
   Dialog,
@@ -464,27 +465,28 @@ const Packages = () => {
               <Card className="overflow-hidden hover:shadow-elegant py-0 transition-smooth">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
                   {/* LEFT : IMAGE / LOGO */}
-                  <div className="md:col-span-1 h-48 md:h-full flex items-center justify-center bg-white border-r border-border">
-                    {/* agency logo */}
-                    <a
-                      href={pkg.website || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`w-full h-full flex items-center justify-center transition ${
-                        pkg.website ? "hover:opacity-90" : "pointer-events-none"
-                      }`}
-                    >
-                      <img
-                        src={
-                          agentLogos[pkg.agentId]
-                            ? agentLogos[pkg.agentId]
-                            : "/placeholder.svg"
-                        }
-                        alt="Agent Logo"
-                        className="max-w-[90%] max-h-[90%] object-contain transition-transform duration-300 ease-in-out hover:scale-105 drop-shadow-sm"
-                      />
-                    </a>
-                  </div>
+                <div className="md:col-span-1 h-48 md:h-full flex items-center justify-center bg-white border-r border-border">
+                        <a
+                          href={pkg.website || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`w-full h-full flex items-center justify-center transition ${
+                            pkg.website
+                              ? "hover:opacity-90"
+                              : "pointer-events-none"
+                          }`}
+                        >
+                          <img
+                            src={
+                              agentLogos[pkg.agentId]
+                                ? agentLogos[pkg.agentId]
+                                : "/placeholder.svg"
+                            }
+                            alt="Agent Logo"
+                            className="max-w-[90%] max-h-[90%] object-contain transition-transform duration-300 ease-in-out hover:scale-105 drop-shadow-sm"
+                          />
+                        </a>
+                      </div>
 
                   {/* RIGHT : DETAILS */}
                   <div className="md:col-span-2 p-3">
@@ -512,6 +514,10 @@ const Packages = () => {
                           >
                             By {pkg.agentName}
                           </a>
+                          {/* Launch Date */}
+                              <span className="text-sm mt-1 ml-3 text-muted-foreground">
+                                Launched: {pkg?.packageTimeline}
+                              </span>
                         </p>
 
                         {/* LOCATION & DURATION */}
@@ -622,6 +628,10 @@ const Packages = () => {
                             ({pkg.reviewCount} reviews)
                           </span>
                         </div>
+                          <div className="flex items-center gap-1 text-sm font-semibold text-muted-foreground">
+                              <Eye className="h-4 w-4" />
+                              <span>{pkg?.viewCount ?? 0} views</span>
+                            </div>
                       </div>
                     </div>
 
@@ -636,11 +646,54 @@ const Packages = () => {
                           <span className="text-2xl font-bold text-muted-foreground line-through">
                             ₹{pkg.originalPrice.toLocaleString()}
                           </span>
+                         <span className="text-xl font-semibold text-red-600">
+                                {`${pkg.percentageOff}`}
+                              </span>
                         </div>
                         <p className="text-xs text-muted-foreground">
                           Per person (all inclusive)
                         </p>
                       </div>
+                       <div>
+                            {/* Seats Info */}
+                            <p className="text-medium flex justify-center gap-1 mt-1">
+                              <span className="text-muted-foreground">
+                                Total Seats:
+                              </span>{" "}
+                              <span className="font-medium">
+                                {pkg.totalSeats}
+                              </span>{" "}
+                              •{" "}
+                              {pkg.availableSeats === 0 ||
+                              pkg.availableSeats === null ? (
+                                <span className="text-gray-500 font-medium">
+                                  Closed
+                                </span>
+                              ) : (
+                                <span
+                                  className={
+                                    pkg.availableSeats <= 5
+                                      ? "text-red-600 font-medium"
+                                      : "text-green-600 font-medium"
+                                  }
+                                >
+                                  {pkg.availableSeats} Available
+                                </span>
+                              )}
+                            </p>
+                          </div>
+
+                    </div>
+                    <div className="flex justify-between my-2">
+                      {pkg?.roomType ? (
+                            // <div className="flex justify-end">
+                            <div className="flex items-center gap-2 px-3 py-1.5 mb-2 bg-secondary/30 rounded-lg border-2 border-secondary/50 text-sm font-medium shadow-sm">
+                              <Bed className="w-4 h-4" />
+                              <span>{pkg.roomType}</span>
+                            </div>
+                          ) : // </div>
+
+                          null}
 
                       {/* 🔥 EXISTING BUTTONS & LOGIC UNCHANGED */}
                       <div className="flex gap-2">

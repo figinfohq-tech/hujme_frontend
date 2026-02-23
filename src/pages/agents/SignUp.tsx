@@ -227,6 +227,9 @@ const SignUp = () => {
           { headers: { "Content-Type": "application/json" } },
         );
 
+        console.log("signupRes--->",signupRes);
+        
+
         const { userId } = signupRes.data;
 
         // save token & userId

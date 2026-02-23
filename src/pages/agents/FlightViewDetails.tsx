@@ -185,7 +185,7 @@ const FlightViewDetails = ({ packageId }) => {
                       <div className="flex items-center gap-2">
                         <PlaneTakeoff className="text-primary h-4 w-4" />
                         <span className="font-medium">
-                          Flight No: {item?.airlineDetails?.flightCode}
+                          Flight No: {item?.flightNumber}
                         </span>
 
                         {item.flightClass && (
@@ -215,6 +215,7 @@ const FlightViewDetails = ({ packageId }) => {
                         <div className="flex items-center gap-1">
                           <MapPin size={14} />
                           <span className="text-gray-700">
+                            {item.departureAirportDetails.airportName},{" "}
                             {item.departureCityName}, {item.departureStateName},{" "}
                             {item.departureCountryName}
                           </span>
@@ -251,6 +252,7 @@ const FlightViewDetails = ({ packageId }) => {
                         <div className="flex items-center gap-1">
                           <MapPin size={14} />
                           <span className="text-gray-700">
+                            {item.arrivalAirportDetails.airportName},{" "}
                             {item.arrivalCityName}, {item.arrivalStateName},{" "}
                             {item.arrivalCountryName}
                           </span>

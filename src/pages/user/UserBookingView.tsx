@@ -583,7 +583,7 @@ const UserBookingView = () => {
               </h1>
 
               <p className="text-primary/90 text-sm mt-1">
-                Complete information about your boo
+                Complete information about your booking
               </p>
             </div>
           </div>
@@ -656,9 +656,9 @@ const UserBookingView = () => {
                           <div className="flex items-start justify-between">
                             <div className="space-y-2 flex-1">
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded">
+                                {/* <span className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded">
                                   {hotel?.hotelDetails?.hotelId}
-                                </span>
+                                </span> */}
                                 <h5 className="font-semibold text-foreground">
                                   {hotel?.hotelDetails?.hotelName}
                                 </h5>
@@ -917,13 +917,13 @@ const UserBookingView = () => {
           </Card>
 
           <Card className="mb-4">
-            <CardHeader>
-              <CardTitle className="text-primary text-2xl">
+            <div className="px-6">
+              <h2 className="text-primary text-2xl font-semibold">
                 Payment Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
+              </h2>
+            </div>
+            <CardContent className="space-y-1">
+              {/* <div className="flex justify-between">
                 <span className="text-primary/90">Total Amount</span>
                 <span className="font-semibold">
                   {formatCurrency(selectedBooking?.totalAmt)}
@@ -937,7 +937,7 @@ const UserBookingView = () => {
                   {formatCurrency(bookingDetails?.receivedAmt)}
                 </span>
               </div>
-              <Separator />
+              <Separator /> */}
               <div>
                 <h4 className="font-medium text-primary mb-3">
                   Payment History
@@ -946,8 +946,8 @@ const UserBookingView = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
                       <TableHead>Payment Method</TableHead>
+                      <TableHead>Amount</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -956,12 +956,27 @@ const UserBookingView = () => {
                         <TableCell>
                           {new Date(payment.paid_at).toLocaleDateString()}
                         </TableCell>
+                        <TableCell>{payment.payment_method}</TableCell>
                         <TableCell className="font-medium">
                           ₹{payment.amount.toLocaleString()}
                         </TableCell>
-                        <TableCell>{payment.payment_method}</TableCell>
                       </TableRow>
                     ))}
+                    <TableRow>
+                      <TableCell>Received Amount</TableCell>
+                      <TableCell>--</TableCell>
+                      <TableCell className="font-medium">
+                        {formatCurrency(bookingDetails?.receivedAmt)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Total Amount</TableCell>
+                      <TableCell>--</TableCell>
+                      <TableCell className="font-medium">
+                        {formatCurrency(selectedBooking?.totalAmt)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow></TableRow>
                   </TableBody>
                 </Table>
               </div>

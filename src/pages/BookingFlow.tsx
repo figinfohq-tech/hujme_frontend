@@ -67,8 +67,9 @@ export const BookingFlow: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { packageData } = (location.state || {}) as {
+  const { packageData, packageDetails } = (location.state || {}) as {
     packageData?: PackageData;
+    packageDetails?: any;
   };
 
   const existingBooking = packageData?.booking || null;
@@ -82,6 +83,7 @@ export const BookingFlow: React.FC = () => {
     null,
   );
   const [partialAmount, setPartialAmount] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const bookingApiCalledRef = useRef(false);
 
@@ -151,13 +153,7 @@ export const BookingFlow: React.FC = () => {
       const totalAmt = pricePerPerson * travelerCount;
       // ✅ Your payload object
       const payloadBooking = {
-        // balanceAmt: 0,
-        // bookingRef: "string",
-        // bookingStatus: "string",
-        // discountAmt: 0,
-        // paymentStatus: "string",
         // receivedAmt: 0,
-        // startDate: "string",
         totalAmt: totalAmt,
         travelerCount: travelerCount,
         packageId: packageData?.id,
@@ -227,7 +223,7 @@ export const BookingFlow: React.FC = () => {
 
   /** Submit single traveler (backend expects one object as in Postman) */
   const handleBookingSubmit = async () => {
-    if (bookingApiCalledRef.current) return; // ⛔ already called
+    if (bookingApiCalledRef.current) return;
     const validationResults = travelers.map(validateTraveler);
     setErrors(validationResults);
 
@@ -303,6 +299,25 @@ export const BookingFlow: React.FC = () => {
       // When ALL traveler APIs are successful:
 
       toast.success("All travelers submitted successfully!");
+      // After ALL traveler APIs success
+      if (existingBooking && existingBooking.bookingStatus !== "COMPLETED") {
+        const previousCount = Number(existingBooking.travelerCount || 0);
+        const newCount = previousCount + travelers.length;
+
+        await axios.put(
+          `${baseURL}bookings/${existingBooking.bookingId}`,
+          {
+            ...existingBooking,
+            travelerCount: newCount,
+          },
+          {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
       navigate("/payment-option", {
         state: { booking: bookingToSend },
       });
@@ -569,7 +584,6 @@ export const BookingFlow: React.FC = () => {
                           <option value="">Select gender</option>
                           <option value="male">Male</option>
                           <option value="female">Female</option>
-                          <option value="other">Other</option>
                         </select>
                         {errors[index]?.gender && (
                           <p className="text-sm text-red-500 mt-1">
@@ -714,14 +728,21 @@ export const BookingFlow: React.FC = () => {
                 <span className="font-semibold">Total Amount:</span>
                 <span className="font-bold text-xl">
                   ₹
-                  {(
-                    (packageData?.price || 0) * travelers.length
-                  ).toLocaleString()}
+                  {existingBooking
+                    ? (
+                        (packageData?.price || 0) *
+                        (existingBooking.travelerCount + travelers.length)
+                      ).toLocaleString()
+                    : (
+                        (packageData?.price || 0) * travelers.length
+                      ).toLocaleString()}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                {travelers.length} traveler(s) × ₹
-                {(packageData?.price || 0).toLocaleString()}
+                {existingBooking
+                  ? existingBooking.travelerCount + travelers.length
+                  : travelers.length}{" "}
+                traveler(s) × ₹{(packageData?.price || 0).toLocaleString()}
               </p>
             </div>
 

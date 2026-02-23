@@ -248,12 +248,14 @@ const PackageDetails = () => {
             <div className="mb-5 bg-background rounded-xl shadow-sm border overflow-hidden">
               <div className="flex flex-col md:flex-row items-stretch overflow-hidden">
                 {/* LEFT: Image */}
-                <div className="md:w-1/4 w-full bg-white flex">
-                  <img
-                    src={agentLogo || "/placeholder.svg"}
-                    alt="Agent Logo"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="md:w-1/4 w-full bg-white flex items-center justify-center">
+                  <div className="w-[200px] h-[200px]">
+                    <img
+                      src={agentLogo || "/placeholder.svg"}
+                      alt="Agent Logo"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
                 </div>
 
                 {/* RIGHT: Content */}
@@ -338,6 +340,7 @@ const PackageDetails = () => {
                                   price: packageDetail?.price,
                                   duration: packageDetail?.duration,
                                 },
+                                packageDetails: packageDetail,
                               },
                             });
                           }}
