@@ -59,7 +59,7 @@ const AgentRegistration = () => {
     try {
       const token = sessionStorage.getItem("token");
       const response = await axios.get(
-        `http://31.97.205.55:8080/api/states/byCountry/${1}`,
+        `${baseURL}states/byCountry/${1}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ const AgentRegistration = () => {
     try {
       const token = sessionStorage.getItem("token");
       const response = await axios.get(
-        `http://31.97.205.55:8080/api/cities/byState/${selectedStateId}`,
+        `${baseURL}cities/byState/${selectedStateId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

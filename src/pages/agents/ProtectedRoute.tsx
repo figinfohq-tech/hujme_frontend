@@ -1,4 +1,5 @@
 // ProtectedRoute.jsx
+import { baseURL } from "@/utils/constant/url";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
@@ -15,7 +16,7 @@ const ProtectedRoute = ({ children }) => {
   const fetchAgent = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const url = `http://31.97.205.55:8080/api/agents/${userId}/exists`;
+      const url = `${baseURL}agents/${userId}/exists`;
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`, // ⬅ token added

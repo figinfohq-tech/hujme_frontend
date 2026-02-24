@@ -369,6 +369,7 @@ export function AddNewPackage({
     validationSchema: Yup.object({
       packageName: Yup.string().required("Package name is required"),
       travelType: Yup.string().required("Travel type is required"),
+      packageType: Yup.string().required("Package type type is required"),
       roomType: Yup.string().required("Room type is required"),
       price: Yup.number().required("Current Price  is required"),
       minimumPrice: Yup.number().required("Minimum Booking Amount is required"),
@@ -554,7 +555,7 @@ export function AddNewPackage({
             <TabsContent value="basic" className="space-y-4 mt-4">
               <form onSubmit={formik.handleSubmit}>
                 {/* Package Name */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 mb-4 md:grid-cols-4 gap-6">
                   <div className="grid gap-2">
                     <Label className="flex items-center gap-1 text-sm font-medium">
                       Package Name
@@ -608,7 +609,65 @@ export function AddNewPackage({
                       </p>
                     )}
                   </div>
-                  {/* State Dropdown */}
+                  {/* packageType Dropdown */}
+                  {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
+                  <div className="grid gap-2">
+                    <Label className="flex items-center gap-1 text-sm font-medium">
+                      Packege Type
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <SearchableSelect
+                      value={formik.values.packageType}
+                      placeholder="Select Package Type"
+                      items={packageType}
+                      labelKey="lookupName"
+                      valueKey="lookupName"
+                      onChange={(value) => {
+                        formik.setFieldValue("packageType", value);
+                      }}
+                    />
+                    {formik.errors.packageType && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.packageType}
+                      </p>
+                    )}
+                  </div>
+                  {/* Travel Room Type Dropdown */}
+                  <div className="grid gap-2">
+                    <Label className="flex items-center gap-1 text-sm font-medium">
+                      Room Type
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      onValueChange={(value) => {
+                        formik.setFieldValue("roomType", value);
+                      }}
+                      value={formik.values.roomType}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Choose Room Type" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        {roomType.map((items) => {
+                          return (
+                            <SelectItem value={items.lookupName}>
+                              {items.lookupName}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    {formik.errors.roomType && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.roomType}
+                      </p>
+                    )}
+                  </div>
+                  {/* </div> */}
+                </div>
+                {/* State Dropdown */}
+                <div className="grid grid-cols-1 md:grid-cols-3 mb-4 gap-6">
                   <div className="grid gap-2">
                     <Label className="flex items-center gap-1 text-sm font-medium">
                       Select Country
@@ -694,60 +753,10 @@ export function AddNewPackage({
                       }}
                     />
                   </div>
+                </div>
 
-                  {/* packageType Dropdown */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="grid">
-                      <Label className="flex items-center gap-1 text-sm font-medium">
-                        Packege Type
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <SearchableSelect
-                        value={formik.values.packageType}
-                        placeholder="Select Package Type"
-                        items={packageType}
-                        labelKey="lookupName"
-                        valueKey="lookupName"
-                        onChange={(value) => {
-                          formik.setFieldValue("packageType", value);
-                        }}
-                      />
-                    </div>
-                    {/* Travel Room Type Dropdown */}
-                    <div className="grid">
-                      <Label className="flex items-center gap-1 text-sm font-medium">
-                        Room Type
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <Select
-                        onValueChange={(value) => {
-                          formik.setFieldValue("roomType", value);
-                        }}
-                        value={formik.values.roomType}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Choose Room Type" />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          {roomType.map((items) => {
-                            return (
-                              <SelectItem value={items.lookupName}>
-                                {items.lookupName}
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                      {formik.errors.roomType && (
-                        <p className="text-red-500 text-sm">
-                          {formik.errors.roomType}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Description */}
+                {/* Description */}
+                <div className="grid grid-cols-1 md:grid-cols-1 mb-4 gap-6">
                   <div className="grid gap-2 md:col-span-2">
                     <Label>Description</Label>
                     <textarea
@@ -765,8 +774,10 @@ export function AddNewPackage({
                       </span>
                     )}
                   </div>
+                </div>
 
-                  {/* Price */}
+                {/* Price */}
+                <div className="grid grid-cols-1 md:grid-cols-3 mb-4 gap-6">
                   <div className="grid gap-2">
                     <Label className="flex items-center gap-1 text-sm font-medium">
                       Current Price
@@ -856,62 +867,61 @@ export function AddNewPackage({
                       </p>
                     )}
                   </div>
+                </div>
 
-                  {/* Departure Date & Time */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label>Departure Date</Label>
-                      <Input
-                        type="date"
-                        min={new Date().toISOString().split("T")[0]}
-                        name="departureDate"
-                        onChange={formik.handleChange}
-                        value={formik.values.departureDate}
-                      />
-                    </div>
-                    {/* Departure Time */}
-                    <div className="grid gap-2">
-                      <Label>Departure Time</Label>
-                      <Input
-                        type="time"
-                        name="departureTime"
-                        onChange={formik.handleChange}
-                        value={formik.values.departureTime}
-                      />
-                    </div>
+                {/* Departure Date & Time */}
+                <div className="grid grid-cols-1 md:grid-cols-4 mb-4 gap-4">
+                  <div className="grid gap-2">
+                    <Label>Departure Date</Label>
+                    <Input
+                      type="date"
+                      min={new Date().toISOString().split("T")[0]}
+                      name="departureDate"
+                      onChange={formik.handleChange}
+                      value={formik.values.departureDate}
+                    />
                   </div>
-
+                  {/* Departure Time */}
+                  <div className="grid gap-2">
+                    <Label>Departure Time</Label>
+                    <Input
+                      type="time"
+                      name="departureTime"
+                      onChange={formik.handleChange}
+                      value={formik.values.departureTime}
+                    />
+                  </div>
                   {/* Arrival Date */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label>Arrival Date</Label>
-                      <Input
-                        type="date"
-                        name="arrivalDate"
-                        min={formik.values.departureDate || undefined}
-                        onChange={formik.handleChange}
-                        value={formik.values.arrivalDate}
-                      />
+                  <div className="grid gap-2">
+                    <Label>Arrival Date</Label>
+                    <Input
+                      type="date"
+                      name="arrivalDate"
+                      min={formik.values.departureDate || undefined}
+                      onChange={formik.handleChange}
+                      value={formik.values.arrivalDate}
+                    />
 
-                      {formik.errors.arrivalDate && (
-                        <p className="text-red-500 text-sm">
-                          {formik.errors.arrivalDate}
-                        </p>
-                      )}
-                    </div>
-                    {/* Arrival Time */}
-                    <div className="grid gap-2">
-                      <Label>Arrival Time</Label>
-                      <Input
-                        type="time"
-                        name="arrivalTime"
-                        onChange={formik.handleChange}
-                        value={formik.values.arrivalTime}
-                      />
-                    </div>
+                    {formik.errors.arrivalDate && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.arrivalDate}
+                      </p>
+                    )}
                   </div>
+                  {/* Arrival Time */}
+                  <div className="grid gap-2">
+                    <Label>Arrival Time</Label>
+                    <Input
+                      type="time"
+                      name="arrivalTime"
+                      onChange={formik.handleChange}
+                      value={formik.values.arrivalTime}
+                    />
+                  </div>
+                </div>
 
-                  {/* Package Duration (Auto Calculated) */}
+                {/* Package Duration (Auto Calculated) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 mb-4 gap-4">
                   <div className="grid gap-2">
                     <Label>Package Duration</Label>
                     <Input
@@ -943,25 +953,26 @@ export function AddNewPackage({
                       </p>
                     )}
                   </div>
-
-                  {/* Notes */}
-                  <div className="grid gap-2 md:col-span-2">
-                    <div className="flex items-center gap-1">
-                      <Label>Notes</Label>
-                      <span className="text-sm text-muted-foreground">
-                        (For internal use)
-                      </span>
-                    </div>
-                    <textarea
-                      name="notes"
-                      placeholder="Notes..."
-                      className="border p-2 rounded-md"
-                      rows={2}
-                      onChange={formik.handleChange}
-                      value={formik.values.notes}
-                    />
-                  </div>
                 </div>
+
+                {/* Notes */}
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-2">
+                  <div className="grid gap-2">
+                    <Label>Notes</Label>
+                    <span className="text-sm text-muted-foreground">
+                      (For internal use)
+                    </span>
+                  </div>
+                  <textarea
+                    name="notes"
+                    placeholder="Notes..."
+                    className="border p-2 rounded-md"
+                    rows={2}
+                    onChange={formik.handleChange}
+                    value={formik.values.notes}
+                  />
+                </div>
+
                 <div className="flex justify-end gap-2 pt-4">
                   <Button variant="outline" onClick={() => navigate(-1)}>
                     Cancel

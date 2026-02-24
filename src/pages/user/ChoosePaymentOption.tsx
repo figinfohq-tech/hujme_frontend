@@ -6,19 +6,21 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { toast } from "react-toastify";
 import { useLocation, useNavigate } from "react-router";
+import axios from "axios";
+import { baseURL } from "@/utils/constant/url";
 
 const ChoosePaymentOption = () => {
   const [paymentType, setPaymentType] = useState<"full" | "partial" | null>(
     null,
   );
   const [partialAmount, setPartialAmount] = useState<number>(0);
-
+  
   const navigate = useNavigate();
 
   const location = useLocation();
-  const booking = location.state?.booking;
+  const booking = location.state?.booking;  
 
-  const totalAmount = booking?.totalAmt;
+  const totalAmount = booking?.totalAmt * booking?.travelerCount ;
   const minPartialAmount = Math.ceil(booking?.totalAmt * 0.2);
 
   const handlePaymentOptionSubmit = () => {
@@ -38,6 +40,8 @@ const ChoosePaymentOption = () => {
       state: { booking: booking },
     });
   };
+
+  // const totalAmt = 
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">

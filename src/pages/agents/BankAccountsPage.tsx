@@ -73,6 +73,8 @@ const BankAccountsPage = () => {
     }
   };
 
+  console.log("agent is--->", agent?.agentId);
+
   const fetchBankAccounts = async () => {
     setIsLoading(true);
     try {
@@ -104,31 +106,6 @@ const BankAccountsPage = () => {
     }
   }, [agent]);
 
-  // ---------------- STATIC TABLE DATA ----------------
-
-  const bankAccountsData = [
-    {
-      id: 1,
-      accountHolderName: "Faiz Ahmed",
-      accountNumber: "123456789012",
-      bankName: "HDFC Bank",
-      ifscCode: "HDFC0001234",
-      branchName: "Mumbai Main",
-      accountType: "Savings",
-      isActive: true,
-    },
-    {
-      id: 2,
-      accountHolderName: "Ali Khan",
-      accountNumber: "987654321098",
-      bankName: "ICICI Bank",
-      ifscCode: "ICIC0005678",
-      branchName: "Delhi Branch",
-      accountType: "Current",
-      isActive: false,
-    },
-  ];
-
   // ---------------- VALIDATION ----------------
 
   const validationSchema = Yup.object({
@@ -139,6 +116,10 @@ const BankAccountsPage = () => {
     accountNumber: Yup.string()
       .matches(/^[0-9]{9,18}$/, "Invalid account number")
       .required("Account number is required"),
+
+    confirmAccountNumber: Yup.string()
+      .oneOf([Yup.ref("accountNumber")], "Account numbers must match")
+      .required("Confirm account number is required"),
 
     bankName: Yup.string().required("Bank name is required"),
 
@@ -158,6 +139,7 @@ const BankAccountsPage = () => {
       agentId: "",
       accountHolderName: "",
       accountNumber: "",
+      confirmAccountNumber: "",
       bankName: "",
       ifscCode: "",
       branchName: "",
@@ -168,6 +150,7 @@ const BankAccountsPage = () => {
 
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
+      const { confirmAccountNumber, ...payload } = values;
       if (!values.agentId) {
         toast.error("Agent not loaded yet");
         return;
@@ -176,7 +159,7 @@ const BankAccountsPage = () => {
       try {
         if (editId) {
           // ✅ UPDATE
-          await axios.put(`${baseURL}bank-accounts/${editId}`, values, {
+          await axios.put(`${baseURL}bank-accounts/${editId}`, payload, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -185,7 +168,7 @@ const BankAccountsPage = () => {
           toast.success("Bank account updated successfully");
         } else {
           // ✅ ADD
-          await axios.post(`${baseURL}bank-accounts`, values, {
+          await axios.post(`${baseURL}bank-accounts`, payload, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -211,7 +194,7 @@ const BankAccountsPage = () => {
     setEditId(account.accountId); // important
 
     formik.setValues({
-      agentId: agent.agentId,
+      agentId: agent?.agentId,
       accountHolderName: account.accountHolderName,
       accountNumber: account.accountNumber,
       bankName: account.bankName,
@@ -288,6 +271,24 @@ const BankAccountsPage = () => {
                         )}
                     </div>
 
+                    {/* Confirm Account Number */}
+                    <div className="space-y-2">
+                      <Label>
+                        Confirm Account Number{" "}
+                        <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        placeholder="Re-enter account number"
+                        {...formik.getFieldProps("confirmAccountNumber")}
+                      />
+                      {formik.touched.confirmAccountNumber &&
+                        formik.errors.confirmAccountNumber && (
+                          <p className="text-red-600 text-sm">
+                            {formik.errors.confirmAccountNumber}
+                          </p>
+                        )}
+                    </div>
+
                     {/* Bank Name */}
                     <div className="space-y-2">
                       <Label>
@@ -342,7 +343,6 @@ const BankAccountsPage = () => {
                           </p>
                         )}
                     </div>
-
                     {/* Account Type */}
                     <div className="space-y-2">
                       <Label>
@@ -360,7 +360,7 @@ const BankAccountsPage = () => {
                         )}
                     </div>
                     {/* Is Active Checkbox */}
-                    <div className="col-span-1 md:col-span-2">
+                    <div className="space-y-2 flex text-center">
                       <div className="flex items-center space-x-2 mt-2">
                         <Checkbox
                           id="isActive"

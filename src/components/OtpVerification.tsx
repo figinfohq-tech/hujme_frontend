@@ -80,8 +80,8 @@ const OtpVerification = ({
 
       const url =
         type === "email"
-          ? `http://31.97.205.55:8080/api/otp/email/verify-otp?email=${String(value)}&otp=${String(otp)}`
-          : `http://31.97.205.55:8080/api/otp/whatsapp/verify-otp?phoneNumber=${String(value)}&otp=${String(otp)}`;
+          ? `${baseURL}otp/email/verify-otp?email=${String(value)}&otp=${String(otp)}`
+          : `${baseURL}otp/whatsapp/verify-otp?phoneNumber=${String(value)}&otp=${String(otp)}`;
 
       await axios.post(
         url,

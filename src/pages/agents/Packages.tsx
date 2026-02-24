@@ -334,6 +334,7 @@ const Packages = () => {
       toast.success(
         `Package ${updatedStatus === "ACTIVE" ? "Activated" : "Deactivated"}`,
       );
+      fetchPackages();
     } catch (error) {
       // rollback
       setPackages((prev) =>

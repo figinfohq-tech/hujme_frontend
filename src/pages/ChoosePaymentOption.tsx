@@ -27,7 +27,7 @@ const ChoosePaymentOption = () => {
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Choose Payment Option</CardTitle>
+          <CardTitle>Choose Payment Optio</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Package Summary */}

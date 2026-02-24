@@ -4,6 +4,7 @@ import * as Yup from "yup";
 import axios from "axios";
 import { FaUser, FaEnvelope, FaLock, FaPhone } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { baseURL } from "@/utils/constant/url";
 
 const SignUp = () => {
   // ✅ Validation Schema
@@ -41,21 +42,20 @@ const SignUp = () => {
         role: "User", // fixed value as per your API
       };
 
-      const response = await axios.post(
-        "http://31.97.205.55:8080/api/auth/signup",
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.post(`${baseURL}auth/signup`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       toast.success("Sign up successful!");
       resetForm();
     } catch (error) {
-      console.error("❌ Error during sign up:", error.response?.data || error);
-      toast.error(error.response?.data?.message || "Sign up failed!");
+      console.error(
+        "❌ Error during sign up:",
+        error?.response?.data?.errorMessage || error,
+      );
+      toast.error(error?.response?.data?.errorMessage || "Sign up failed!");
     } finally {
       setSubmitting(false);
     }

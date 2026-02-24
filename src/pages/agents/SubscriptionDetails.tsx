@@ -242,7 +242,7 @@ function SubscriptionDetails() {
           },
         },
       );
-
+      
       setAgentSubscription(response.data);
     } catch (error) {
       console.error("Error fetching Agent Subscription:", error);
@@ -431,14 +431,12 @@ function SubscriptionDetails() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Package Usage</span>
                 <span className="text-sm text-muted-foreground">
-                  {activeSubscription?.packagesUsed}/
-                  {activeSubscription?.balancePackage}
+                  {activeSubscription?.packagesUsed}
                 </span>
               </div>
               <Progress value={packagesProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                {activeSubscription?.balancePackage -
-                  activeSubscription?.packagesUsed}{" "}
+                {activeSubscription?.balancePackage}{" "}
                 packages remaining
               </p>
             </div>

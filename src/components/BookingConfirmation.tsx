@@ -552,7 +552,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
                 Package Price (per person)
               </span>
               <span className="font-medium">
-                {/* ₹{packageDetails?.price.toLocaleString()} */}₹
+                {/* ₹{packageDetails?.price.toLocaleString()} */}₹{" "}
                 {packageDetails?.price}
               </span>
             </div>
@@ -564,14 +564,16 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
             <div className="flex justify-between items-center py-2">
               <span className="text-muted-foreground">Total Amount</span>
               {/* <span className="font-bold text-lg">₹{booking?.totalAmt.toLocaleString()}</span> */}
-              <span className="font-bold text-lg">₹{booking?.totalAmt}</span>
+              <span className="font-bold text-lg">
+                ₹ {booking?.totalAmt * travelers.length}
+              </span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-muted-foreground">Amount Paid</span>
               {/* <span className="font-semibold text-green-600">₹{paidAmount.toLocaleString()}</span> */}
               <span className="font-semibold text-green-600">
                 {" "}
-                ₹{booking?.totalAmt}
+                ₹ {booking?.receivedAmt}
               </span>
             </div>
             {/* {pendingAmount > 0 && (

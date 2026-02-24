@@ -434,6 +434,14 @@ const FlightDetails = ({ pkg, packageId }) => {
         }
       }
 
+      const selectedDepartureAirport = airports.find(
+        (a) => Number(a.airportId) === Number(values.departureAirport),
+      );
+
+      const selectedArrivalAirport = airports.find(
+        (a) => Number(a.airportId) === Number(values.arrivalAirport),
+      );
+
       const newFlight: FlightSegment = {
         id: editIndex !== null ? addedFlights[editIndex].id : `${Date.now()}`,
 
@@ -448,10 +456,11 @@ const FlightDetails = ({ pkg, packageId }) => {
         departureAirportId: Number(values.departureAirport),
         arrivalAirportId: Number(values.arrivalAirport),
 
+        departureAirportName: selectedDepartureAirport?.airportName || "",
+        arrivalAirportName: selectedArrivalAirport?.airportName || "",
+
         departureCountryId: Number(values.departureCountries),
-
         departureStateId: Number(values.departureState),
-
         departureCityId: Number(values.departureCity),
 
         departureCountryName: previewDepartureAirport?.countryName || "",
@@ -574,7 +583,7 @@ const FlightDetails = ({ pkg, packageId }) => {
 
       for (const flight of addedFlights) {
         const payload = {
-          packageId: id,
+          packageId: id ?? packageId,
           airlineId: flight.airlineId,
           departureAirportId: flight.departureAirportId,
           arrivalAirportId: flight.arrivalAirportId,
@@ -862,7 +871,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                         <div className="flex items-center gap-1">
                           <MapPin size={14} />
                           <span className="text-gray-700">
-                            {flight.arrivalAirportName},{" "}
+                            {flight.departureAirportName},{" "}
                             {flight.departureCityName},{" "}
                             {flight.departureStateName},{" "}
                             {flight.departureCountryName}

@@ -53,6 +53,8 @@ const PaymentProcessComfirm = () => {
     fetchPackage();
   }, [booking]);
 
+  const totalAmt = booking?.totalAmt * booking?.travelerCount;
+
   return (
     <div className="max-w-2xl mx-auto p-6">
       <Card>
@@ -83,7 +85,7 @@ const PaymentProcessComfirm = () => {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Amount:</span>
                 <span className="font-medium">
-                  ₹{booking?.totalAmt.toLocaleString()}
+                  ₹{totalAmt.toLocaleString()}
                   {/* ₹{90000} */}
                 </span>
               </div>
@@ -95,7 +97,7 @@ const PaymentProcessComfirm = () => {
                     ? totalAmount??
                     : partialAmount??
                   ).toLocaleString()} */}
-                  {booking?.totalAmt}
+                  {booking?.totalAmt * booking?.travelerCount}
                 </span>
               </div>
               {paymentType === "partial" && (
