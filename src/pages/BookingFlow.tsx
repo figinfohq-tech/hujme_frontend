@@ -145,19 +145,37 @@ export const BookingFlow: React.FC = () => {
     return e;
   };
 
+  //   const calculateTotalAmount = (newTravelerCount: number) => {
+  //   const price = Number(packageData?.price || 0);
+
+  //   if (existingBooking) {
+  //     const previousCount = Number(existingBooking.travelerCount || 0);
+  //     return price * (previousCount + newTravelerCount);
+  //   }
+
+  //   return price * newTravelerCount;
+  // };
+
+  const calculateTotalAmount = (finalTravelerCount: number) => {
+    const price = Number(
+      packageData?.booking?.packageDetails?.data?.price || 0,
+    );
+    return price * finalTravelerCount;
+  };
+
   const bookingPackages = async (travelerCount: number) => {
     try {
       const token = sessionStorage.getItem("token");
       const userId = sessionStorage.getItem("userId");
       const pricePerPerson = Number(packageData?.price || 0);
-      const totalAmt = pricePerPerson * travelerCount;
+      const totalAmt = calculateTotalAmount(travelerCount);
       // ✅ Your payload object
       const payloadBooking = {
         // receivedAmt: 0,
         totalAmt: totalAmt,
         travelerCount: travelerCount,
         packageId: packageData?.id,
-        userId: userId, // 👈 userId from sessionStorage
+        userId: userId,
       };
       const response = await axios.post(`${baseURL}bookings`, payloadBooking, {
         headers: {
@@ -304,11 +322,14 @@ export const BookingFlow: React.FC = () => {
         const previousCount = Number(existingBooking.travelerCount || 0);
         const newCount = previousCount + travelers.length;
 
+        const updatedTotalAmt = calculateTotalAmount(newCount);
+
         await axios.put(
           `${baseURL}bookings/${existingBooking.bookingId}`,
           {
             ...existingBooking,
             travelerCount: newCount,
+            totalAmt: updatedTotalAmt,
           },
           {
             headers: {
@@ -409,14 +430,22 @@ export const BookingFlow: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Package Summary */}
-            <div className="p-4 bg-accent rounded-lg">
-              <h3 className="font-semibold text-lg">{packageData?.title}</h3>
-              <p className="text-sm text-muted-foreground">
-                {`${packageData?.duration} Days`}
-              </p>
-              <p className="font-semibold text-lg">
-                ₹{(packageData?.price || 0).toLocaleString()} per person
-              </p>
+            <div className="p-4 bg-accent rounded-lg flex justify-between">
+              <div>
+                <h3 className="font-semibold text-lg">{packageData?.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {`${packageData?.duration} Days`}
+                </p>
+              </div>
+              <div>
+                <p className="font-semibold text-lg">
+                  ₹
+                  {(
+                    packageData?.booking?.packageDetails?.data?.price || 0
+                  ).toLocaleString()}{" "}
+                  per person
+                </p>
+              </div>
             </div>
 
             {/* Travelers */}
@@ -728,21 +757,21 @@ export const BookingFlow: React.FC = () => {
                 <span className="font-semibold">Total Amount:</span>
                 <span className="font-bold text-xl">
                   ₹
-                  {existingBooking
-                    ? (
-                        (packageData?.price || 0) *
-                        (existingBooking.travelerCount + travelers.length)
-                      ).toLocaleString()
-                    : (
-                        (packageData?.price || 0) * travelers.length
-                      ).toLocaleString()}
+                  {calculateTotalAmount(
+                    existingBooking
+                      ? existingBooking.travelerCount + travelers.length
+                      : travelers.length,
+                  ).toLocaleString()}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
                 {existingBooking
                   ? existingBooking.travelerCount + travelers.length
                   : travelers.length}{" "}
-                traveler(s) × ₹{(packageData?.price || 0).toLocaleString()}
+                traveler(s) × ₹
+                {(
+                  packageData?.booking?.packageDetails?.data?.price || 0
+                ).toLocaleString()}
               </p>
             </div>
 

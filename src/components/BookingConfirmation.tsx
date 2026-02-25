@@ -167,7 +167,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
           },
         },
       );
-      setpackageDetails(response.data);
+      setpackageDetails(response.data.data);
     } catch (error: any) {
       console.error("Fetch Agent Error:", error);
 
@@ -564,9 +564,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
             <div className="flex justify-between items-center py-2">
               <span className="text-muted-foreground">Total Amount</span>
               {/* <span className="font-bold text-lg">₹{booking?.totalAmt.toLocaleString()}</span> */}
-              <span className="font-bold text-lg">
-                ₹ {booking?.totalAmt * travelers.length}
-              </span>
+              <span className="font-bold text-lg">₹ {booking?.totalAmt}</span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-muted-foreground">Amount Paid</span>

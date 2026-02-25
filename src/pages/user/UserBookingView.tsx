@@ -114,7 +114,7 @@ const UserBookingView = () => {
     try {
       const token = sessionStorage.getItem("token");
       const response = await axios.get(
-        `${baseURL}package-hotels/byPackage/${selectedBooking?.packageDetails?.packageId}`,
+        `${baseURL}package-hotels/byPackage/${selectedBooking?.packageDetails?.data?.packageId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -128,7 +128,7 @@ const UserBookingView = () => {
     try {
       const token = sessionStorage.getItem("token");
       const response = await axios.get(
-        `${baseURL}package-facilities/byPackage/${selectedBooking?.packageDetails?.packageId}`,
+        `${baseURL}package-facilities/byPackage/${selectedBooking?.packageDetails?.data?.packageId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -143,7 +143,7 @@ const UserBookingView = () => {
     try {
       const token = sessionStorage.getItem("token");
       const response = await axios.get(
-        `${baseURL}package-airlines/byPackage/${selectedBooking?.packageDetails?.packageId}`,
+        `${baseURL}package-airlines/byPackage/${selectedBooking?.packageDetails?.data?.packageId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -204,7 +204,7 @@ const UserBookingView = () => {
     try {
       const token = sessionStorage.getItem("token");
       const response = await axios.get(
-        `${baseURL}agents/contact/${myPackage.packageDetails?.agentId}`,
+        `${baseURL}agents/contact/${myPackage.packageDetails?.data?.agentId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -245,7 +245,7 @@ const UserBookingView = () => {
   }, [pilgrimData]);
 
   useEffect(() => {
-    if (myPackage.packageDetails.agentId) {
+    if (myPackage.packageDetails?.data?.agentId) {
       fetchTravelersByID();
       fetchDetailByAgentID();
     }
@@ -600,29 +600,29 @@ const UserBookingView = () => {
                 <div>
                   <Label className="text-primary/90">Package Type</Label>
                   <p className="font-medium capitalize">
-                    {selectedBooking?.packageDetails?.packageType}
+                    {selectedBooking?.packageDetails?.data?.packageType}
                   </p>
                 </div>
                 <div>
                   <Label className="text-primary/90">Location</Label>
-                  <p className="font-medium">{`${selectedBooking?.packageDetails?.cityName}, ${selectedBooking?.packageDetails?.stateName}`}</p>
+                  <p className="font-medium">{`${selectedBooking?.packageDetails?.data?.cityName}, ${selectedBooking?.packageDetails?.data?.stateName}`}</p>
                 </div>
                 <div>
                   <Label className="text-primary/90">Departure Date</Label>
                   <p className="font-medium">
-                    {formatDate(selectedBooking?.packageDetails?.departureDate)}
+                    {formatDate(selectedBooking?.packageDetails?.data?.departureDate)}
                   </p>
                 </div>
                 <div>
                   <Label className="text-primary/90">Return Date</Label>
                   <p className="font-medium">
-                    {formatDate(selectedBooking?.packageDetails?.arrivalDate)}
+                    {formatDate(selectedBooking?.packageDetails?.data?.arrivalDate)}
                   </p>
                 </div>
                 <div>
                   <Label className="text-primary/90">Duration</Label>
                   <p className="font-medium">
-                    {selectedBooking?.packageDetails?.duration} days
+                    {selectedBooking?.packageDetails?.data?.duration} days
                   </p>
                 </div>
               </div>

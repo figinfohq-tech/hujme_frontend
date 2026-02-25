@@ -48,13 +48,14 @@ const PackageBasicView = ({ packageId }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setBasicDetails(response.data);
+      setBasicDetails(response.data.data);
       setIsLoading(false);
     } catch (error) {
       console.error("GET API Error:", error);
       setIsLoading(false);
     }
   };
+
   useEffect(() => {
     if (packageId) {
       getPackagesByID();

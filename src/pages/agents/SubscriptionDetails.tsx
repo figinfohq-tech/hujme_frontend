@@ -242,7 +242,7 @@ function SubscriptionDetails() {
           },
         },
       );
-      
+
       setAgentSubscription(response.data);
     } catch (error) {
       console.error("Error fetching Agent Subscription:", error);
@@ -431,13 +431,13 @@ function SubscriptionDetails() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Package Usage</span>
                 <span className="text-sm text-muted-foreground">
-                  {activeSubscription?.packagesUsed}
+                  {activeSubscription?.packagesUsed}/
+                  {activeSubscription?.totalPackages}
                 </span>
               </div>
               <Progress value={packagesProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                {activeSubscription?.balancePackage}{" "}
-                packages remaining
+                {activeSubscription?.balancePackage} packages remaining
               </p>
             </div>
 
@@ -446,14 +446,12 @@ function SubscriptionDetails() {
                 <span className="text-sm font-medium">Seat Usage</span>
                 <span className="text-sm text-muted-foreground">
                   {activeSubscription?.seatsUsed}/
-                  {activeSubscription?.balanceSeats}
+                  {activeSubscription?.totalSeats}
                 </span>
               </div>
               <Progress value={seatsProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                {activeSubscription?.balanceSeats -
-                  activeSubscription?.seatsUsed}{" "}
-                seats remaining
+                {activeSubscription?.balanceSeats} seats remaining
               </p>
             </div>
           </div>
@@ -726,11 +724,11 @@ function SubscriptionDetails() {
                       </td>
 
                       <td className="px-4 py-3 text-gray-600">
-                        {item?.packagesUsed}/{item?.maxPackages}
+                        {item?.packagesUsed}/{item?.totalPackages}
                       </td>
 
                       <td className="px-4 py-3 text-gray-600">
-                        {item?.seatsUsed}/{item?.seatLimit}
+                        {item?.seatsUsed}/{item?.totalSeats}
                       </td>
                     </tr>
                   ))}

@@ -302,20 +302,6 @@ export const ManageBookings = () => {
   const filteredPackages = agentPackages.filter((pkg) =>
     pkg.packageName?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-  const getBookingDocumentStatus = (bookingId: number) => {
-    const travelers = travelersMap[bookingId];
-
-    // If travelers not loaded yet
-    if (!travelers || travelers.length === 0) {
-      return "pending";
-    }
-
-    const hasPending = travelers.some(
-      (traveler) => traveler.documentStatus?.toLowerCase() !== "complete",
-    );
-
-    return hasPending ? "pending" : "complete";
-  };
 
   useEffect(() => {
     if (!customerSearch.trim()) return;
@@ -663,9 +649,7 @@ export const ManageBookings = () => {
 
                                           <td className="text-center p-2">
                                             {getDocumentStatusBadge(
-                                              getBookingDocumentStatus(
-                                                booking.bookingId,
-                                              ),
+                                              booking.bookingId,
                                             )}
                                           </td>
 

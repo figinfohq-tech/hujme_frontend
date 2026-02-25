@@ -265,18 +265,18 @@ const PackageDetails = () => {
                     <div className="flex justify-between items-start gap-4 mb-4">
                       <div>
                         <h1 className="text-2xl font-bold text-foreground mb-1">
-                          {packageDetail?.packageName}
+                          {packageDetail?.data?.packageName}
                         </h1>
 
                         <p className="text-md text-muted-foreground mb-3">
-                          By {packageDetail?.agentName}
+                          By {packageDetail?.data?.agentName}
                         </p>
 
                         <div className="flex flex-wrap items-center gap-4 text-md text-muted-foreground">
                           <span className="flex items-center">
                             <MapPin className="w-4 h-4 mr-1" />
-                            {packageDetail?.cityName},{" "}
-                            {packageDetail?.stateName}
+                            {packageDetail?.data?.cityName},{" "}
+                            {packageDetail?.data?.stateName}
                           </span>
 
                           <span className="flex items-center">
@@ -285,7 +285,7 @@ const PackageDetails = () => {
                           </span>
 
                           <Badge variant="secondary" className="text-sm">
-                            {packageDetail?.packageType}
+                            {packageDetail?.data?.packageType}
                           </Badge>
                         </div>
                       </div>
@@ -335,12 +335,12 @@ const PackageDetails = () => {
                             navigate("/booking-detail", {
                               state: {
                                 packageData: {
-                                  id: packageDetail?.packageId,
-                                  title: packageDetail?.packageName,
-                                  price: packageDetail?.price,
-                                  duration: packageDetail?.duration,
+                                  id: packageDetail?.data?.packageId,
+                                  title: packageDetail?.data?.packageName,
+                                  price: packageDetail?.data?.price,
+                                  duration: packageDetail?.data?.duration,
                                 },
-                                packageDetails: packageDetail,
+                                packageDetails: packageDetail?.data,
                               },
                             });
                           }}

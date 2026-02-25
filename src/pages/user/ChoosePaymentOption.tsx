@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,14 +14,46 @@ const ChoosePaymentOption = () => {
     null,
   );
   const [partialAmount, setPartialAmount] = useState<number>(0);
-  
+  const [bookinById, setBookingById] = useState<any>();
+
   const navigate = useNavigate();
 
   const location = useLocation();
-  const booking = location.state?.booking;  
+  const booking = location.state?.booking;
 
-  const totalAmount = booking?.totalAmt * booking?.travelerCount ;
-  const minPartialAmount = Math.ceil(booking?.totalAmt * 0.2);
+  useEffect(() => {
+    if (booking.bookingId) {
+      fetchBookingDetails();
+    }
+  }, [booking.bookingId]);
+
+  const fetchBookingDetails = async () => {
+    try {
+      const bookingId = booking.bookingId;
+      const token = sessionStorage.getItem("token");
+
+      if (!booking) {
+        throw new Error("Booking not found");
+      }
+
+      const response = await axios.get(
+        `${baseURL}bookings/${bookingId}`, // 👈 API path
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      setBookingById(response.data);
+    } catch (error: any) {
+      console.error("Fetch Booking Error:", error);
+    } finally {
+    }
+  };
+
+  const totalAmount = bookinById?.totalAmt;
+  const minPartialAmount = Math.ceil(totalAmount * 0.2);
 
   const handlePaymentOptionSubmit = () => {
     if (!paymentType) {
@@ -41,7 +73,7 @@ const ChoosePaymentOption = () => {
     });
   };
 
-  // const totalAmt = 
+  // const totalAmt =
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
@@ -53,13 +85,13 @@ const ChoosePaymentOption = () => {
           {/* Package Summary */}
           <div className="p-4 bg-accent rounded-lg">
             <h3 className="font-semibold text-lg">
-              {totalAmount.toLocaleString()}
+              {booking?.packageDetails?.data?.price.toLocaleString()}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {booking?.travelerCount} traveler(s)
+              {bookinById?.travelerCount} traveler(s)
             </p>
             <p className="font-bold text-xl mt-2">
-              Total: ₹{totalAmount.toLocaleString()}
+              Total: ₹{bookinById?.totalAmt.toLocaleString()}
             </p>
           </div>
 
@@ -94,7 +126,7 @@ const ChoosePaymentOption = () => {
                     </div>
                   </div>
                   <span className="font-bold text-lg">
-                    ₹{totalAmount.toLocaleString()}
+                    ₹{bookinById?.totalAmt.toLocaleString()}
                   </span>
                 </div>
               </CardContent>

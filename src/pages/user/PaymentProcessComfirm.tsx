@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 
 const PaymentProcessComfirm = () => {
   const [packageDetails, setpackageDetails] = useState<any>("");
+  const [bookinById, setBookingById] = useState<any>();
   const [isLoading, setIsLoading] = useState(true);
   const [paymentType, setPaymentType] = useState<"full" | "partial" | null>(
     null,
@@ -49,11 +50,42 @@ const PaymentProcessComfirm = () => {
     }
   };
 
+  const fetchBookingDetails = async () => {
+    try {
+      const bookingId = booking.bookingId;
+      const token = sessionStorage.getItem("token");
+
+      if (!booking) {
+        throw new Error("Booking not found");
+      }
+
+      const response = await axios.get(
+        `${baseURL}bookings/${bookingId}`, // 👈 API path
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      setBookingById(response.data);
+    } catch (error: any) {
+      console.error("Fetch Booking Error:", error);
+    } finally {
+    }
+  };
+
+  useEffect(() => {
+    if (booking.bookingId) {
+      fetchBookingDetails();
+    }
+  }, [booking.bookingId]);
+
   useEffect(() => {
     fetchPackage();
   }, [booking]);
 
-  const totalAmt = booking?.totalAmt * booking?.travelerCount;
+  const totalAmt = bookinById?.totalAmt;
 
   return (
     <div className="max-w-2xl mx-auto p-6">
@@ -75,12 +107,12 @@ const PaymentProcessComfirm = () => {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Package:</span>
                 <span className="font-medium">
-                  {packageDetails?.packageName}
+                  {packageDetails?.data?.packageName}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Travelers:</span>
-                <span className="font-medium">{booking?.travelerCount}</span>
+                <span className="font-medium">{bookinById?.travelerCount}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Amount:</span>
@@ -97,7 +129,7 @@ const PaymentProcessComfirm = () => {
                     ? totalAmount??
                     : partialAmount??
                   ).toLocaleString()} */}
-                  {booking?.totalAmt * booking?.travelerCount}
+                  {totalAmt.toLocaleString()}
                 </span>
               </div>
               {paymentType === "partial" && (
@@ -105,7 +137,7 @@ const PaymentProcessComfirm = () => {
                   <span className="text-muted-foreground">Remaining:</span>
                   <span className="font-medium text-orange-600">
                     {/* ₹{(totalAmount? - partialAmount?).toLocaleString()} */}₹
-                    {booking?.totalAmt.toLocaleString()}
+                    {bookinById?.totalAmt.toLocaleString()}
                   </span>
                 </div>
               )}

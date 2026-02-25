@@ -73,8 +73,6 @@ const BankAccountsPage = () => {
     }
   };
 
-  console.log("agent is--->", agent?.agentId);
-
   const fetchBankAccounts = async () => {
     setIsLoading(true);
     try {

@@ -497,17 +497,17 @@ export const BookingsPage = () => {
     if (bookingUser?.length > 0) {
       fetchPackages(bookingUser);
     }
-  }, [bookingUser]);  
+  }, [bookingUser]);
 
   const filteredBookings = bookings1.filter((booking) => {
     const matchesSearch =
-      booking.packageDetails?.packageName
+      booking.packageDetails?.data?.packageName
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      booking.packageDetails?.agentName
+      booking.packageDetails?.data?.agentName
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-      // booking.id.toLowerCase().includes(searchTerm.toLowerCase());
+    // booking.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || booking.bookingStatus === statusFilter;
 
@@ -1068,12 +1068,12 @@ export const BookingsPage = () => {
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <CardTitle className="text-lg text-primary">
-                {booking.packageDetails?.packageName}
+                {booking.packageDetails?.data?.packageName}
               </CardTitle>
               <CardDescription className="flex items-center text-primary/70 gap-2">
-                <span>{booking.packageDetails?.agentName}</span>
+                <span>{booking.packageDetails?.data?.agentName}</span>
                 <Badge variant="outline" className="text-xs">
-                  {booking.packageDetails?.travelType}
+                  {booking.packageDetails?.data?.travelType}
                 </Badge>
               </CardDescription>
             </div>
@@ -1097,16 +1097,16 @@ export const BookingsPage = () => {
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-primary/70" />
               <span>
-                {booking.packageDetails?.departureDate
-                  ? formatDate(booking.packageDetails?.departureDate)
+                {booking.packageDetails?.data?.departureDate
+                  ? formatDate(booking.packageDetails?.data?.departureDate)
                   : "N/A"}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-primary/70" />
               <span>
-                {booking.packageDetails?.cityName},{" "}
-                {booking.packageDetails?.stateName}
+                {booking.packageDetails?.data?.cityName},{" "}
+                {booking.packageDetails?.data?.stateName}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -1122,8 +1122,8 @@ export const BookingsPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary/70" />
-              {booking.packageDetails?.duration ? (
-                <span>{`${booking.packageDetails?.duration} Days`}</span>
+              {booking.packageDetails?.data?.duration ? (
+                <span>{`${booking.packageDetails?.data?.duration} Days`}</span>
               ) : (
                 ""
               )}
@@ -1208,16 +1208,15 @@ export const BookingsPage = () => {
           <div className="flex items-center justify-between pt-2">
             <div className="space-y-1">
               <p className="text-lg font-semibold">
-                {formatCurrency(
-                  booking.packageDetails?.price * booking.travelerCount,
-                )}
+                {/* {booking.totalAmt} */}
+                {formatCurrency(booking?.totalAmt)}
               </p>
               <p
                 className={`text-sm ${getPaymentStatusColor(
                   booking.paymentStatus,
                 )} text-secondary`}
               >
-                Paid: {formatCurrency(booking.packageDetails?.price)}
+                Paid: {formatCurrency(booking.receivedAmt)}
               </p>
             </div>
 
@@ -1312,9 +1311,9 @@ export const BookingsPage = () => {
                     packageData: {
                       booking: booking,
                       id: booking?.packageId.toLocaleString(),
-                      title: booking?.packageDetails?.packageName,
+                      title: booking?.packageDetails?.data?.packageName,
                       price: booking?.totalAmt,
-                      duration: booking?.packageDetails?.duration,
+                      duration: booking?.packageDetails?.data?.duration,
                     },
                   },
                 })
@@ -1339,7 +1338,7 @@ export const BookingsPage = () => {
       <div>
         <h1 className="text-3xl font-bold text-primary">My Bookings</h1>
         <p className="text-muted-foreground mt-2">
-          Track and manage your pilgrimage bookings
+          Track and manage your pilgrims bookings
         </p>
       </div>
 
