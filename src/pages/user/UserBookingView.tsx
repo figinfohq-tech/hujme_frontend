@@ -452,12 +452,12 @@ const UserBookingView = () => {
       setIsRemoving(true);
       const token = sessionStorage.getItem("token");
 
-      // 1️⃣ Delete traveler
+      //  Delete traveler
       await axios.delete(`${baseURL}travelers/${selectedTravelerId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // 2️⃣ Calculate updated values
+      //  Calculate updated values
       const currentTravelerCount = bookingDetails?.travelerCount || 0;
       const currentTotalAmt = bookingDetails?.totalAmt || 0;
 
@@ -471,7 +471,7 @@ const UserBookingView = () => {
       const updatedTravelerCount = currentTravelerCount - 1;
       const updatedTotalAmt = currentTotalAmt - perTravelerPrice;
 
-      // 3️⃣ Call booking update API
+      //  Call booking update API
       await axios.put(
         `${baseURL}bookings/${selectedBooking.bookingId}`,
         {
@@ -489,7 +489,7 @@ const UserBookingView = () => {
       setIsRemoveDialogOpen(false);
       setSelectedTravelerId(null);
 
-      // 4️⃣ Refresh both
+      //  Refresh both
       fetchTravelersByID();
       fetchBookingDetails();
     } catch (error) {
