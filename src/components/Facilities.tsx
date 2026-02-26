@@ -1,16 +1,10 @@
 import axios from "axios";
-import { Package, ChevronDown } from "lucide-react";
+import { Package } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
 import {
   Table,
   TableBody,
@@ -28,7 +22,7 @@ import { useNavigate } from "react-router";
 const Facilities = ({ pkg, packageId }) => {
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [facilities, setFacilities] = useState([]);
-  const [facilitiesDetails, setFacilitiesDetails] = useState<any>([]);
+  const [facilitiesDetails, setFacilitiesDetails] = useState([]);
   const [search, setSearch] = useState("");
   const [isLoader, setIsLoader] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,38 +31,39 @@ const Facilities = ({ pkg, packageId }) => {
   const navigate = useNavigate();
   const id = pkg?.packageId;
 
+  // ---------------- FETCH ALL FACILITIES ----------------
   const fetchFacilities = async () => {
     try {
       setIsLoader(true);
-
       const token = sessionStorage.getItem("token");
+
       const response = await axios.get(`${baseURL}facilities`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setFacilities(response.data);
     } catch (error) {
-      console.error("GET API Error:", error);
+      console.error(error);
     } finally {
       setIsLoader(false);
     }
   };
 
+  // ---------------- FETCH PACKAGE FACILITIES ----------------
   const getFacilitiesPackageByID = async () => {
     try {
       const token = sessionStorage.getItem("token");
+
       const response = await axios.get(
         `${baseURL}package-facilities/byPackage/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
+
       setFacilitiesDetails(response.data || []);
     } catch (error) {
-      console.error("GET API Error:", error);
-    } finally {
+      console.error(error);
     }
   };
 
@@ -83,11 +78,11 @@ const Facilities = ({ pkg, packageId }) => {
   useEffect(() => {
     if (facilitiesDetails?.length > 0) {
       const preselected = facilitiesDetails.map(
-        (item) => item.facilityDetails?.facilityId
+        (item) => item.facilityDetails?.facilityId,
       );
 
       const preFeatured = facilitiesDetails
-        .filter((item) => item.featured === true)
+        .filter((item) => item.featured)
         .map((item) => item.facilityDetails?.facilityId);
 
       setSelectedFacilities(preselected);
@@ -95,109 +90,143 @@ const Facilities = ({ pkg, packageId }) => {
     }
   }, [facilitiesDetails]);
 
-  // Group by category
-  const groupedFacilities = useMemo(() => {
-    const groups = {};
-    facilities.forEach((f) => {
-      if (!groups[f.category]) groups[f.category] = [];
-      groups[f.category].push(f);
-    });
-    return groups;
-  }, [facilities]);
-
-  // Toggle checkbox
-  const toggleFacility = (id) => {
+  // ---------------- TOGGLE FACILITY ----------------
+  const toggleFacility = (facilityId) => {
     setSelectedFacilities((prev) => {
-      const isSelected = prev.includes(id);
+      const isSelected = prev.includes(facilityId);
 
-      // Agar unselect ho rahi hai → featured se bhi hatao
       if (isSelected) {
         setFeaturedFacilities((prevFeatured) =>
-          prevFeatured.filter((fId) => fId !== id)
+          prevFeatured.filter((id) => id !== facilityId),
         );
-        return prev.filter((item) => item !== id);
+        return prev.filter((id) => id !== facilityId);
       }
 
-      return [...prev, id];
+      return [...prev, facilityId];
     });
   };
 
-  // -----------------------------
-  const oldFacilityIds = useMemo(() => {
-    return facilitiesDetails.map((item) => item.facilityDetails?.facilityId);
-  }, [facilitiesDetails]);
+  // ---------------- FILTER + SORT ----------------
+  const sortedFacilities = useMemo(() => {
+    const filtered = facilities.filter((f) =>
+      f.facilityName.toLowerCase().includes(search.toLowerCase()),
+    );
 
-  const newFacilityIds = selectedFacilities.filter(
-    (id) => !oldFacilityIds.includes(id)
-  );
+    const selected = filtered.filter((f) =>
+      selectedFacilities.includes(f.facilityId),
+    );
 
-  // -----------------------------
+    const unselected = filtered.filter(
+      (f) => !selectedFacilities.includes(f.facilityId),
+    );
 
+    return {
+      selected: selected.sort((a, b) =>
+        a.facilityName.localeCompare(b.facilityName),
+      ),
+      unselected: unselected.sort((a, b) =>
+        a.facilityName.localeCompare(b.facilityName),
+      ),
+    };
+  }, [facilities, search, selectedFacilities]);
+
+  // ---------------- SAVE ----------------
   const handleCreatePackage = async () => {
     try {
       setIsLoading(true);
 
       const token = sessionStorage.getItem("token");
-      if (!token) {
-        toast.error("Token missing — login again");
-        return;
-      }
+      if (!token) return toast.error("Token missing");
 
       const finalPackageId = pkg ? id : packageId;
+      if (!finalPackageId) return toast.error("Package missing — create first");
 
-      if (!finalPackageId) {
-        toast.error("Package missing — please create package first");
-        return;
-      }
-
-      if (selectedFacilities.length === 0) {
-        toast.error("Please select at least one facility");
-        return;
-      }
-
-      // ✅ Convert arrays → comma separated strings
-      const facilityIds = selectedFacilities.join(",");
-      const featuredFacilitiesStr = featuredFacilities.join(",");
+      if (selectedFacilities.length === 0)
+        return toast.error("Select at least one facility");
 
       await axios.post(`${baseURL}package-facilities/bulk-create`, null, {
         params: {
           packageId: finalPackageId,
-          facilityIds,
-          featuredFacilities: featuredFacilitiesStr,
+          facilityIds: selectedFacilities.join(","),
+          featuredFacilities: featuredFacilities.join(","),
         },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       toast.success(
-        pkg
-          ? "Facilities updated successfully!"
-          : "Facilities created successfully!"
+        pkg ? "Facilities updated successfully!" : "Facilities created!",
       );
 
       getFacilitiesPackageByID();
     } catch (error) {
-      console.error(error);
       toast.error("Failed to process facilities");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ---------------- RENDER ROW ----------------
+  const renderRow = (fItem, isSelected) => (
+    <TableRow
+      key={fItem.facilityId}
+      className={`transition ${
+        isSelected ? "bg-primary/5" : "hover:bg-muted/40"
+      }`}
+    >
+      <TableCell>
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={() => toggleFacility(fItem.facilityId)}
+        />
+      </TableCell>
+
+      <TableCell className="font-medium">{fItem.facilityName}</TableCell>
+
+      <TableCell className="text-sm text-muted-foreground">
+        {fItem.description}
+      </TableCell>
+
+      <TableCell className="text-center">
+        <Checkbox
+          disabled={!isSelected}
+          checked={isSelected && featuredFacilities.includes(fItem.facilityId)}
+          onCheckedChange={(checked) => {
+            if (checked) {
+              if (featuredFacilities.length >= 4) {
+                toast.error("Only 4 key facilities allowed");
+                return;
+              }
+              setFeaturedFacilities((prev) => [...prev, fItem.facilityId]);
+            } else {
+              setFeaturedFacilities((prev) =>
+                prev.filter((id) => id !== fItem.facilityId),
+              );
+            }
+          }}
+        />
+      </TableCell>
+    </TableRow>
+  );
+
   if (isLoader) return <Loader />;
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-2 pb-2">
+      {/* HEADER */}
+      <div className="flex items-center gap-3">
         <Package className="h-5 w-5 text-primary" />
-        <h4 className="text-sm font-semibold">
-          Select Package Facilities ({selectedFacilities.length} selected)
+        <h4 className="text-sm font-semibold flex items-center gap-3">
+          Select Package Facilities
+          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+            {selectedFacilities.length} Selected
+          </span>
+          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
+            {featuredFacilities.length}/4 Featured
+          </span>
         </h4>
       </div>
 
-      {/* Search */}
+      {/* SEARCH */}
       <Input
         placeholder="Search facilities..."
         value={search}
@@ -205,124 +234,57 @@ const Facilities = ({ pkg, packageId }) => {
         className="max-w-sm"
       />
 
-      {/* Category Accordion */}
-      <Accordion type="multiple" className="space-y-2">
-        {Object.entries(groupedFacilities).map(([category, items]) => {
-          const filteredItems = items.filter((f) =>
-            f.facilityName.toLowerCase().includes(search.toLowerCase())
-          );
+      {/* TABLE */}
+      <div className="border rounded-lg overflow-hidden">
+        <div className="overflow-auto max-h-[500px]">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background z-10">
+              <TableRow>
+                <TableHead className="w-10">Select</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-center">Featured</TableHead>
+              </TableRow>
+            </TableHeader>
 
-          return (
-            <AccordionItem
-              key={category}
-              value={category}
-              className="border rounded-lg"
-            >
-              <AccordionTrigger className="px-4 py-2 font-semibold flex justify-between">
-                <div className="flex items-center gap-2">
-                  <span>{category}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {
-                      items.filter((f) =>
-                        selectedFacilities.includes(f.facilityId)
-                      ).length
-                    }
-                    /{items.length}
-                  </span>
-                </div>
-              </AccordionTrigger>
+            <TableBody>
+              {/* SELECTED */}
+              {sortedFacilities.selected.length > 0 && (
+                <>
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="bg-muted/40 text-xs font-semibold uppercase"
+                    >
+                      Selected Facilities
+                    </TableCell>
+                  </TableRow>
 
-              <AccordionContent>
-                <div className="overflow-x-auto p-2">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-10">Select</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Featured</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                  {sortedFacilities.selected.map((f) => renderRow(f, true))}
+                </>
+              )}
 
-                    <TableBody>
-                      {filteredItems.map((fItem) => (
-                        <TableRow key={fItem.facilityId}>
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedFacilities.includes(
-                                fItem.facilityId
-                              )}
-                              onCheckedChange={() =>
-                                toggleFacility(fItem.facilityId)
-                              }
-                            />
-                          </TableCell>
+              {/* AVAILABLE */}
+              {sortedFacilities.unselected.length > 0 && (
+                <>
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="bg-muted/20 text-xs font-semibold uppercase"
+                    >
+                      Available Facilities
+                    </TableCell>
+                  </TableRow>
 
-                          <TableCell className="font-medium">
-                            {fItem.facilityName}
-                          </TableCell>
+                  {sortedFacilities.unselected.map((f) => renderRow(f, false))}
+                </>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
 
-                          <TableCell className="text-sm text-muted-foreground">
-                            {fItem.description}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <TableCell className="text-center">
-                              <Checkbox
-                                disabled={
-                                  !selectedFacilities.includes(fItem.facilityId)
-                                }
-                                checked={
-                                  selectedFacilities.includes(
-                                    fItem.facilityId
-                                  ) &&
-                                  featuredFacilities.includes(fItem.facilityId)
-                                }
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    if (featuredFacilities.length >= 4) {
-                                      toast.error(
-                                        "Only 4 key facilities are allowed"
-                                      );
-                                      return;
-                                    }
-                                    setFeaturedFacilities((prev) => [
-                                      ...prev,
-                                      fItem.facilityId,
-                                    ]);
-                                  } else {
-                                    setFeaturedFacilities((prev) =>
-                                      prev.filter(
-                                        (id) => id !== fItem.facilityId
-                                      )
-                                    );
-                                  }
-                                }}
-                              />
-                            </TableCell>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-
-                      {filteredItems.length === 0 && (
-                        <TableRow>
-                          <TableCell
-                            colSpan={3}
-                            className="text-center py-4 text-sm"
-                          >
-                            No facilities found.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          );
-        })}
-      </Accordion>
-
-      {/* Buttons */}
+      {/* ACTION BUTTONS */}
       <div className="flex gap-2 pt-4 border-t">
         <Button
           variant="outline"
@@ -337,24 +299,29 @@ const Facilities = ({ pkg, packageId }) => {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setSelectedFacilities([])}
+          onClick={() => {
+            setSelectedFacilities([]);
+            setFeaturedFacilities([]);
+          }}
         >
           Clear All
         </Button>
       </div>
+
       <div className="flex justify-end gap-2 pt-4">
         <Button variant="outline" onClick={() => navigate(-1)}>
           Cancel
         </Button>
-        {pkg ? (
-          <Button onClick={handleCreatePackage}>
-            {isLoading ? "Updating..." : "Save Package"}
-          </Button>
-        ) : (
-          <Button onClick={handleCreatePackage}>
-            {isLoading ? "Creating..." : "Create Package"}
-          </Button>
-        )}
+
+        <Button onClick={handleCreatePackage} disabled={isLoading}>
+          {isLoading
+            ? pkg
+              ? "Updating..."
+              : "Creating..."
+            : pkg
+              ? "Save Package"
+              : "Create Package"}
+        </Button>
       </div>
     </div>
   );

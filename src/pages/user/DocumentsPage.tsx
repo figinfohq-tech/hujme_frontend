@@ -588,7 +588,7 @@ export const DocumentsPage = () => {
                     >
                       <div className="flex items-center gap-2">
                         <Package className="h-4 w-4" />
-                        {items.packageName} ({items.bookingId})
+                        {items.data?.packageName} ({items.bookingId})
                       </div>
                     </SelectItem>
                   ))}

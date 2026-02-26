@@ -398,9 +398,9 @@ export const BookingDetailsPage = ({
               </Badge>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Departure</p>
+              <p className="text-sm text-muted-foreground">Booking Date</p>
               <p className="font-medium">
-                {new Date(booking.departure_date).toLocaleDateString()}
+                {new Date(booking.bookingDate).toLocaleDateString()}
               </p>
             </div>
             <div>

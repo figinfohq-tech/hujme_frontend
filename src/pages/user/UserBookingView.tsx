@@ -224,6 +224,7 @@ const UserBookingView = () => {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
+
       setBookingDetails(response.data);
     } catch (error) {
       console.error("Package Fetch Error:", error);
@@ -414,6 +415,36 @@ const UserBookingView = () => {
     };
   };
 
+  // const handleRemoveTraveler = async () => {
+  //   if (!selectedTravelerId) return;
+
+  //   console.log("travlerid--->", selectedTravelerId);
+
+  //   try {
+  //     setIsRemoving(true);
+  //     const token = sessionStorage.getItem("token");
+
+  //     await axios.delete(`${baseURL}travelers/${selectedTravelerId}`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+
+  //     toast.success("Traveler removed successfully");
+
+  //     setIsRemoveDialogOpen(false);
+  //     setSelectedTravelerId(null);
+
+  //     // Refresh travelers list
+  //     fetchTravelersByID();
+  //   } catch (error) {
+  //     console.error("Delete Error:", error);
+  //     toast.error(error?.response?.data?.errorMessage || "Failed to remove traveler");
+  //   } finally {
+  //     setIsRemoving(false);
+  //   }
+  // };
+
   const handleRemoveTraveler = async () => {
     if (!selectedTravelerId) return;
 
@@ -421,22 +452,51 @@ const UserBookingView = () => {
       setIsRemoving(true);
       const token = sessionStorage.getItem("token");
 
+      // 1️⃣ Delete traveler
       await axios.delete(`${baseURL}travelers/${selectedTravelerId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
+
+      // 2️⃣ Calculate updated values
+      const currentTravelerCount = bookingDetails?.travelerCount || 0;
+      const currentTotalAmt = bookingDetails?.totalAmt || 0;
+
+      if (currentTravelerCount <= 1) {
+        toast.error("At least one traveler required");
+        return;
+      }
+
+      const perTravelerPrice = currentTotalAmt / currentTravelerCount;
+
+      const updatedTravelerCount = currentTravelerCount - 1;
+      const updatedTotalAmt = currentTotalAmt - perTravelerPrice;
+
+      // 3️⃣ Call booking update API
+      await axios.put(
+        `${baseURL}bookings/${selectedBooking.bookingId}`,
+        {
+          ...bookingDetails,
+          travelerCount: updatedTravelerCount,
+          totalAmt: updatedTotalAmt,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       toast.success("Traveler removed successfully");
 
       setIsRemoveDialogOpen(false);
       setSelectedTravelerId(null);
 
-      // Refresh travelers list
+      // 4️⃣ Refresh both
       fetchTravelersByID();
+      fetchBookingDetails();
     } catch (error) {
       console.error("Delete Error:", error);
-      toast.error("Failed to remove traveler");
+      toast.error(
+        error?.response?.data?.errorMessage || "Failed to remove traveler",
+      );
     } finally {
       setIsRemoving(false);
     }
@@ -610,13 +670,17 @@ const UserBookingView = () => {
                 <div>
                   <Label className="text-primary/90">Departure Date</Label>
                   <p className="font-medium">
-                    {formatDate(selectedBooking?.packageDetails?.data?.departureDate)}
+                    {formatDate(
+                      selectedBooking?.packageDetails?.data?.departureDate,
+                    )}
                   </p>
                 </div>
                 <div>
                   <Label className="text-primary/90">Return Date</Label>
                   <p className="font-medium">
-                    {formatDate(selectedBooking?.packageDetails?.data?.arrivalDate)}
+                    {formatDate(
+                      selectedBooking?.packageDetails?.data?.arrivalDate,
+                    )}
                   </p>
                 </div>
                 <div>
@@ -973,7 +1037,7 @@ const UserBookingView = () => {
                       <TableCell>Total Amount</TableCell>
                       <TableCell>--</TableCell>
                       <TableCell className="font-medium">
-                        {formatCurrency(selectedBooking?.totalAmt)}
+                        {formatCurrency(bookingDetails?.totalAmt)}
                       </TableCell>
                     </TableRow>
                     <TableRow></TableRow>
