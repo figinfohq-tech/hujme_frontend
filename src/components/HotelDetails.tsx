@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { CalendarIcon, Globe, MapPin, Star, X } from "lucide-react";
+import { CalendarIcon, Globe, MapPin, Pencil, Star, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
@@ -601,21 +601,9 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                   <div className="flex items-start justify-between">
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded">
-                          {hotel?.hotelId}
-                        </span>
                         <h5 className="font-semibold text-foreground">
                           {hotel.hotelName}
                         </h5>
-                      </div>
-
-                      <div className="space-y-1 text-sm">
-                        <div className="flex items-start gap-2">
-                          <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-                          <span className="text-xs text-muted-foreground">
-                            {`${hotel.address}, ${hotel.cityName}, ${hotel.stateName}, ${hotel.countryName}`}
-                          </span>
-                        </div>
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-1">
                             <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
@@ -628,6 +616,15 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                           </span>
                           <span className="text-xs font-medium text-primary">
                             {hotel.distanceFromHaram} from Haram
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1 text-sm">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                          <span className="text-xs text-muted-foreground">
+                            {`${hotel.address}, ${hotel.cityName}, ${hotel.stateName}, ${hotel.countryName}`}
                           </span>
                         </div>
                       </div>
@@ -654,7 +651,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-2">
+                    {/* <div className="flex items-start gap-2">
                       {pkg ? (
                         <Button
                           type="button"
@@ -677,6 +674,33 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                         className="text-destructive hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
+                      </Button>
+                    </div> */}
+
+                    <div className="flex items-center gap-3 mt-2">
+                      {pkg && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleEditHotel(index)}
+                          className="h-8 px-4 bg-primary text-white hover:bg-primary/90 shadow-sm flex items-center gap-2"
+                        >
+                          <Pencil className="h-4 w-4" />
+                          Edit
+                        </Button>
+                      )}
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          setHotelToDelete(hotel);
+                          setOpenDeleteDialog(true);
+                        }}
+                        className="h-8 px-4 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 shadow-sm flex items-center gap-2"
+                      >
+                        <X className="h-4 w-4" />
+                        Remove
                       </Button>
                     </div>
                   </div>

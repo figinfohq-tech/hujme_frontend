@@ -811,23 +811,27 @@ const FlightDetails = ({ pkg, packageId }) => {
                   {/* Header */}
                   <div className="px-3 py-2 border-b flex items-center justify-between">
                     <div className="space-y-0.5 text-sm">
+                      {/* ----------------- */}
                       <div className="flex items-center gap-2">
                         <PlaneTakeoff className="text-primary h-4 w-4" />
-                        <span className="font-medium">
+
+                        {/* Flight Number */}
+                        <span className="font-semibold tracking-wide text-foreground">
                           Flight No: {flight.flightNumber}
                         </span>
 
+                        {/* Flight Name (Differentiated Font Only) */}
+                        <p className="text-sm font-semibold text-primary tracking-wide ml-2">
+                          {flight.airlineName}
+                        </p>
+
+                        {/* Flight Class */}
                         {flight.flightClass && (
                           <span className="px-2 py-0.5 text-[11px] rounded-full bg-blue-100 text-blue-700 font-medium">
                             {flight.flightClass} Class
                           </span>
                         )}
                       </div>
-
-                      <p className="text-xs text-gray-600">
-                        <span className="font-medium">Flight Name:</span>{" "}
-                        {flight.airlineName}
-                      </p>
                     </div>
 
                     {/* ACTIONS (Professional placement) */}

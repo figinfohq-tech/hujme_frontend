@@ -61,22 +61,10 @@ const HotelViewDetails = ({ packageId }) => {
             >
               <div className="flex items-start justify-between">
                 <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded">
-                      {hotel?.hotelDetails?.hotelId}
-                    </span>
+                  <div className="flex items-center justify-between gap-2">
                     <h5 className="font-semibold text-foreground">
                       {hotel?.hotelDetails?.hotelName}
                     </h5>
-                  </div>
-
-                  <div className="space-y-1 text-sm">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <span className="text-xs text-muted-foreground">
-                        {`${hotel?.hotelDetails?.address}, ${hotel?.hotelDetails?.cityName}, ${hotel?.hotelDetails?.stateName}, ${hotel?.hotelDetails?.countryName}`}
-                      </span>
-                    </div>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
@@ -84,14 +72,22 @@ const HotelViewDetails = ({ packageId }) => {
                           {hotel?.hotelDetails?.starRating} Star
                         </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">•</span>
-                      <span className="text-xs font-medium text-primary">
-                        {hotel?.hotelDetails?.distance} from Haram
-                      </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
+                  <div className="flex justify-between space-y-1 text-sm">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <span className="text-xs text-muted-foreground">
+                        {`${hotel?.hotelDetails?.address}, ${hotel?.hotelDetails?.cityName}, ${hotel?.hotelDetails?.stateName}, ${hotel?.hotelDetails?.countryName}`}
+                      </span>
+                    </div>
+                    <span className="text-xs font-medium text-primary">
+                      {hotel?.hotelDetails?.distance} from Haram
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <div>
                       <span className="font-medium">Check-in:</span>{" "}
                       {hotel?.checkInDate
