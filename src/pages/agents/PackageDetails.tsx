@@ -126,7 +126,9 @@ const PackageDetails = () => {
       const response = await axios.get(`${baseURL}packages/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchAgentLogo(response.data.agentId);
+      console.log("response package---->", response.data);
+      
+      fetchAgentLogo(response.data.data.agentId);
       setPackageDetail(response.data);
     } catch (error) {
       console.error("Package Fetch Error:", error);
@@ -136,6 +138,9 @@ const PackageDetails = () => {
 
   const fetchAgentLogo = async (agentId: number) => {
     if (!agentId) return;
+
+    console.log("agent id ----->", agentId);
+    
 
     try {
       const token = sessionStorage.getItem("token");

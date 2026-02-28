@@ -105,7 +105,7 @@ const HeroSection = () => {
 
     setErrors(newErrors);
 
-    if (newErrors.country || newErrors.state) {
+    if (newErrors.country) {
       return;
     }
 
@@ -122,6 +122,7 @@ const HeroSection = () => {
       token
         ? navigate("/customer/search", {
             state: {
+              countryId: selectedCountryId,
               stateId: selectedStateId,
               cityId: selectedCityId,
               travelTypeId: selectedTravelTypeId,
@@ -223,13 +224,7 @@ const HeroSection = () => {
                     setErrors((prev) => ({ ...prev, state: false }));
                   }}
                 >
-                  <SelectTrigger
-                    className={`w-full text-gray-700 border ${
-                      errors.state
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300"
-                    }`}
-                  >
+                  <SelectTrigger className={`w-full text-gray-700 border`}>
                     <SelectValue placeholder="Select state">
                       {selectedStateId
                         ? state.find(
@@ -280,9 +275,6 @@ const HeroSection = () => {
                     </Command>
                   </SelectContent>
                 </Select>
-                {errors.state && (
-                  <p className="text-xs text-red-500 mt-1">State is required</p>
-                )}
               </div>
 
               {/* Departure City */}

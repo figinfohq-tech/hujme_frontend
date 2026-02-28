@@ -37,6 +37,7 @@ import PaymentProcessComfirm from "@/pages/user/PaymentProcessComfirm";
 import UserBookingView from "@/pages/user/UserBookingView";
 import Packages from "@/pages/agents/Packages";
 import BankAccountsPage from "@/pages/agents/BankAccountsPage";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
@@ -51,6 +52,7 @@ const MainRouts = () => {
 
       {/* CONTENT SHOULD START BELOW NAVBAR */}
       <div className="pt-[60px]">
+         <ScrollToTop />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />

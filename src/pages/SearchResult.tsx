@@ -60,7 +60,7 @@ const SearchResults = () => {
   const [packageFilter, setPackageFilter] = useState<any>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
-  const [selectedCountryId, setSelectedCountryId] = useState(1);
+  const [selectedCountryId, setSelectedCountryId] = useState("");
   const [countries, setCountries] = useState([]);
   const [isStateOpen, setIsStateOpen] = useState(false);
   const [selectedStateId, setSelectedStateId] = useState("");
@@ -78,6 +78,9 @@ const SearchResults = () => {
   });
   const token = sessionStorage.getItem("token");
   const role = sessionStorage.getItem("role");
+
+  console.log("dkjsakjdhaksd---->", countryId, stateId, cityId, travelTypeId);
+  
 
   const openReviewsDialog = (pkg: any) => {
     setSelectedPackage(pkg);
@@ -117,7 +120,9 @@ const SearchResults = () => {
   }, [countryId, stateId, cityId, travelTypeId]);
 
   useEffect(() => {
-    fetchSearchResult();
+    if (countryId || stateId || cityId || travelTypeId) {
+      fetchSearchResult();
+    }
   }, []);
 
   useEffect(() => {
