@@ -40,12 +40,13 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command";
+import Loader from "@/components/Loader";
 
 const SearchResults = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { countryId, stateId, cityId, travelTypeId } = location.state || {};
-
+  const [isLoading, setIsLoading] = useState(true);
   const [priceRange, setPriceRange] = useState([50000, 500000]);
   const [ratingFilter, setRatingFilter] = useState([3]);
   const [durationFilter, setDurationFilter] = useState<string>("");
@@ -80,7 +81,6 @@ const SearchResults = () => {
   const role = sessionStorage.getItem("role");
 
   console.log("dkjsakjdhaksd---->", countryId, stateId, cityId, travelTypeId);
-  
 
   const openReviewsDialog = (pkg: any) => {
     setSelectedPackage(pkg);
@@ -183,6 +183,7 @@ const SearchResults = () => {
 
   const fetchSearchResult = async () => {
     try {
+      setIsLoading(true);
       const params = {};
 
       if (selectedCountryId) params.countryId = selectedCountryId;
@@ -205,6 +206,8 @@ const SearchResults = () => {
       fetchFacilitiesForPackages(response.data);
     } catch (error) {
       console.error("Error fetching search results:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -410,6 +413,10 @@ const SearchResults = () => {
     fetchSearchResult();
   };
 
+  if (isLoading) {
+    return <Loader />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* <Header /> */}
@@ -434,7 +441,7 @@ const SearchResults = () => {
           </button>
         </div>
         <div className="mb-3 rounded-xl border border-border bg-card shadow-sm">
-          <div className="flex flex-wrap lg:flex-nowrap items-center gap-3 p-2">
+          <div className="flex flex-wrap items-center gap-3 p-2">
             {/* LOCATION GROUP */}
             <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full lg:w-auto">
               {/* Country (Disabled) */}
@@ -576,7 +583,7 @@ const SearchResults = () => {
             <div className="hidden lg:block h-10 w-px bg-border mx-2" />
 
             {/* SORT SECTION */}
-            <div className="w-full lg:w-auto lg:ml-auto flex flex-wrap sm:flex-nowrap gap-2 items-center">
+            <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 Sort & Order
               </span>
@@ -725,9 +732,7 @@ const SearchResults = () => {
           </div>
 
           {/* Search Results */}
-          <div className="lg:col-span-3">
-            {/* --------------------------------------- */}
-
+          <div className="col-span-1 xl:col-span-3">
             <div className="space-y-6">
               {filteredResults.length === 0 ? (
                 <Card className="p-8 text-center">
@@ -774,7 +779,7 @@ const SearchResults = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-col md:flex-row md:items-center gap-2">
                               {/* Package Name */}
-                              <h3 className="text-lg md:text-xl font-semibold text-foreground break-words">
+                              <h3 className="text-base md:text-lg lg:text-xl font-semibold text-foreground break-words">
                                 {result.packageName}
                               </h3>
 
@@ -832,7 +837,7 @@ const SearchResults = () => {
                           </div>
 
                           {/* RIGHT CONTENT */}
-                          <div className="flex md:flex-col items-start md:items-end justify-between md:justify-start gap-2 md:text-right shrink-0">
+                          <div className="flex flex-wrap md:flex-col items-start md:items-end justify-between md:justify-start gap-2 md:text-right">
                             <div
                               className="flex items-center gap-1 cursor-pointer"
                               onClick={() => openReviewsDialog(result)}
@@ -876,10 +881,10 @@ const SearchResults = () => {
                             </div>
                           )}
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="text-2xl font-bold text-primary">
+                              <span className="text-xl md:text-2xl font-bold text-primary">
                                 ₹{result.price.toLocaleString()}
                               </span>
                               <span className="text-sm text-muted-foreground font-bold line-through">
@@ -922,7 +927,7 @@ const SearchResults = () => {
                           </div>
                           <div>
                             {/* Seats Info */}
-                            <p className="text-medium flex justify-center gap-1 mt-1">
+                            <p className="text-sm md:text-base flex flex-wrap justify-center gap-1 mt-1">
                               <span className="text-muted-foreground">
                                 Total Seats:
                               </span>{" "}
@@ -975,7 +980,7 @@ const SearchResults = () => {
 
                           null}
                           <div></div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2 justify-end">
                             <Button
                               variant={
                                 compareList.includes(result.packageId)

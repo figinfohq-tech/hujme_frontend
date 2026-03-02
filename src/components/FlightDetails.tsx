@@ -35,6 +35,7 @@ import {
   CalendarIcon,
   Clock,
   MapPin,
+  Pencil,
   Plane,
   PlaneLanding,
   PlaneTakeoff,
@@ -718,8 +719,11 @@ const FlightDetails = ({ pkg, packageId }) => {
 
       departureDate: flight.departureDate,
       arrivalDate: flight.arrivalDate,
-      departureTime: flight.departureTime,
-      arrivalTime: flight.arrivalTime,
+      departureTime: flight.departureTime
+        ? flight.departureTime.slice(0, 5)
+        : "",
+
+      arrivalTime: flight.arrivalTime ? flight.arrivalTime.slice(0, 5) : "",
     });
 
     (async () => {
@@ -835,7 +839,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                     </div>
 
                     {/* ACTIONS (Professional placement) */}
-                    <div className="flex items-center gap-1">
+                    {/* <div className="flex items-center gap-1">
                       {pkg && (
                         <Button
                           type="button"
@@ -858,6 +862,33 @@ const FlightDetails = ({ pkg, packageId }) => {
                         className="h-8 w-8 text-destructive"
                       >
                         <X className="h-4 w-4" />
+                      </Button>
+                    </div> */}
+
+                    <div className="flex items-center gap-3 mt-2">
+                      {pkg && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleEditFlight(flight, index)}
+                          className="h-8 px-4 bg-primary text-white hover:bg-primary/90 shadow-sm flex items-center gap-2"
+                        >
+                          <Pencil className="h-4 w-4" />
+                          Edit
+                        </Button>
+                      )}
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          setFlightToDelete(flight);
+                          setOpenDeleteDialog(true);
+                        }}
+                        className="h-8 px-4 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 shadow-sm flex items-center gap-2"
+                      >
+                        <X className="h-4 w-4" />
+                        Remove
                       </Button>
                     </div>
                   </div>
@@ -895,7 +926,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                           <div className="flex items-center gap-1">
                             <Clock size={14} />
                             <span className="text-gray-700">
-                              {flight.departureTime}
+                              {formatTime(flight.departureTime)}
                             </span>
                           </div>
                         </div>
@@ -930,7 +961,7 @@ const FlightDetails = ({ pkg, packageId }) => {
                           <div className="flex items-center gap-1">
                             <Clock size={14} />
                             <span className="text-gray-700">
-                              {flight.arrivalTime}
+                              {formatTime(flight.arrivalTime)}
                             </span>
                           </div>
                         </div>

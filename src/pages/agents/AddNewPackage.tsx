@@ -555,7 +555,7 @@ export function AddNewPackage({
             <TabsContent value="basic" className="space-y-4 mt-4">
               <form onSubmit={formik.handleSubmit}>
                 {/* Package Name */}
-                <div className="grid grid-cols-1 mb-4 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 mb-4 md:grid-cols-1 gap-6">
                   <div className="grid gap-2">
                     <Label className="flex items-center gap-1 text-sm font-medium">
                       Package Name
@@ -574,7 +574,8 @@ export function AddNewPackage({
                       </p>
                     )}
                   </div>
-
+                </div>
+                <div className="grid grid-cols-1 mb-4 md:grid-cols-3 gap-6">
                   {/* Package Type */}
 
                   {/* Travel Type Dropdown */}
@@ -667,7 +668,7 @@ export function AddNewPackage({
                   {/* </div> */}
                 </div>
                 {/* State Dropdown */}
-                <div className="grid grid-cols-1 md:grid-cols-3 mb-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 mb-4 gap-6">
                   <div className="grid gap-2">
                     <Label className="flex items-center gap-1 text-sm font-medium">
                       Select Country
@@ -753,31 +754,19 @@ export function AddNewPackage({
                       }}
                     />
                   </div>
-                </div>
-
-                {/* Description */}
-                <div className="grid grid-cols-1 md:grid-cols-1 mb-4 gap-6">
-                  <div className="grid gap-2 md:col-span-2">
-                    <Label>Description</Label>
-                    <textarea
-                      name="description"
-                      className="border p-2 rounded-md"
-                      placeholder="Description..."
-                      maxLength={101}
-                      rows={2}
-                      onChange={formik.handleChange}
-                      value={formik.values.description}
+                  <div className="grid gap-2">
+                    <Label>Package Duration</Label>
+                    <Input
+                      value={isDuration ? `${isDuration} Days` : ""}
+                      disabled
+                      className="bg-muted cursor-not-allowed"
+                      placeholder="Package duration"
                     />
-                    {formik.errors.description && (
-                      <span className="text-red-500">
-                        {formik.errors.description}
-                      </span>
-                    )}
                   </div>
                 </div>
 
                 {/* Price */}
-                <div className="grid grid-cols-1 md:grid-cols-3 mb-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 mb-4 gap-6">
                   <div className="grid gap-2">
                     <Label className="flex items-center gap-1 text-sm font-medium">
                       Current Price
@@ -867,10 +856,32 @@ export function AddNewPackage({
                       </p>
                     )}
                   </div>
+
+                  {/* Seats */}
+                  <div className="grid gap-2">
+                    <Label className="flex items-center gap-1 text-sm font-medium">
+                      Total Seats
+                      <span className="text-red-500">*</span>
+                    </Label>
+
+                    <Input
+                      type="number"
+                      name="totalSeats"
+                      placeholder="350"
+                      onChange={formik.handleChange}
+                      value={formik.values.totalSeats}
+                      min="1"
+                    />
+                    {formik.errors.totalSeats && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.totalSeats}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Departure Date & Time */}
-                <div className="grid grid-cols-1 md:grid-cols-4 mb-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 mb-4 gap-4">
                   <div className="grid gap-2">
                     <Label>Departure Date</Label>
                     <Input
@@ -920,37 +931,23 @@ export function AddNewPackage({
                   </div>
                 </div>
 
-                {/* Package Duration (Auto Calculated) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 mb-4 gap-4">
-                  <div className="grid gap-2">
-                    <Label>Package Duration</Label>
-                    <Input
-                      value={isDuration ? `${isDuration} Days` : ""}
-                      disabled
-                      className="bg-muted cursor-not-allowed"
-                      placeholder="Package duration"
-                    />
-                  </div>
-
-                  {/* Seats */}
-                  <div className="grid gap-2">
-                    <Label className="flex items-center gap-1 text-sm font-medium">
-                      Total Seats
-                      <span className="text-red-500">*</span>
-                    </Label>
-
-                    <Input
-                      type="number"
-                      name="totalSeats"
-                      placeholder="350"
+                {/* Description */}
+                <div className="grid grid-cols-1 md:grid-cols-1 mb-4 gap-6">
+                  <div className="grid gap-2 md:col-span-2">
+                    <Label>Description</Label>
+                    <textarea
+                      name="description"
+                      className="border p-2 rounded-md"
+                      placeholder="Description..."
+                      maxLength={101}
+                      rows={2}
                       onChange={formik.handleChange}
-                      value={formik.values.totalSeats}
-                      min="1"
+                      value={formik.values.description}
                     />
-                    {formik.errors.totalSeats && (
-                      <p className="text-red-500 text-sm">
-                        {formik.errors.totalSeats}
-                      </p>
+                    {formik.errors.description && (
+                      <span className="text-red-500">
+                        {formik.errors.description}
+                      </span>
                     )}
                   </div>
                 </div>

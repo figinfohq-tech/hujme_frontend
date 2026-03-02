@@ -797,7 +797,7 @@ const HotelDetails = ({ pkg, packageId }: any) => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
           {/* Check-in Date */}
           <div className="grid gap-2">
             <FormLabel>Check-in Date</FormLabel>
@@ -857,8 +857,8 @@ const HotelDetails = ({ pkg, packageId }: any) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="grid gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4  items-end">
+          <div className="md:col-span-2 grid gap-2">
             <FormLabel>Total Stay (Days)</FormLabel>
             <Input
               value={calculatedDays ? `${calculatedDays} Days` : ""}
@@ -867,18 +867,17 @@ const HotelDetails = ({ pkg, packageId }: any) => {
               className="bg-muted cursor-not-allowed"
             />
           </div>
-        </div>
-
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            onClick={editIndex !== null ? updateHotel : handleAddHotel}
-            variant="secondary"
-            className="w-full"
-          >
-            {editIndex !== null ? "Update Hotel" : "Add Hotel to Package"}
-          </Button>
-          {/* small helper to add quickly without switching */}
+          <div className="grid gap-2">
+            <Button
+              type="button"
+              onClick={editIndex !== null ? updateHotel : handleAddHotel}
+              variant="secondary"
+              className="w-full"
+            >
+              {editIndex !== null ? "Update Hotel" : "Add Hotel to Package"}
+            </Button>
+            {/* small helper to add quickly without switching */}
+          </div>
         </div>
       </div>
 

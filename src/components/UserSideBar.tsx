@@ -7,7 +7,6 @@ import {
   CalendarCheck,
   User,
   BarChart2,
-  File,
   FileText,
   Star,
 } from "lucide-react";
@@ -16,42 +15,23 @@ const UserSideBar = () => {
   const [isOpen, setIsOpen] = useState(true);
 
   const menuItems = [
-    {
-      name: "Browse Packages",
-      icon: <Package size={20} />,
-      path: "/",
-    },
-    {
-      name: "My Bookings",
-      icon: <CalendarCheck size={20} />,
-      path: "/bookings",
-    },
-    {
-      name: "Ducoments",
-      icon: <FileText size={20} />,
-      path: "/ducoments",
-    },
+    { name: "Browse Packages", icon: <Package size={20} />, path: "/" },
+    { name: "My Bookings", icon: <CalendarCheck size={20} />, path: "/bookings" },
+    { name: "Ducoments", icon: <FileText size={20} />, path: "/ducoments" },
     { name: "Profiles", icon: <User size={20} />, path: "/profiles" },
-     {
-      name: "Reviews",
-      icon: <Star size={20} />,
-      path: "/reviews",
-    },
-    {
-      name: "Analytics",
-      icon: <BarChart2 size={20} />,
-      path: "/analytics",
-    },
+    { name: "Reviews", icon: <Star size={20} />, path: "/reviews" },
+    { name: "Analytics", icon: <BarChart2 size={20} />, path: "/analytics" },
   ];
 
   return (
-    <div className="flex  h-screen">
+    <div className="flex min-h-[calc(100vh-60px)]">
+      
       {/* Sidebar */}
-      <div
-        className={`bg-primary z-[9999] text-gray-100 h-screen p-4 pt-6 transition-all duration-300
-        ${isOpen ? "w-64" : "w-20"} fixed left-0 flex flex-col`}
+      <aside
+        className={`bg-primary text-gray-100 p-4 z-50 pt-6 mt-1 transition-all duration-300
+        ${isOpen ? "w-64" : "w-20"} fixed top-[60px] left-0 bottom-0 flex flex-col`}
       >
-        {/* Toggle Button */}
+        {/* Toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="absolute -right-3 top-6 bg-primary border border-white text-white rounded-full p-1 hover:bg-green-200 hover:text-primary"
@@ -87,16 +67,15 @@ const UserSideBar = () => {
             </NavLink>
           ))}
         </nav>
-      </div>
+      </aside>
 
-      {/* Content Area (for demo) */}
-      <div
-        className={`flex-1 min-h-screen transition-all duration-300 ${
-          isOpen ? "ml-64" : "ml-20"
-        } h-[calc(100vh-64px)]`}
+      {/* Main Content */}
+      <main
+        className={`flex-1 transition-all duration-300 min-w-0
+        ${isOpen ? "ml-64" : "ml-20"}`}
       >
         <Outlet />
-      </div>
+      </main>
     </div>
   );
 };

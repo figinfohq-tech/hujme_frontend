@@ -90,17 +90,23 @@ const HotelViewDetails = ({ packageId }) => {
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <div>
                       <span className="font-medium">Check-in:</span>{" "}
-                      {hotel?.checkInDate
-                        ? format(hotel?.checkinDate, "PPP")
+                      {hotel?.checkinDate
+                        ? format(new Date(hotel.checkinDate), "MMMM do, yyyy")
                         : "-"}{" "}
-                      at {hotel?.checkinTime}
+                      at{" "}
+                      {hotel?.checkinTime
+                        ? format(new Date(hotel.checkinTime), "HH:mm")
+                        : ""}
                     </div>
                     <div>
                       <span className="font-medium">Check-out:</span>{" "}
                       {hotel?.checkoutDate
-                        ? format(hotel?.checkoutDate, "PPP")
+                        ? format(hotel?.checkoutDate, "MMMM do, yyyy")
                         : "-"}{" "}
-                      at {hotel?.checkoutTime}
+                      at{" "}
+                      {hotel?.checkoutTime
+                        ? format(new Date(hotel.checkoutTime), "HH:mm")
+                        : ""}
                     </div>
                     <div>
                       <span className="font-medium">Days Stay:</span>{" "}
