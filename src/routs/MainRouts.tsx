@@ -38,11 +38,16 @@ import UserBookingView from "@/pages/user/UserBookingView";
 import Packages from "@/pages/agents/Packages";
 import BankAccountsPage from "@/pages/agents/BankAccountsPage";
 import ScrollToTop from "@/components/ScrollToTop";
+import AboutUs from "@/pages/AboutUs";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import TermsConditions from "@/pages/TermsConditions";
+import CancellationRefundPolicy from "@/pages/CancellationRefundPolicy";
+import CustomerSupport from "@/pages/CustomerSupport";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
   const token = sessionStorage.getItem("token");
-  
+
   return (
     <>
       {/* FIXED NAVBAR */}
@@ -52,7 +57,7 @@ const MainRouts = () => {
 
       {/* CONTENT SHOULD START BELOW NAVBAR */}
       <div className="pt-[60px]">
-         <ScrollToTop />
+        <ScrollToTop />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
@@ -67,6 +72,14 @@ const MainRouts = () => {
           <Route path="/compare" element={<ComparePackages />} />
           <Route path="/payment-option" element={<ChoosePaymentOption />} />
           <Route path="/payment-corfirm" element={<PaymentProcessComfirm />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-conditions" element={<TermsConditions />} />
+          <Route path="/support" element={<CustomerSupport />} />
+          <Route
+            path="/cancellation-refund"
+            element={<CancellationRefundPolicy />}
+          />
 
           <Route
             path="/booking-detail"

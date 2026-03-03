@@ -165,7 +165,7 @@ const ComparePackages = () => {
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8">
         {/* Back Button */}
-        <div className="flex gap-6">
+        <div className="flex justify-between flex-wrap">
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}
@@ -175,7 +175,7 @@ const ComparePackages = () => {
             Back to Search Results
           </Button>
           {/* Header */}
-          <div className="mb-3">
+          <div className="mb-3 ml-3">
             <h1 className="text-lg md:text-1xl font-bold text-foreground">
               Compare Packages
             </h1>

@@ -441,7 +441,7 @@ const SearchResults = () => {
           </button>
         </div>
         <div className="mb-3 rounded-xl border border-border bg-card shadow-sm">
-          <div className="flex flex-wrap items-center gap-3 p-2">
+          <div className="flex flex-wrap items-center justify-center gap-3 p-2">
             {/* LOCATION GROUP */}
             <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full lg:w-auto">
               {/* Country (Disabled) */}

@@ -253,7 +253,7 @@ const PackageDetails = () => {
             <div className="mb-5 bg-background rounded-xl shadow-sm border overflow-hidden">
               <div className="flex flex-col md:flex-row items-stretch overflow-hidden">
                 {/* LEFT: Image */}
-                <div className="md:w-1/4 w-full bg-white flex items-center justify-center">
+                <div className="md:w-1/4 w-full border-r flex items-center justify-center">
                   <div className="w-[200px] h-[200px]">
                     <img
                       src={agentLogo || "/placeholder.svg"}
@@ -264,16 +264,16 @@ const PackageDetails = () => {
                 </div>
 
                 {/* RIGHT: Content */}
-                <div className="md:w-2/3 w-full h-full p-6 flex flex-col">
+                <div className="w-full h-full p-6 flex flex-col">
                   {/* TOP CONTENT */}
                   <div className="flex-1">
-                    <div className="flex justify-between items-start gap-4 mb-4">
+                    <div className="flex justify-between sm:flex-nowrap items-start gap-4 mb-4">
                       <div>
-                        <h1 className="text-2xl font-bold text-foreground mb-1">
+                        <h1 className="text-lg sm:text-xl md:text-1xl font-semibold text-foreground mb-1">
                           {packageDetail?.data?.packageName}
                         </h1>
 
-                        <p className="text-md text-muted-foreground mb-3">
+                        <p className=" text-sm text-muted-foreground mb-3">
                           By {packageDetail?.data?.agentName}
                         </p>
 
@@ -289,7 +289,7 @@ const PackageDetails = () => {
                             {packageDetail?.duration} days
                           </span>
 
-                          <Badge variant="secondary" className="text-sm">
+                          <Badge variant="secondary" className="text-xs sm:text-sm">
                             {packageDetail?.data?.packageType}
                           </Badge>
                         </div>
@@ -302,7 +302,7 @@ const PackageDetails = () => {
                       >
                         <div className="flex items-center gap-1">
                           <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                          <span className="font-semibold text-lg">
+                          <span className="font-semibold text-base sm:text-lg">
                             {formatRating(result?.ratingAverage)}
                           </span>
                         </div>
@@ -323,7 +323,7 @@ const PackageDetails = () => {
                             <Badge
                               key={index}
                               variant="outline"
-                              className="text-sm"
+                              className="text-xs sm:text-sm"
                             >
                               {f.facilityDetails?.facilityName}
                             </Badge>

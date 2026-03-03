@@ -70,49 +70,60 @@ const PackageBasicView = ({ packageId }) => {
       <div className="text-center p-10 text-red-500">No Package Found</div>
     );
   return (
-    <div className="p-2">
-      {/* Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-3">
-        {/* Seat Information */}
-        <div className="shadow-lg p-2 border rounded-xl lg:col-span-2">
-          <div>
-            <div className="flex items-center mb-2 font-semibold text-primary gap-2 text-xl">
-              <Info className="w-5 h-5 text-primary" />
-              Seat Information
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-gray-700">
-            <div className="p-2 bg-white rounded-xl shadow-sm border">
-              <span className="font-semibold text-primary">Total Seats : </span>{" "}
+  <div className="p-3 sm:p-4 lg:p-6">
+    <div className="space-y-4">
+
+      {/* ---------------- Seat Information ---------------- */}
+      <div className="shadow-md rounded-2xl border bg-white p-4 sm:p-5">
+        <div className="flex items-center gap-2 text-base sm:text-lg lg:text-xl font-semibold text-primary mb-4">
+          <Info className="w-5 h-5" />
+          Seat Information
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="p-4 flex text-center gap-3 rounded-xl border bg-muted/20 text-sm sm:text-base">
+            <span className="font-semibold text-primary">
+              Total Seats:
+            </span>
+            <div className="text-foreground">
               {basicDetails.totalSeats}
             </div>
-            <div className="p-2 bg-white rounded-xl shadow-sm border">
-              <span className="font-semibold text-primary">
-                Booked Seats :{" "}
-              </span>{" "}
+          </div>
+
+          <div className="p-4 flex text-center gap-3 rounded-xl border bg-muted/20 text-sm sm:text-base">
+            <span className="font-semibold text-primary">
+              Booked Seats:
+            </span>
+            <div className="text-foreground">
               {basicDetails.bookedSeats}
             </div>
-            <div className="p-2 bg-white rounded-xl shadow-sm border">
-              <span className="font-semibold text-primary">
-                Available Seats :{" "}
-              </span>{" "}
+          </div>
+
+          <div className="p-4 flex text-center gap-3  rounded-xl border bg-muted/20 text-sm sm:text-base">
+            <span className="font-semibold text-primary">
+              Available Seats:
+            </span>
+            <div className="text-foreground">
               {basicDetails.availableSeats}
             </div>
           </div>
         </div>
-        {/* Basic Details */}
-        <div className="shadow-md flex gap-20 px-5 rounded-xl border border-gray-200 p-2">
+      </div>
+
+      {/* ---------------- Basic Info + Pricing ---------------- */}
+      <div className="shadow-md rounded-2xl border bg-white p-4 sm:p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          {/* -------- Basic Information -------- */}
           <div>
-            {/* Title */}
-            <div className="flex items-center text-lg font-semibold text-primary pb-0 pt-0">
-              <User className="w-5 h-5 text-primary mr-1" />
+            <div className="flex items-center text-base sm:text-lg font-semibold text-primary mb-4">
+              <User className="w-5 h-5 mr-2" />
               Basic Information
             </div>
 
-            {/* Content */}
-            <div className="grid grid-cols-[150px_1fr] gap-y-2 text-sm mt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-y-3 text-sm sm:text-base">
               <span className="font-semibold text-primary">Package Name:</span>
-              <span>{basicDetails.packageName}</span>
+              <span className="break-words">{basicDetails.packageName}</span>
 
               <span className="font-semibold text-primary">Type:</span>
               <span>{basicDetails.packageType}</span>
@@ -124,47 +135,51 @@ const PackageBasicView = ({ packageId }) => {
               <span>{basicDetails.duration} Days</span>
             </div>
           </div>
+
+          {/* -------- Pricing -------- */}
           <div>
-            {/* Title */}
-            <div className="flex items-center text-lg font-semibold text-primary pb-0">
-              {/* <DollarSign className="w-5 h-5 text-primary mr-1" /> */}
-              <span>₹</span>
-              <span className="ml-1">Pricing</span>
+            <div className="flex items-center text-base sm:text-lg font-semibold text-primary mb-4">
+              <span className="text-lg">₹</span>
+              <span className="ml-2">Pricing</span>
             </div>
 
-            {/* Content */}
-            <div className="text-gray-700 text-sm mt-2 space-y-2">
-              <div className="flex">
-                <span className="font-semibold text-primary w-50">
-                  Current Price :{" "}
+            <div className="space-y-4 text-sm sm:text-base">
+
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                <span className="font-semibold text-primary">
+                  Current Price:
                 </span>
                 <span className="text-lg font-bold text-primary">
-                  ₹{basicDetails?.price?.toLocaleString()}{" "}
+                  ₹{basicDetails?.price?.toLocaleString()}
                 </span>
               </div>
 
-              <div className="flex">
-                <span className="font-semibold text-primary w-50">
-                  Original Price :{" "}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                <span className="font-semibold text-primary">
+                  Original Price:
                 </span>
                 <span className="text-lg font-bold text-primary">
                   ₹{basicDetails?.originalPrice?.toLocaleString()}
                 </span>
               </div>
-              <div className="flex">
-                <span className="font-semibold text-primary w-50">
-                  Minimum Booking Amount :{" "}
+
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                <span className="font-semibold text-primary">
+                  Minimum Booking Amount:
                 </span>
                 <span className="text-lg font-bold text-primary">
                   ₹{basicDetails?.minBookingAmt?.toLocaleString()}
                 </span>
               </div>
+
             </div>
           </div>
+
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default PackageBasicView;
