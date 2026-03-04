@@ -76,10 +76,7 @@ const MainRouts = () => {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-conditions" element={<TermsConditions />} />
           <Route path="/support" element={<CustomerSupport />} />
-          <Route
-            path="/cancellation-refund"
-            element={<CancellationRefundPolicy />}
-          />
+          <Route path="/cancellation-refund" element={<CancellationRefundPolicy />} />
 
           <Route
             path="/booking-detail"
@@ -115,6 +112,11 @@ const MainRouts = () => {
               <Route path="profiles" element={<UserProfle />} />
               <Route path="analytics" element={<h1>Analytics Page</h1>} />
               <Route path="reviews" element={<ReviewsPage />} />
+              <Route path="/customer/about" element={<AboutUs />} />
+              <Route path="/customer/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/customer/terms-conditions" element={<TermsConditions />} />
+              <Route path="/customer/support" element={<CustomerSupport />} />
+              <Route path="/customer/cancellation-refund" element={<CancellationRefundPolicy />} />
             </Route>
           ) : role === "AGENT" ? (
             <Route
@@ -144,6 +146,11 @@ const MainRouts = () => {
                 element={<UpgradeSubscriptionPage />}
               />
               <Route path="analytics" element={<h1>Analytics Page</h1>} />
+              <Route path="/agent/about" element={<AboutUs />} />
+              <Route path="/agent/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/agent//terms-conditions" element={<TermsConditions />} />
+              <Route path="/agent/support" element={<CustomerSupport />} />
+              <Route path="/agent/cancellation-refund" element={<CancellationRefundPolicy />} />
             </Route>
           ) : (
             <Route path="*" element={<Navigate to="/auth" replace />} />

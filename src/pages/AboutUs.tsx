@@ -45,15 +45,10 @@ const AboutUs = () => {
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
               We bring together trusted agents who showcase their packages
               through our platform, allowing pilgrims to make informed decisions
-              with complete transparency.
+              with complete transparency. By blending technology with
+              compassion, we aim to deliver a smooth, reliable, and stress-free
+              Hajj and Umrah experience — from planning to completion.
             </p>
-
-            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              By blending technology with compassion, we aim to deliver a
-              smooth, reliable, and stress-free Hajj and Umrah experience — from
-              planning to completion.
-            </p>
-
             <p className="text-sm sm:text-base font-medium text-primary">
               With 100% transparency, we ensure clarity, trust, and confidence
               at every step of your journey.

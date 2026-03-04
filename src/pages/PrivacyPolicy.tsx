@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Mail,
   ArrowLeft,
+  DatabaseIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 
@@ -49,56 +50,166 @@ const PrivacyPolicy = () => {
             {
               icon: Shield,
               title: "1. Introduction",
-              content:
-                "Hujme.com (operated by FIG Info LLP) values your privacy and is committed to protecting your personal data. By using our services, you agree to the collection and use of information in accordance with this policy.",
+              content: (
+                <>
+                  <p>
+                    Hujme.com (operated by FIG Info LLP) values your privacy and
+                    is committed to protecting your personal data.
+                  </p>
+                  <p>
+                    By using our services, you agree to the collection and use
+                    of information in accordance with this policy.
+                  </p>
+                </>
+              ),
             },
             {
               icon: Database,
               title: "2. Information We Collect",
-              content:
-                "We collect personal data such as full name, passport details, contact information, payment details, travel information, IP address, device data, cookies, and browsing behavior to improve our services.",
+              content: (
+                <>
+                  <p>
+                    We collect different types of personal information to
+                    provide and improve our services, including:
+                  </p>
+
+                  <h3 className="font-semibold mt-4 mb-2">2.1 Personal Data</h3>
+                  <ul className="list-disc ml-6 space-y-1">
+                    <li>Full name</li>
+                    <li>Passport details</li>
+                    <li>Contact information (email, phone number, address)</li>
+                    <li>Date of birth</li>
+                    <li>Payment details</li>
+                    <li>Emergency contact information</li>
+                  </ul>
+
+                  <h3 className="font-semibold mt-4 mb-2">
+                    2.2 Travel Information
+                  </h3>
+                  <ul className="list-disc ml-6 space-y-1">
+                    <li>Flight details</li>
+                    <li>Hotel preferences</li>
+                    <li>Visa details</li>
+                  </ul>
+
+                  <h3 className="font-semibold mt-4 mb-2">
+                    2.3 Technical and Usage Data
+                  </h3>
+                  <ul className="list-disc ml-6 space-y-1">
+                    <li>IP address</li>
+                    <li>Browser type and version</li>
+                    <li>Device information</li>
+                    <li>Pages visited and browsing behavior</li>
+                    <li>Cookies and tracking technologies</li>
+                  </ul>
+                </>
+              ),
             },
             {
               icon: Eye,
               title: "3. How We Use Your Information",
-              content:
-                "We use your data to facilitate bookings, process payments, provide support, enhance security, comply with legal requirements, and send marketing communication (with your consent).",
+              content: (
+                <>
+                  <p>
+                    We use the collected data for various purposes, including:
+                  </p>
+                  <ul className="list-disc ml-6 mt-3 space-y-1">
+                    <li>Facilitating payment transactions</li>
+                    <li>Providing customer support</li>
+                    <li>Personalizing user experience</li>
+                    <li>Complying with legal and regulatory requirements</li>
+                    <li>Preventing fraud and enhancing security</li>
+                    <li>
+                      Marketing and promotional communication (only with user
+                      consent)
+                    </li>
+                  </ul>
+                </>
+              ),
             },
             {
               icon: Share2,
               title: "4. Data Sharing and Disclosure",
-              content:
-                "We do not sell personal data. Information may be shared with airlines, hotels, visa agencies, payment processors, legal authorities, or during business transfers when necessary.",
+              content: (
+                <>
+                  <p>
+                    We do not sell your personal data. However, we may share
+                    your information with:
+                  </p>
+
+                  <ul className="list-disc ml-6 mt-3 space-y-2">
+                    <li>
+                      <strong>Service Providers:</strong> Airlines, hotels,
+                      Umrah operators, and visa processing agencies.
+                    </li>
+                    <li>
+                      <strong>Payment Processors:</strong> To facilitate secure
+                      transactions.
+                    </li>
+                    <li>
+                      <strong>Legal Authorities:</strong> When required to
+                      comply with legal obligations.
+                    </li>
+                    <li>
+                      <strong>Business Transfers:</strong> In case of a merger,
+                      sale, or acquisition.
+                    </li>
+                  </ul>
+                </>
+              ),
             },
             {
-              icon: Lock,
+              icon: DatabaseIcon,
               title: "5. Data Security",
               content:
-                "We implement industry-standard security measures to protect your information. However, no online transmission method is 100% secure.",
+                "We implement industry-standard security measures to protect your personal data. However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security.",
             },
             {
               icon: UserCheck,
               title: "6. Your Rights",
-              content:
-                "You have the right to access, correct, delete, or restrict processing of your data and withdraw marketing consent. Contact support@Hujme.com to exercise your rights.",
+              content: (
+                <>
+                  <p>
+                    Depending on applicable laws, you may have the following
+                    rights regarding your personal data:
+                  </p>
+
+                  <ul className="list-disc ml-6 mt-3 space-y-1">
+                    <li>Right to access and obtain a copy of your data</li>
+                    <li>
+                      Right to request correction of inaccurate information
+                    </li>
+                    <li>Right to request deletion of your data</li>
+                    <li>
+                      Right to withdraw consent for marketing communications
+                    </li>
+                    <li>Right to restrict or object to data processing</li>
+                  </ul>
+
+                  <p className="mt-4">
+                    To exercise these rights, please contact us at
+                    contact@hujme.com.
+                  </p>
+                </>
+              ),
             },
             {
               icon: Cookie,
               title: "7. Cookies & Tracking",
               content:
-                "We use cookies and similar technologies to enhance user experience. You can control cookies via browser settings.",
+                "Our platform uses cookies and similar tracking technologies to enhance user experience. Users can control cookie preferences through their browser settings.",
             },
             {
               icon: Clock,
-              title: "8. Data Retention",
+              title: "8. Data Of Retention",
               content:
-                "We retain personal data only as long as necessary for service fulfillment and legal compliance.",
+                "We retain personal data only as long as necessary to fulfill the purposes outlined in this policy unless a longer retention period is required by law.",
             },
             {
               icon: ExternalLink,
               title: "9. Third-Party Links",
               content:
-                "Our platform may contain links to third-party websites. We are not responsible for their privacy practices.",
+                "Our platform may contain links to third-party websites. We are not responsible for their privacy practices and encourage users to review their privacy policies.",
             },
             {
               icon: RefreshCw,
@@ -109,7 +220,19 @@ const PrivacyPolicy = () => {
             {
               icon: Mail,
               title: "11. Contact Us",
-              content: "FIG Info LLP\nEmail: support@Hujme.com",
+              content: (
+                <>
+                  <p>
+                    For any questions or concerns regarding this Privacy Policy,
+                    please contact us at:
+                  </p>
+
+                  <p className="mt-4 font-medium">
+                    FIG Info LLP <br />
+                    Email: contact@hujme.com
+                  </p>
+                </>
+              ),
             },
           ].map((section, index) => {
             const Icon = section.icon;

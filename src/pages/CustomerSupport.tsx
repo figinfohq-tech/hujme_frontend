@@ -78,7 +78,7 @@ export default function CustomerSupport() {
                   information, please email us at:
                 </p>
                 <p className="font-semibold text-foreground">
-                  support@hujme.com
+                  contact@hujme.com
                 </p>
                 <p>
                   Kindly include your booking reference number (if available)

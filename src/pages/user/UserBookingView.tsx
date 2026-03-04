@@ -763,7 +763,13 @@ const UserBookingView = () => {
                                   {hotel?.checkinDate
                                     ? format(new Date(hotel.checkinDate), "PPP")
                                     : "-"}{" "}
-                                  at {hotel?.checkinTime}
+                                  at{" "}
+                                  {hotel?.checkinTime
+                                    ? format(
+                                        new Date(hotel.checkinTime),
+                                        "HH:mm:ss",
+                                      )
+                                    : "-"}
                                 </div>
                                 <div>
                                   <span className="font-medium">
@@ -775,7 +781,13 @@ const UserBookingView = () => {
                                         "PPP",
                                       )
                                     : "-"}{" "}
-                                  at {hotel?.checkoutTime}
+                                  at{" "}
+                                  {hotel?.checkoutTime
+                                    ? format(
+                                        new Date(hotel.checkoutTime),
+                                        "HH:mm:ss",
+                                      )
+                                    : "-"}
                                 </div>
                               </div>
                             </div>

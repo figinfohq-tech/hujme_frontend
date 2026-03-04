@@ -1,6 +1,17 @@
 import { NavLink } from "react-router";
 
 const Footer = () => {
+   const role = sessionStorage.getItem("role");
+   console.log("role---->", role);
+
+   const getBasePath = () => {
+    if (role === "USER") return "/customer";
+    if (role === "AGENT") return "/agent";
+    return ""; // public route
+  };
+
+  const basePath = getBasePath();
+   
   return (
     <footer className="bg-primary text-primary-foreground">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -9,7 +20,7 @@ const Footer = () => {
 
           <div>
             <NavLink
-              to="/about"
+               to={`${basePath}/about`}
               className="text-sm sm:text-base font-semibold hover:text-primary-foreground/80 transition-colors duration-200"
             >
               About Us
@@ -18,7 +29,7 @@ const Footer = () => {
 
           <div>
             <NavLink
-              to="/privacy-policy"
+              to={`${basePath}/privacy-policy`}
               className="text-sm sm:text-base font-semibold hover:text-primary-foreground/80 transition-colors duration-200"
             >
               Privacy Policy
@@ -27,7 +38,7 @@ const Footer = () => {
 
           <div>
             <NavLink
-              to="/terms-conditions"
+              to={`${basePath}/terms-conditions`}
               className="text-sm sm:text-base font-semibold hover:text-primary-foreground/80 transition-colors duration-200"
             >
               Terms & Conditions
@@ -36,7 +47,7 @@ const Footer = () => {
 
           <div>
             <NavLink
-              to="/cancellation-refund"
+              to={`${basePath}/cancellation-refund`}
               className="text-sm sm:text-base font-semibold hover:text-primary-foreground/80 transition-colors duration-200"
             >
               Cancellation & Refund Policy
@@ -45,7 +56,7 @@ const Footer = () => {
 
           <div>
             <NavLink
-              to="/support"
+              to={`${basePath}/support`}
               className="text-sm sm:text-base font-semibold hover:text-primary-foreground/80 transition-colors duration-200"
             >
               Customer Support
