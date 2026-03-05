@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -28,6 +28,13 @@ import FlightDetails from "@/components/FlightDetails";
 import Facilities from "@/components/Facilities";
 import HotelDetails from "@/components/HotelDetails";
 import SearchableSelect from "@/components/SearchableSelect";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const packageFormSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(200),
@@ -111,10 +118,18 @@ export function AddNewPackage({
   const [selectedCountryId, setSelectedCountryId] = useState("");
   const [isLoader, setIsLoader] = useState(false);
   const [isDuration, setIsDuration] = useState<Number>();
+  const [activeTab, setActiveTab] = useState("basic");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingTab, setPendingTab] = useState("");
+  const [hotelSaved, setHotelSaved] = useState(false);
+  const [flightSaved, setFlightSaved] = useState(false);
 
   const navigate = useNavigate();
   const { state } = useLocation();
   const pkg: any = state?.pkg;
+
+  const hotelRef = useRef(null);
+  const flightRef = useRef(null);
 
   const calculateDurationInDays = (startDate, endDate) => {
     if (!startDate || !endDate) return "";
@@ -143,6 +158,42 @@ export function AddNewPackage({
 
   //   return diffDays > 0 ? `${diffDays} Days` : "";
   // };
+
+  const handleTabChange = (value) => {
+    // update mode -> allow all
+    if (pkg) {
+      setActiveTab(value);
+      return;
+    }
+
+    // create mode -> package already created
+    if (packageData?.packageId) {
+      // ⭐ hotel validation
+      if (!hotelSaved && (value === "flights" || value === "facilities")) {
+        setPendingTab(value);
+        setShowConfirmDialog(true);
+        return;
+      }
+
+      // ⭐ flight validation
+      if (!flightSaved && value === "facilities") {
+        setPendingTab(value);
+        setShowConfirmDialog(true);
+        return;
+      }
+
+      setActiveTab(value);
+      return;
+    }
+
+    // if trying to go other tab without create
+    if (value !== "basic") {
+      setPendingTab(value);
+      setShowConfirmDialog(true);
+    } else {
+      setActiveTab(value);
+    }
+  };
 
   const extractTime = (isoString: any) => {
     if (!isoString) return "";
@@ -369,7 +420,9 @@ export function AddNewPackage({
     validationSchema: Yup.object({
       packageName: Yup.string().required("Package name is required"),
       travelType: Yup.string().required("Travel type is required"),
-      packageType: Yup.string().required("Package type type is required"),
+      packageType: Yup.string().required("Package type is required"),
+      stateId: Yup.string().required("State is required"),
+      cityId: Yup.string().required("City is required"),
       roomType: Yup.string().required("Room type is required"),
       price: Yup.number().required("Current Price  is required"),
       minimumPrice: Yup.number().required("Minimum Booking Amount is required"),
@@ -400,6 +453,9 @@ export function AddNewPackage({
         "Description can be maximum 100 characters",
       ),
     }),
+
+    validateOnChange: false,
+    validateOnBlur: true,
 
     onSubmit: async (values, { resetForm }) => {
       try {
@@ -485,6 +541,9 @@ export function AddNewPackage({
           setPackagesData(response.data);
 
           toast.success("Package created successfully!");
+          if (pendingTab) {
+            setActiveTab(pendingTab);
+          }
         }
 
         // resetForm();
@@ -535,7 +594,11 @@ export function AddNewPackage({
 
         <Form {...form}>
           {/* <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4"> */}
-          <Tabs defaultValue="basic" className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={handleTabChange}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basic">Basic Details</TabsTrigger>
               <TabsTrigger value="hotel">Hotel Details </TabsTrigger>
@@ -734,6 +797,11 @@ export function AddNewPackage({
                         setSelectedStateId(value);
                       }}
                     />
+                    {formik.errors.stateId && formik.touched.stateId && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.stateId}
+                      </p>
+                    )}
                   </div>
 
                   {/* City Dropdown */}
@@ -753,6 +821,11 @@ export function AddNewPackage({
                         setSelectedCitiesId(value);
                       }}
                     />
+                    {formik.errors.cityId && formik.touched.cityId && (
+                      <p className="text-red-500 text-sm">
+                        {formik.errors.cityId}
+                      </p>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label>Package Duration</Label>
@@ -988,12 +1061,21 @@ export function AddNewPackage({
             </TabsContent>
 
             <TabsContent value="hotel" className="space-y-6 mt-4">
-              <HotelDetails pkg={pkg} packageId={packageData.packageId} />
+              <HotelDetails
+                ref={hotelRef}
+                pkg={pkg}
+                packageId={packageData?.packageId || pkg?.packageId}
+                setHotelSaved={setHotelSaved}
+              />
             </TabsContent>
 
             <TabsContent value="flights" className="space-y-6 mt-4">
               {/* Add New Flight Section */}
-              <FlightDetails pkg={pkg} packageId={packageData.packageId} />
+              <FlightDetails
+                ref={flightRef}
+                pkg={pkg}
+                packageId={packageData.packageId}
+              />
             </TabsContent>
             <TabsContent value="facilities" className="space-y-6 mt-4">
               <Facilities pkg={pkg} packageId={packageData.packageId} />
@@ -1002,6 +1084,76 @@ export function AddNewPackage({
           {/* </form> */}
         </Form>
       </main>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {!packageData?.packageId
+                ? "Create Package"
+                : activeTab === "hotel"
+                  ? "Save Hotel Details"
+                  : activeTab === "flights"
+                    ? "Save Flight Details"
+                    : "Confirmation Required"}
+            </DialogTitle>
+
+            <DialogDescription>
+              {!packageData?.packageId
+                ? "Please create the package first before proceeding to the next section."
+                : activeTab === "hotel"
+                  ? "Please save the hotel details before continuing to the Flights section."
+                  : activeTab === "flights"
+                    ? "Please save the flight details before continuing to the Facilities section."
+                    : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              onClick={async () => {
+                setShowConfirmDialog(false);
+
+                //  PACKAGE CREATE
+                if (!packageData?.packageId) {
+                  formik.handleSubmit();
+                  return;
+                }
+
+                //  HOTEL SAVE
+                if (activeTab === "hotel") {
+                  const success = await hotelRef.current?.handleHotelSave();
+
+                  if (success) {
+                    setHotelSaved(true);
+                    setActiveTab("flights");
+                  }
+                }
+
+                //  FLIGHT SAVE
+                if (activeTab === "flights") {
+                  const success = await flightRef.current?.handleFlightSave();
+
+                  if (success) {
+                    setFlightSaved(true);
+                    setActiveTab("facilities");
+                  }
+                }
+              }}
+            >
+              Save & Continue
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,6 +1,11 @@
 import { format } from "date-fns";
 import { CalendarIcon, Globe, MapPin, Pencil, Star, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, {
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import { Calendar } from "@/components/ui/calendar";
@@ -52,7 +57,8 @@ interface SelectedHotel {
   daysStay?: string;
 }
 
-const HotelDetails = ({ pkg, packageId }: any) => {
+const HotelDetails = forwardRef((props: any, ref) => {
+  const { pkg, packageId, setHotelSaved } = props;
   const [addedHotels, setAddedHotels] = useState<SelectedHotel[]>([]);
   const [countries, setCountries] = useState<any[]>([]);
   const [states, setStates] = useState<any[]>([]);
@@ -503,6 +509,11 @@ const HotelDetails = ({ pkg, packageId }: any) => {
     try {
       setIsLoader(true);
       const token = sessionStorage.getItem("token");
+      if (!addedHotels || addedHotels.length === 0) {
+        toast.error("Please add at least one hotel");
+        return false;
+      }
+
       if (!pkg) {
         if (!packageId) {
           toast.error("package missing — once please create package");
@@ -553,15 +564,22 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       toast.success(
         pkg ? "Hotels updated successfully!" : "All hotels added successfully!",
       );
+      setHotelSaved(true);
+      return true;
       // after saving, refetch to sync server ids and data
       // setAddedHotels([]);
     } catch (err) {
       console.error(err);
       toast.error("Failed to submit package");
+      return false;
     } finally {
       setIsLoader(false);
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    handleHotelSave: handleSubmitHotels,
+  }));
 
   useEffect(() => {
     if (checkInDate && checkOutDate && checkOutDate <= checkInDate) {
@@ -678,17 +696,15 @@ const HotelDetails = ({ pkg, packageId }: any) => {
                     </div> */}
 
                     <div className="flex items-center gap-3 mt-2">
-                      {pkg && (
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => handleEditHotel(index)}
-                          className="h-8 px-4 bg-primary text-white hover:bg-primary/90 shadow-sm flex items-center gap-2"
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Edit
-                        </Button>
-                      )}
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => handleEditHotel(index)}
+                        className="h-8 px-4 bg-primary text-white hover:bg-primary/90 shadow-sm flex items-center gap-2"
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Edit
+                      </Button>
 
                       <Button
                         type="button"
@@ -934,6 +950,6 @@ const HotelDetails = ({ pkg, packageId }: any) => {
       </Dialog>
     </>
   );
-};
+});
 
 export default HotelDetails;

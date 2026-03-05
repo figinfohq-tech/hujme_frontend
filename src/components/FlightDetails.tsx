@@ -1,4 +1,9 @@
-import React, { use, useEffect, useState } from "react";
+import React, {
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -114,7 +119,7 @@ interface CityType {
   cityName: string;
 }
 
-const FlightDetails = ({ pkg, packageId }) => {
+const FlightDetails = forwardRef(({ pkg, packageId }, ref) => {
   const [addedFlights, setAddedFlights] = useState<FlightSegment[]>([]);
   const [flightDetails, setFlightDetails] = useState([]);
   const [isLoader, setIsLoader] = useState(false);
@@ -338,7 +343,6 @@ const FlightDetails = ({ pkg, packageId }) => {
       fetchCities2();
     }
   }, [selectedStateId2]);
-  7;
 
   useEffect(() => {
     if (!flightDetails || flightDetails.length === 0) return;
@@ -651,13 +655,19 @@ const FlightDetails = ({ pkg, packageId }) => {
       // setAddedFlights([]);
       setFormKey((prev) => prev + 1);
       formik.resetForm();
+      return true;
     } catch (error) {
       console.error(error);
       toast.error("Failed to save flights");
+      return false;
     } finally {
       setIsLoader(false);
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    handleFlightSave: handleCreatePackage,
+  }));
 
   const handleEditFlight = (flight, index) => {
     setEditIndex(index);
@@ -866,18 +876,15 @@ const FlightDetails = ({ pkg, packageId }) => {
                     </div> */}
 
                     <div className="flex items-center gap-3 mt-2">
-                      {pkg && (
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => handleEditFlight(flight, index)}
-                          className="h-8 px-4 bg-primary text-white hover:bg-primary/90 shadow-sm flex items-center gap-2"
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Edit
-                        </Button>
-                      )}
-
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => handleEditFlight(flight, index)}
+                        className="h-8 px-4 bg-primary text-white hover:bg-primary/90 shadow-sm flex items-center gap-2"
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Edit
+                      </Button>
                       <Button
                         type="button"
                         size="sm"
@@ -1451,6 +1458,6 @@ const FlightDetails = ({ pkg, packageId }) => {
       </Dialog>
     </>
   );
-};
+});
 
 export default FlightDetails;
