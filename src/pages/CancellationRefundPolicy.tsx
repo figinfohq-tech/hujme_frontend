@@ -97,7 +97,7 @@ function Section({ icon, title, children }) {
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         {icon}
-        <h2 className="text-lg md:text-xl font-semibold text-foreground">
+        <h2 className="text-base sm:text-lg font-semibold text-primary mb-2">
           {title}
         </h2>
       </div>

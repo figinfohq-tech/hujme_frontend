@@ -43,9 +43,12 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsConditions from "@/pages/TermsConditions";
 import CancellationRefundPolicy from "@/pages/CancellationRefundPolicy";
 import CustomerSupport from "@/pages/CustomerSupport";
+import AdminSideBar from "@/components/AdminSideBar";
+import AgentVerification from "@/pages/adminDashboard/AgentVerification";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
+  // const role = "Admin";
   const token = sessionStorage.getItem("token");
 
   return (
@@ -151,6 +154,21 @@ const MainRouts = () => {
               <Route path="/agent//terms-conditions" element={<TermsConditions />} />
               <Route path="/agent/support" element={<CustomerSupport />} />
               <Route path="/agent/cancellation-refund" element={<CancellationRefundPolicy />} />
+            </Route>
+          ) : role === "Admin" ? (
+            <Route
+              path="/"
+              element={
+                  <AdminSideBar />
+              }
+            >
+              <Route index element={<h1>Dashboard</h1>} />
+              <Route path="agent-verification" element={<AgentVerification />} />
+              <Route path="subscription-tiers" element={<h1>subscription-tiers </h1>} />
+              <Route path="facility-master" element={<h1>facility-master</h1>} />
+              <Route path="hotel-master" element={<h1>hotel-master</h1>} />
+              <Route path="agent-management" element={<h1>agent-management</h1>} />
+              <Route path="reports" element={<h1>reports</h1>} />
             </Route>
           ) : (
             <Route path="*" element={<Navigate to="/auth" replace />} />
