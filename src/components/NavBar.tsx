@@ -7,6 +7,7 @@ import LogoutButton from "./LogoutButton";
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [token, setToken] = useState(sessionStorage.getItem("token"));
+  const [role, serRole] = useState(sessionStorage.getItem("role"));
 
   // Detect token changes
   useEffect(() => {
@@ -20,6 +21,9 @@ const NavBar = () => {
   // user details
   const userStr = sessionStorage.getItem("userDetails");
   const userDetails = userStr ? JSON.parse(userStr) : null;
+
+  console.log("user details--->", userDetails);
+  
 
   // user details
 
@@ -39,7 +43,7 @@ const NavBar = () => {
           <div
             className={`hidden md:flex items-center space-x-reverse gap-3 space-x-4`}
           >
-            {!token ? (
+            {!token && !role? (
               <Link to="/auth">
                 <Button
                   variant="ghost"
@@ -59,7 +63,7 @@ const NavBar = () => {
                 </span>
               </div>
             )}
-            {!token ? (
+            {!token && !role ? (
               <Link to="/agent">
                 <Button
                   size="sm"
@@ -69,7 +73,7 @@ const NavBar = () => {
                 </Button>
               </Link>
             ) : null}
-            {token ? <LogoutButton /> : ""}
+            {token || role ? <LogoutButton /> : ""}
           </div>
 
           {/* Mobile Menu Button */}
@@ -93,7 +97,7 @@ const NavBar = () => {
               <a href="#about" className="text-foreground hover:text-primary transition-smooth">{t('navigation.about')}</a> */}
               <div className="flex flex-col space-y-2 pt-4 border-t">
                 {/* <LanguageSelector /> */}
-                {!token ? (
+                {!token && !role ? (
               <Link to="/auth">
                 <Button
                   variant="ghost"
@@ -113,7 +117,7 @@ const NavBar = () => {
                 </span>
               </div>
             )}
-                {!token ? (
+                {!token && !role  ? (
                   <Link to="/agent">
                     <Button
                       size="sm"
@@ -123,7 +127,7 @@ const NavBar = () => {
                     </Button>
                   </Link>
                 ) : null}
-                {token ? <LogoutButton /> : ""}
+                {token || role ? <LogoutButton /> : ""}
               </div>
             </nav>
           </div>

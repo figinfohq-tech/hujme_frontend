@@ -21,7 +21,7 @@ const PrivacyPolicy = () => {
   return (
     <div className="bg-background text-foreground">
       {/* ---------------- Hero Section ---------------- */}
-      <section className="py-12 sm:py-16 lg:py-15 px-4 sm:px-6 lg:px-8 bg-primary/5 text-center">
+      <section className="py-6 sm:py-8 lg:py-7 px-4 sm:px-6 lg:px-8 bg-primary/5 text-center">
         {/* Back Button */}
         <Button
           variant="ghost"

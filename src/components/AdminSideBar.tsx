@@ -95,7 +95,7 @@ const AdminSideBar = () => {
           ))}
         </nav>
          <div className="absolute bottom-13 left-0 right-0 p-4 border-t border-border">
-          <div className="flex items-center gap-3 mb-3">
+          {/* <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
               <span className="text-sm font-medium text-primary">
                 {'A'}
@@ -105,15 +105,26 @@ const AdminSideBar = () => {
               <p className="text-sm font-medium truncate">{"Admin User"}</p>
               <p className="text-xs truncate">Administrator</p>
             </div>
-          </div>
+          </div> */}
+
+          <div className="flex items-center gap-2 mb-5 px-2">
+           <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+              <span className="text-sm font-medium text-primary">
+                {'A'}
+              </span>
+            </div>
+          {isOpen && <p className="text-xs truncate">Administrator</p>}
+        </div>
+
+
           
-          <div className="flex gap-2">
+          <div className="">
             <Button variant="ghost" size="sm" className="flex-1 hover:bg-secondary">
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
+              <Settings size={20} />
+             {isOpen && <p className="text-xs truncate">Settings</p>}
             </Button>
             <Button variant="ghost" size="sm" className="hover:bg-secondary">
-              <LogOut className="w-4 h-4" />
+              <LogOut size={20} />
             </Button>
           </div>
         </div>

@@ -428,6 +428,8 @@ function AgentVerification() {
     try {
       setIsLoading(true);
       const token = sessionStorage.getItem("token");
+      // const token =
+      //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwidXNlcklkIjo1MywiaWF0IjoxNzcyOTY2NjkwLCJleHAiOjE3NzMwNTMwOTB9.A7EbvIb42wE4e19BLEGYzSMB6tvAONvV8e75qrV_8FU";
 
       const response = await axios.get(`${baseURL}agents`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -465,7 +467,7 @@ function AgentVerification() {
 
       {/* Stats Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
+        <Card className="p-0">
           <CardContent className="flex items-center gap-4 p-4">
             <Users className="w-8 h-8 text-hajj-primary" />
             <div>
@@ -475,7 +477,7 @@ function AgentVerification() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-0">
           <CardContent className="flex items-center gap-4 p-4">
             <Clock className="w-8 h-8 text-yellow-600" />
             <div>
@@ -485,7 +487,7 @@ function AgentVerification() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-0">
           <CardContent className="flex items-center gap-4 p-4">
             <CheckCircle className="w-8 h-8 text-green-600" />
             <div>
@@ -495,7 +497,7 @@ function AgentVerification() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-0">
           <CardContent className="flex items-center gap-4 p-4">
             <XCircle className="w-8 h-8 text-red-600" />
             <div>
@@ -505,7 +507,7 @@ function AgentVerification() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-0">
           <CardContent className="flex items-center gap-4 p-4">
             <RotateCcw className="w-8 h-8 text-orange-600" />
             <div>
@@ -517,7 +519,7 @@ function AgentVerification() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="p-0">
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-64">
@@ -559,7 +561,7 @@ function AgentVerification() {
           return (
             <Card
               key={agent.agentId}
-              className="hover:shadow-md transition-shadow"
+              className="hover:shadow-md transition-shadow p-0"
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -599,6 +601,30 @@ function AgentVerification() {
                         </div>
                       </div>
                     </div>
+
+                    <div className="flex flex-col gap-2 ml-4">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          Documents: {"2"}/
+                          {requiredDocuments.filter((d) => d.required).length}{" "}
+                          required uploaded
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          {agent?.address}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          Last updated:{" "}
+                          {new Date(agent.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-4">
@@ -612,7 +638,7 @@ function AgentVerification() {
                     <Dialog
                       open={
                         isVerificationDialogOpen &&
-                        selectedAgent?.id === agent.id
+                        selectedAgent?.agentId === agent?.agentId
                       }
                       onOpenChange={(open) => {
                         setIsVerificationDialogOpen(open);
@@ -638,7 +664,7 @@ function AgentVerification() {
                         <DialogHeader>
                           <DialogTitle className="flex items-center gap-2">
                             <Building2 className="w-5 h-5" />
-                            {agent.companyName} - Verification Details
+                            {agent?.agencyName} - Verification Details
                           </DialogTitle>
                           <DialogDescription>
                             Review agent details and documents for verification
@@ -653,25 +679,25 @@ function AgentVerification() {
                                 Company Name
                               </p>
                               <p className="text-sm text-muted-foreground">
-                                {agent.companyName}
+                                {agent?.agencyName}
                               </p>
                             </div>
                             <div>
                               <p className="text-sm font-medium">Owner Name</p>
                               <p className="text-sm text-muted-foreground">
-                                {agent.ownerName}
+                                {agent?.contactPerson}
                               </p>
                             </div>
                             <div>
                               <p className="text-sm font-medium">Email</p>
                               <p className="text-sm text-muted-foreground">
-                                {agent.email}
+                                {agent?.agencyEmail}
                               </p>
                             </div>
                             <div>
                               <p className="text-sm font-medium">Phone</p>
                               <p className="text-sm text-muted-foreground">
-                                {agent.phone}
+                                {agent?.agencyPhone}
                               </p>
                             </div>
                             <div>
@@ -683,7 +709,7 @@ function AgentVerification() {
                             <div>
                               <p className="text-sm font-medium">GST Number</p>
                               <p className="text-sm text-muted-foreground">
-                                {agent.gstNumber}
+                                {agent?.gstnumber}
                               </p>
                             </div>
                             <div className="col-span-2">
@@ -691,7 +717,7 @@ function AgentVerification() {
                                 Office Address
                               </p>
                               <p className="text-sm text-muted-foreground">
-                                {agent.address}
+                                {agent?.address}
                               </p>
                             </div>
                           </div>
@@ -902,7 +928,7 @@ function AgentVerification() {
                 </div>
 
                 {/* Document Summary */}
-                <div className="mt-4 pt-4 border-t">
+                {/* <div className="mt-4 pt-4 border-t">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
@@ -928,7 +954,7 @@ function AgentVerification() {
                       </span>
                     )}
                   </div>
-                </div>
+                </div> */}
               </CardContent>
             </Card>
           );

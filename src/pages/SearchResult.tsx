@@ -73,6 +73,7 @@ const SearchResults = () => {
   const [cities, setCities] = useState([]);
   const [travelType, setTravelType] = useState([]);
   const [selectedTravelTypeId, setSelectedTravelTypeId] = useState<string>("");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [errors, setErrors] = useState({
     country: false,
     state: false,
@@ -120,10 +121,23 @@ const SearchResults = () => {
   }, [countryId, stateId, cityId, travelTypeId]);
 
   useEffect(() => {
-    if (countryId || stateId || cityId || travelTypeId) {
+    if (
+      isInitialLoad &&
+      (selectedCountryId ||
+        selectedStateId ||
+        selectedCityId ||
+        selectedTravelTypeId)
+    ) {
       fetchSearchResult();
+      setIsInitialLoad(false);
     }
-  }, []);
+  }, [
+    selectedCountryId,
+    selectedStateId,
+    selectedCityId,
+    selectedTravelTypeId,
+    isInitialLoad,
+  ]);
 
   useEffect(() => {
     fetchCountries();
@@ -441,31 +455,16 @@ const SearchResults = () => {
           </button>
         </div>
         <div className="mb-3 rounded-xl border border-border bg-card shadow-sm">
-          <div className="flex flex-wrap items-center justify-center gap-3 p-2">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3 p-3">
             {/* LOCATION GROUP */}
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full lg:w-auto">
-              {/* Country (Disabled) */}
-              {/* <Select value={selectedCountryId} disabled>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <MapPin className="w-4 h-4 mr-2 text-green-700" />
-                  <SelectValue placeholder="Country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((items) => (
-                    <SelectItem key={items.countryId} value={items.countryId}>
-                      {items.countryName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select> */}
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:flex lg:flex-wrap gap-3 w-full">
               {/* State */}
               <Select
                 open={isStateOpen}
                 onOpenChange={setIsStateOpen}
                 value={selectedStateId}
               >
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full lg:w-[180px]">
                   <SelectValue placeholder="State">
                     {selectedStateId
                       ? state.find(
@@ -514,7 +513,7 @@ const SearchResults = () => {
                 onOpenChange={setIsCityOpen}
                 value={selectedCityId}
               >
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full lg:w-[180px]">
                   <SelectValue placeholder="City">
                     {selectedCityId
                       ? cities.find(
@@ -555,8 +554,10 @@ const SearchResults = () => {
                   </Command>
                 </SelectContent>
               </Select>
+
+              {/* Travel Type */}
               <Select onValueChange={setSelectedTravelTypeId}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full lg:w-[200px]">
                   <Calendar className="w-4 h-4 mr-2 text-green-700" />
                   <SelectValue placeholder="Travel Type" />
                 </SelectTrigger>
@@ -568,11 +569,12 @@ const SearchResults = () => {
                   ))}
                 </SelectContent>
               </Select>
+
               {/* SEARCH BUTTON */}
-              <div className="w-full lg:w-auto flex justify-end">
+              <div className="w-full lg:w-auto flex">
                 <Button
                   onClick={handleSearchClick}
-                  className="bg-primary hover:bg-primary/90 text-white px-6 shadow-md transition-all duration-200"
+                  className="w-full lg:w-auto bg-primary hover:bg-primary/90 text-white px-6 shadow-md transition-all duration-200"
                 >
                   <Search className="w-4 h-4" />
                 </Button>
@@ -583,14 +585,15 @@ const SearchResults = () => {
             <div className="hidden lg:block h-10 w-px bg-border mx-2" />
 
             {/* SORT SECTION */}
-            <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full lg:w-auto">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 Sort & Order
               </span>
+
               <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
 
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[170px]">
+                <SelectTrigger className="w-full sm:w-[170px]">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -602,7 +605,7 @@ const SearchResults = () => {
               </Select>
 
               <Select value={sortOrder} onValueChange={setSortOrder}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-full sm:w-[140px]">
                   <SelectValue placeholder="Order" />
                 </SelectTrigger>
                 <SelectContent>

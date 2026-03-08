@@ -155,7 +155,7 @@ const MainRouts = () => {
               <Route path="/agent/support" element={<CustomerSupport />} />
               <Route path="/agent/cancellation-refund" element={<CancellationRefundPolicy />} />
             </Route>
-          ) : role === "Admin" ? (
+          ) : role === "ADMIN" ? (
             <Route
               path="/"
               element={

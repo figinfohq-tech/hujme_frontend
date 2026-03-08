@@ -68,7 +68,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-primary-foreground/20 mt-8 pt-8 flex justify-center items-center">
           <p className="text-primary-foreground/60 text-xs sm:text-sm">
-            © {new Date().getFullYear()} HajjUmrah. All rights reserved.
+            © {new Date().getFullYear()} Hujme. All rights reserved.
           </p>
         </div>
 
