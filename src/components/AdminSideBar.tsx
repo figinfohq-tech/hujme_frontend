@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   Menu,
   LayoutDashboard,
@@ -23,7 +23,7 @@ import { Button } from "./ui/button";
 
 const AdminSideBar = () => {
   const [isOpen, setIsOpen] = useState(true);
-
+  const navigate = useNavigate();
   const menuItems = [
     {
       name: "Dashboard",
@@ -49,6 +49,15 @@ const AdminSideBar = () => {
       path: "/reports",
     },
   ];
+
+  const handleLogout = () => {
+    sessionStorage.clear("token");
+    sessionStorage.clear("role");
+    sessionStorage.clear("userId");
+    sessionStorage.clear("userDetails");
+    navigate("/"); // redirect to homepage after logout
+    window.location.reload();
+  };
 
   return (
     <div className="flex  h-screen">
@@ -123,7 +132,7 @@ const AdminSideBar = () => {
               <Settings size={20} />
              {isOpen && <p className="text-xs truncate">Settings</p>}
             </Button>
-            <Button variant="ghost" size="sm" className="hover:bg-secondary">
+            <Button variant="ghost" size="sm" className="hover:bg-secondary" onClick={()=>handleLogout()}>
               <LogOut size={20} />
             </Button>
           </div>

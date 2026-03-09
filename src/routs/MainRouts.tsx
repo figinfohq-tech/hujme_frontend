@@ -45,6 +45,12 @@ import CancellationRefundPolicy from "@/pages/CancellationRefundPolicy";
 import CustomerSupport from "@/pages/CustomerSupport";
 import AdminSideBar from "@/components/AdminSideBar";
 import AgentVerification from "@/pages/adminDashboard/AgentVerification";
+import SubscriptionTiers from "@/pages/adminDashboard/SubscriptionTiers";
+import AdminDashboard from "@/pages/adminDashboard/AdminDashboard";
+import FacilityMaster from "@/pages/adminDashboard/FacilityMaster";
+import HotelMaster from "@/pages/adminDashboard/HotelMaster";
+import AgentManagement from "@/pages/adminDashboard/AgentManagement";
+import ReportsAnalytics from "@/pages/adminDashboard/ReportsAnalytics";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
@@ -162,13 +168,13 @@ const MainRouts = () => {
                   <AdminSideBar />
               }
             >
-              <Route index element={<h1>Dashboard</h1>} />
+              <Route index element={<AdminDashboard />} />
               <Route path="agent-verification" element={<AgentVerification />} />
-              <Route path="subscription-tiers" element={<h1>subscription-tiers </h1>} />
-              <Route path="facility-master" element={<h1>facility-master</h1>} />
-              <Route path="hotel-master" element={<h1>hotel-master</h1>} />
-              <Route path="agent-management" element={<h1>agent-management</h1>} />
-              <Route path="reports" element={<h1>reports</h1>} />
+              <Route path="subscription-tiers" element={<SubscriptionTiers />} />
+              <Route path="facility-master" element={<FacilityMaster />} />
+              <Route path="hotel-master" element={<HotelMaster />} />
+              <Route path="agent-management" element={<AgentManagement />} />
+              <Route path="reports" element={<ReportsAnalytics />} />
             </Route>
           ) : (
             <Route path="*" element={<Navigate to="/auth" replace />} />

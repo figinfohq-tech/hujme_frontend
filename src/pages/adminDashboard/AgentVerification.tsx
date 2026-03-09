@@ -18,7 +18,6 @@ import {
   RotateCcw,
   Filter,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -55,6 +54,7 @@ import {
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
 import Loader from "@/components/Loader";
+import { toast } from "react-toastify";
 
 interface Document {
   id: string;
@@ -259,6 +259,7 @@ function AgentVerification() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [selectedAgentDocuments, setSelectedAgentDocuments] = useState([]);
   const [isVerificationDialogOpen, setIsVerificationDialogOpen] =
     useState(false);
   const [adminComment, setAdminComment] = useState("");
@@ -266,25 +267,25 @@ function AgentVerification() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleApproveAgent = (agentId: string) => {
-    setAgents((prev) =>
-      prev.map((agent) =>
-        agent.id === agentId
-          ? {
-              ...agent,
-              status: "approved" as const,
-              lastActionDate: new Date().toISOString(),
-              lastActionBy: "Admin User",
-              adminComments:
-                adminComment || "All documents verified and approved.",
-            }
-          : agent,
-      ),
-    );
+    // setAgents((prev) =>
+    //   prev.map((agent) =>
+    //     agentsData.agentId === agentId
+    //       ? {
+    //           ...agent,
+    //           status: "approved" as const,
+    //           lastActionDate: new Date().toISOString(),
+    //           lastActionBy: "Admin User",
+    //           adminComments:
+    //             adminComment || "All documents verified and approved.",
+    //         }
+    //       : agent,
+    //   ),
+    // );
 
-    const agent = agents.find((a) => a.id === agentId);
-    console.log("✅ Agent approved:", agent?.companyName);
+    const agent = agentsData.find((a) => a.agentId === agentId);
+    console.log("✅ Agent approved:", agent?.agencyName);
     toast.success(
-      `${agent?.companyName} has been approved successfully. Notification sent to agent.`,
+      `${agent?.agencyName} has been approved successfully. Notification sent to agent.`,
     );
     setIsVerificationDialogOpen(false);
     setSelectedAgent(null);
@@ -297,29 +298,29 @@ function AgentVerification() {
       return;
     }
 
-    setAgents((prev) =>
-      prev.map((agent) =>
-        agent.id === agentId
-          ? {
-              ...agent,
-              status: "rejected" as const,
-              lastActionDate: new Date().toISOString(),
-              lastActionBy: "Admin User",
-              adminComments: rejectionReason,
-            }
-          : agent,
-      ),
-    );
+    // setAgents((prev) =>
+    //   prev.map((agent) =>
+    //     agent.id === agentId
+    //       ? {
+    //           ...agent,
+    //           status: "rejected" as const,
+    //           lastActionDate: new Date().toISOString(),
+    //           lastActionBy: "Admin User",
+    //           adminComments: rejectionReason,
+    //         }
+    //       : agent,
+    //   ),
+    // );
 
-    const agent = agents.find((a) => a.id === agentId);
+    const agent = agentsData.find((a) => a.agentId === agentId);
     console.log(
       "❌ Agent rejected:",
-      agent?.companyName,
+      agent?.agencyName,
       "Reason:",
       rejectionReason,
     );
     toast.success(
-      `${agent?.companyName} has been rejected. Notification sent to agent with feedback.`,
+      `${agent?.agencyName} has been rejected. Notification sent to agent with feedback.`,
     );
     setIsVerificationDialogOpen(false);
     setSelectedAgent(null);
@@ -332,24 +333,24 @@ function AgentVerification() {
       return;
     }
 
-    setAgents((prev) =>
-      prev.map((agent) =>
-        agent.id === agentId
-          ? {
-              ...agent,
-              status: "reupload_requested" as const,
-              lastActionDate: new Date().toISOString(),
-              lastActionBy: "Admin User",
-              adminComments: adminComment,
-            }
-          : agent,
-      ),
-    );
+    // setAgents((prev) =>
+    //   prev.map((agent) =>
+    //     agent.id === agentId
+    //       ? {
+    //           ...agent,
+    //           status: "reupload_requested" as const,
+    //           lastActionDate: new Date().toISOString(),
+    //           lastActionBy: "Admin User",
+    //           adminComments: adminComment,
+    //         }
+    //       : agent,
+    //   ),
+    // );
 
-    const agent = agents.find((a) => a.id === agentId);
-    console.log("🔁 Reupload requested for:", agent?.companyName);
+    const agent = agentsData.find((a) => a.id === agentId);
+    console.log("🔁 Reupload requested for:", agent?.agencyName);
     toast.success(
-      `Re-upload request sent to ${agent?.companyName} with feedback.`,
+      `Re-upload request sent to ${agent?.agencyName} with feedback.`,
     );
     setIsVerificationDialogOpen(false);
     setSelectedAgent(null);
@@ -363,6 +364,8 @@ function AgentVerification() {
       case "rejected":
         return "bg-red-100 text-red-800";
       case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "NEW":
         return "bg-yellow-100 text-yellow-800";
       case "reupload_requested":
         return "bg-orange-100 text-orange-800";
@@ -392,7 +395,7 @@ function AgentVerification() {
         return "bg-green-100 text-green-800";
       case "rejected":
         return "bg-red-100 text-red-800";
-      case "uploaded":
+      case "UPLOADED":
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -421,7 +424,25 @@ function AgentVerification() {
     ).length,
   };
 
-  console.log("token--->", sessionStorage.getItem("token"));
+  const fetchAgentDocuments = async (agentId: any) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      // const token =
+      //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwidXNlcklkIjo1MywiaWF0IjoxNzczMDM2OTk5LCJleHAiOjE3NzMxMjMzOTl9.KTI1ZV4lCprqGx8oOp5DpxhvBhk0PIffHy7r3oVaXcY";
+      const response = await axios.get(
+        `${baseURL}agent-documents/byAgent/${agentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setSelectedAgentDocuments(response.data);
+    } catch (error) {
+      console.error("Documents API Error", error);
+    }
+  };
 
   // GET agents
   const fetchAgents = async () => {
@@ -429,12 +450,10 @@ function AgentVerification() {
       setIsLoading(true);
       const token = sessionStorage.getItem("token");
       // const token =
-      //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwidXNlcklkIjo1MywiaWF0IjoxNzcyOTY2NjkwLCJleHAiOjE3NzMwNTMwOTB9.A7EbvIb42wE4e19BLEGYzSMB6tvAONvV8e75qrV_8FU";
-
+      //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwidXNlcklkIjo1MywiaWF0IjoxNzczMDM2OTk5LCJleHAiOjE3NzMxMjMzOTl9.KTI1ZV4lCprqGx8oOp5DpxhvBhk0PIffHy7r3oVaXcY";
       const response = await axios.get(`${baseURL}agents`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("fatch agents---->", response.data);
       setAgentsData(response.data);
     } catch (error) {
       console.error("GET API Error:", error);
@@ -469,7 +488,7 @@ function AgentVerification() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="p-0">
           <CardContent className="flex items-center gap-4 p-4">
-            <Users className="w-8 h-8 text-hajj-primary" />
+            <Users className="w-8 h-8 text-primary" />
             <div>
               <p className="text-sm text-muted-foreground">Total Agents</p>
               <p className="text-2xl font-bold">{agentsData?.length}</p>
@@ -653,7 +672,10 @@ function AgentVerification() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setSelectedAgent(agent)}
+                          onClick={() => {
+                            setSelectedAgent(agent);
+                            fetchAgentDocuments(agent.agentId);
+                          }}
                           className="hover:bg-secondary"
                         >
                           <Eye className="w-4 h-4 mr-2" />
@@ -723,32 +745,32 @@ function AgentVerification() {
                           </div>
 
                           {/* Documents */}
-                          {/* <div>
+                          <div>
                             <h3 className="text-lg font-medium mb-4">
                               Uploaded Documents
                             </h3>
                             <div className="space-y-3">
-                              {requiredDocuments.map((reqDoc) => {
-                                const uploadedDoc = agent.documents.find(
-                                  (doc) => doc.type === reqDoc.key,
+                              {selectedAgentDocuments.map((reqDoc) => {
+                                const uploadedDoc = selectedAgentDocuments.find(
+                                  (doc) => doc?.documentType,
                                 );
 
                                 return (
                                   <div
-                                    key={reqDoc.key}
+                                    key={reqDoc?.agentId}
                                     className="flex items-center justify-between p-3 border rounded-lg"
                                   >
                                     <div className="flex items-center gap-3">
                                       <FileText className="w-5 h-5 text-muted-foreground" />
                                       <div>
                                         <p className="font-medium">
-                                          {reqDoc.name}
+                                          {reqDoc?.documentType}
                                         </p>
-                                        {reqDoc.required && (
-                                          <span className="text-xs text-red-600">
-                                            * Required
-                                          </span>
-                                        )}
+                                        {/* {reqDoc.required && ( */}
+                                        <span className="text-xs text-red-600">
+                                          * Required
+                                        </span>
+                                        {/* )} */}
                                       </div>
                                     </div>
 
@@ -763,7 +785,7 @@ function AgentVerification() {
                                             {uploadedDoc.status}
                                           </Badge>
                                           <span className="text-sm text-muted-foreground">
-                                            {uploadedDoc.size}
+                                            2.1 MB
                                           </span>
                                           <Button variant="outline" size="sm">
                                             <Eye className="w-4 h-4 mr-1" />
@@ -788,7 +810,7 @@ function AgentVerification() {
                                 );
                               })}
                             </div>
-                          </div> */}
+                          </div>
 
                           {/* Previous Admin Comments */}
                           {agent.adminComments && (
@@ -814,8 +836,8 @@ function AgentVerification() {
                           )}
 
                           {/* Admin Action Section */}
-                          {agent.status === "pending" ||
-                          agent.status === "reupload_requested" ? (
+                          {agent.agencyStatus === "NEW" ||
+                          agent.agencyStatus === "reupload_requested" ? (
                             <div className="space-y-4">
                               <div className="space-y-2">
                                 <Label htmlFor="admin-comment">
@@ -834,7 +856,9 @@ function AgentVerification() {
 
                               <div className="flex gap-3">
                                 <Button
-                                  onClick={() => handleApproveAgent(agent.id)}
+                                  onClick={() =>
+                                    handleApproveAgent(agent.agentId)
+                                  }
                                   className="flex-1 bg-green-600 hover:bg-green-700"
                                 >
                                   <CheckCircle className="w-4 h-4 mr-2" />
@@ -843,7 +867,7 @@ function AgentVerification() {
 
                                 <Button
                                   onClick={() =>
-                                    handleRequestReupload(agent.id)
+                                    handleRequestReupload(agent.agentId)
                                   }
                                   variant="outline"
                                   className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-50"
@@ -896,7 +920,7 @@ function AgentVerification() {
                                       </AlertDialogCancel>
                                       <AlertDialogAction
                                         onClick={() =>
-                                          handleRejectAgent(agent.id)
+                                          handleRejectAgent(agent.agentId)
                                         }
                                         className="bg-red-600 hover:bg-red-700"
                                         disabled={!rejectionReason.trim()}
