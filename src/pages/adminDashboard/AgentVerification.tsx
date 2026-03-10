@@ -115,8 +115,6 @@ const requiredDocuments = [
 ];
 
 function AgentVerification() {
-  console.log("🔍 AgentVerification page rendered");
-
   const [agents, setAgents] = useState<Agent[]>([
     {
       id: "1",
@@ -266,67 +264,76 @@ function AgentVerification() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleApproveAgent = (agentId: string) => {
-    // setAgents((prev) =>
-    //   prev.map((agent) =>
-    //     agentsData.agentId === agentId
-    //       ? {
-    //           ...agent,
-    //           status: "approved" as const,
-    //           lastActionDate: new Date().toISOString(),
-    //           lastActionBy: "Admin User",
-    //           adminComments:
-    //             adminComment || "All documents verified and approved.",
-    //         }
-    //       : agent,
-    //   ),
-    // );
+  const handleApproveAgent = async (agentId: string) => {
+    try {
+      const agent = agentsData.find((a) => a.agentId === agentId);
+      if (!agent) return;
 
-    const agent = agentsData.find((a) => a.agentId === agentId);
-    console.log("✅ Agent approved:", agent?.agencyName);
-    toast.success(
-      `${agent?.agencyName} has been approved successfully. Notification sent to agent.`,
-    );
-    setIsVerificationDialogOpen(false);
-    setSelectedAgent(null);
-    setAdminComment("");
+      const payload = {
+        ...agent,
+        agencyStatus: "APPROVED",
+        adminComments: adminComment ? adminComment : "Approved by admin",
+        rejectionRemarks: "",
+      };
+
+      // console.log("APPROVE PAYLOAD =>", payload);
+
+      await axios.put(`${baseURL}agents/${agentId}`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success(`${agent?.agencyName} approved successfully`);
+
+      fetchAgents();
+      setIsVerificationDialogOpen(false);
+      setSelectedAgent(null);
+      setAdminComment("");
+    } catch (error) {
+      console.error("Approve API Error:", error);
+      toast.error("Failed to approve agent");
+    }
   };
 
-  const handleRejectAgent = (agentId: string) => {
+  const handleRejectAgent = async (agentId: string) => {
     if (!rejectionReason.trim()) {
       toast.error("Please provide a reason for rejection");
       return;
     }
 
-    // setAgents((prev) =>
-    //   prev.map((agent) =>
-    //     agent.id === agentId
-    //       ? {
-    //           ...agent,
-    //           status: "rejected" as const,
-    //           lastActionDate: new Date().toISOString(),
-    //           lastActionBy: "Admin User",
-    //           adminComments: rejectionReason,
-    //         }
-    //       : agent,
-    //   ),
-    // );
+    try {
+      const agent = agentsData.find((a) => a.agentId === agentId);
+      if (!agent) return;
 
-    const agent = agentsData.find((a) => a.agentId === agentId);
-    console.log(
-      "❌ Agent rejected:",
-      agent?.agencyName,
-      "Reason:",
-      rejectionReason,
-    );
-    toast.success(
-      `${agent?.agencyName} has been rejected. Notification sent to agent with feedback.`,
-    );
-    setIsVerificationDialogOpen(false);
-    setSelectedAgent(null);
-    setRejectionReason("");
+      const payload = {
+        ...agent,
+        agencyStatus: "REJECTED",
+        rejectionRemarks: rejectionReason
+          ? rejectionReason
+          : "Rejected by admin",
+        adminComments: "",
+      };
+
+      // console.log("REJECT PAYLOAD =>", payload);
+
+      await axios.put(`${baseURL}agents/${agentId}`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success(`${agent?.agencyName} rejected successfully`);
+
+      fetchAgents();
+      setIsVerificationDialogOpen(false);
+      setSelectedAgent(null);
+      setRejectionReason("");
+    } catch (error) {
+      console.error("Reject API Error:", error);
+      toast.error("Failed to reject agent");
+    }
   };
-
   const handleRequestReupload = (agentId: string) => {
     if (!adminComment.trim()) {
       toast.error("Please provide feedback for document re-upload request");
@@ -359,11 +366,11 @@ function AgentVerification() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "approved":
+      case "APPROVED":
         return "bg-green-100 text-green-800";
-      case "rejected":
+      case "REJECTED":
         return "bg-red-100 text-red-800";
-      case "pending":
+      case "PENDING":
         return "bg-yellow-100 text-yellow-800";
       case "NEW":
         return "bg-yellow-100 text-yellow-800";
@@ -376,11 +383,11 @@ function AgentVerification() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "approved":
+      case "APPROVED":
         return CheckCircle;
-      case "rejected":
+      case "REJECTED":
         return XCircle;
-      case "pending":
+      case "PENDING":
         return Clock;
       case "reupload_requested":
         return RotateCcw;
@@ -393,10 +400,12 @@ function AgentVerification() {
     switch (status) {
       case "verified":
         return "bg-green-100 text-green-800";
-      case "rejected":
+      case "REJECTED":
         return "bg-red-100 text-red-800";
       case "UPLOADED":
         return "bg-blue-100 text-blue-800";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -424,11 +433,11 @@ function AgentVerification() {
     ).length,
   };
 
+  const token =
+    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwidXNlcklkIjo1MywiaWF0IjoxNzczMTIzNDQxLCJleHAiOjE3NzMyMDk4NDF9.af69uLZTDsYYTQ3TmWkF80AZNQk5_kaxnnr7rcwBkX4";
   const fetchAgentDocuments = async (agentId: any) => {
     try {
-      const token = sessionStorage.getItem("token");
-      // const token =
-      //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwidXNlcklkIjo1MywiaWF0IjoxNzczMDM2OTk5LCJleHAiOjE3NzMxMjMzOTl9.KTI1ZV4lCprqGx8oOp5DpxhvBhk0PIffHy7r3oVaXcY";
+      // const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `${baseURL}agent-documents/byAgent/${agentId}`,
         {
@@ -448,13 +457,12 @@ function AgentVerification() {
   const fetchAgents = async () => {
     try {
       setIsLoading(true);
-      const token = sessionStorage.getItem("token");
-      // const token =
-      //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwidXNlcklkIjo1MywiaWF0IjoxNzczMDM2OTk5LCJleHAiOjE3NzMxMjMzOTl9.KTI1ZV4lCprqGx8oOp5DpxhvBhk0PIffHy7r3oVaXcY";
+      // const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}agents`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setAgentsData(response.data);
+      // console.log("agents---->", response.data);
     } catch (error) {
       console.error("GET API Error:", error);
     } finally {
@@ -575,7 +583,7 @@ function AgentVerification() {
       {/* Agents List */}
       <div className="space-y-4">
         {filteredAgents.map((agent: any) => {
-          const StatusIcon = getStatusIcon(agent.status);
+          const StatusIcon = getStatusIcon(agent.agencyStatus);
 
           return (
             <Card
@@ -836,7 +844,7 @@ function AgentVerification() {
                           )}
 
                           {/* Admin Action Section */}
-                          {agent.agencyStatus === "NEW" ||
+                          {agent.agencyStatus === "PENDING" ||
                           agent.agencyStatus === "reupload_requested" ? (
                             <div className="space-y-4">
                               <div className="space-y-2">
@@ -935,7 +943,7 @@ function AgentVerification() {
                           ) : (
                             <div className="text-center py-4">
                               <Badge
-                                className={`${getStatusColor(agent.status)} text-lg px-4 py-2`}
+                                className={`${getStatusColor(agent.agencyStatus)} text-lg px-4 py-2`}
                               >
                                 <StatusIcon className="w-4 h-4 mr-2" />
                                 Agent{" "}

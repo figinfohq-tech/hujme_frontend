@@ -52,7 +52,6 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 function AdminDashboard() {
-  console.log("📊 AdminDashboard rendered");
   const navigate = useNavigate();
 
   // Dialog states
@@ -222,7 +221,6 @@ function AdminDashboard() {
       return;
     }
 
-    console.log("✅ Creating new facility:", newFacility);
     setIsAddFacilityOpen(false);
     setNewFacility({
       name: "",
@@ -242,7 +240,6 @@ function AdminDashboard() {
     }
 
     const agent = pendingAgents.find((a) => a.id === selectedAgent);
-    console.log("✅ Quick approving agent:", agent);
     setIsApproveAgentOpen(false);
     setSelectedAgent("");
     toast.success(
@@ -261,7 +258,6 @@ function AdminDashboard() {
       return;
     }
 
-    console.log("✅ Creating new tier:", newTier);
     setIsCreateTierOpen(false);
     setNewTier({
       name: "",
