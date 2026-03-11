@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -54,8 +54,11 @@ import {
   Filter,
   Map,
 } from "lucide-react";
-import { toast } from "sonner";
 import GoogleMap from "@/components/ui/google-map";
+import axios from "axios";
+import { baseURL } from "@/utils/constant/url";
+import { toast } from "react-toastify";
+import SearchableSelect from "@/components/SearchableSelect";
 
 interface Hotel {
   hotel_id: number;
@@ -83,17 +86,20 @@ interface Hotel {
 }
 
 const initialHotelState = {
-  hotel_id: 0,
-  hotel_name: "",
+  hotelId: 0,
+  hotelName: "",
   address: "",
   city: "",
+  cityId: "",
   state: "",
+  stateId: "",
   country: "",
-  postal_code: "",
+  countryId: "",
+  postalCode: "",
   phone: "",
   email: "",
   website: "",
-  star_rating: 0,
+  starRating: 0,
   number_of_rooms: 0,
   amenities: "",
   description: "",
@@ -108,8 +114,6 @@ const initialHotelState = {
 };
 
 function HotelMaster() {
-  console.log("🏨 HotelMaster page rendered");
-
   const [hotels, setHotels] = useState<Hotel[]>([
     {
       hotel_id: 1,
@@ -190,7 +194,7 @@ function HotelMaster() {
       updated_at: "2024-03-15T16:30:00Z",
     },
   ]);
-
+  const [hotels1, setHotels1] = useState<Hotel[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -198,6 +202,12 @@ function HotelMaster() {
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
   const [editingHotel, setEditingHotel] = useState<Hotel>(initialHotelState);
   const [newHotel, setNewHotel] = useState<Hotel>(initialHotelState);
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState<any>([]);
+  const [cities, setCities] = useState<any>([]);
+  const [selectedStateId, setSelectedStateId] = useState("");
+  const [selectdCitiesId, setSelectedCitiesId] = useState("");
+  const [selectedCountryId, setSelectedCountryId] = useState("");
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -238,11 +248,11 @@ function HotelMaster() {
   const validateHotel = (hotel: Partial<Hotel>) => {
     const errors: string[] = [];
 
-    if (!hotel.hotel_name?.trim()) {
+    if (!hotel.hotelName?.trim()) {
       errors.push("Hotel name is required");
     }
 
-    if (hotel.hotel_name && hotel.hotel_name.length > 255) {
+    if (hotel.hotelName && hotel.hotelName.length > 255) {
       errors.push("Hotel name must be less than 255 characters");
     }
 
@@ -259,8 +269,8 @@ function HotelMaster() {
     }
 
     if (
-      hotel.star_rating !== undefined &&
-      (hotel.star_rating < 0 || hotel.star_rating > 5)
+      hotel.starRating !== undefined &&
+      (hotel.starRating < 0 || hotel.starRating > 5)
     ) {
       errors.push("Star rating must be between 0.0 and 5.0");
     }
@@ -276,58 +286,127 @@ function HotelMaster() {
     return errors;
   };
 
-  const handleCreateHotel = () => {
+  const handleCreateHotel = async () => {
     const errors = validateHotel(newHotel);
+
     if (errors.length > 0) {
       toast.error(`Validation Error: ${errors.join(", ")}`);
       return;
     }
 
-    const hotel: Hotel = {
-      ...newHotel,
-      hotel_id: Math.max(...hotels.map((h) => h.hotel_id), 0) + 1,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      created_by: "Admin User",
-      updated_by: "Admin User",
-    };
+    try {
+      const payload = {
+        hotelName: newHotel.hotelName || "",
+        address: newHotel.address || "",
+        cityId: newHotel.cityId,
+        stateId: newHotel.stateId,
+        countryId: newHotel.countryId,
+        postalCode: newHotel.postalCode || "",
+        distance: "",
+        phone: newHotel.phone || "",
+        email: newHotel.email || "",
+        website: newHotel.website || "",
+        starRating: newHotel.starRating || 0,
+        latitude: newHotel.latitude || 0,
+        longitude: newHotel.longitude || 0,
+      };
 
-    console.log("✅ Creating new hotel:", hotel);
-    setHotels((prev) => [hotel, ...prev]);
-    setIsCreateDialogOpen(false);
-    setNewHotel(initialHotelState);
-    toast.success(`${hotel.hotel_name} has been added successfully`);
+
+      const response = await axios.post(`${baseURL}hotels`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+
+      toast.success("Hotel added successfully");
+
+      setIsCreateDialogOpen(false);
+      setNewHotel(initialHotelState);
+
+      fetchHotels(); // list refresh
+    } catch (error) {
+      const message =
+        error?.response?.data?.errorMessage || "Failed to create hotel";
+      toast.error(message);
+      console.error("Create Hotel Error:", error);
+    }
   };
 
-  const handleEditHotel = () => {
+  const handleEditHotel = async () => {
     const errors = validateHotel(editingHotel);
+
     if (errors.length > 0) {
       toast.error(`Validation Error: ${errors.join(", ")}`);
       return;
     }
 
-    const updatedHotel = {
-      ...editingHotel,
-      updated_at: new Date().toISOString(),
-      updated_by: "Admin User",
-    };
+    try {
+      const payload = {
+        hotelName: editingHotel.hotelName || "",
+        address: editingHotel.address || "",
+        cityId: editingHotel.cityId,
+        stateId: editingHotel.stateId,
+        countryId: editingHotel.countryId,
+        postalCode: editingHotel.postalCode || "",
+        distance: "",
+        phone: editingHotel.phone || "",
+        email: editingHotel.email || "",
+        website: editingHotel.website || "",
+        starRating: editingHotel.starRating || 0,
+        latitude: editingHotel.latitude || 0,
+        longitude: editingHotel.longitude || 0,
+        createdBy: 1,
+        updatedBy: 1,
+      };
 
-    console.log("✏️ Updating hotel:", updatedHotel);
-    setHotels((prev) =>
-      prev.map((hotel) =>
-        hotel.hotel_id === updatedHotel.hotel_id ? updatedHotel : hotel,
-      ),
-    );
-    setIsEditDialogOpen(false);
-    setEditingHotel(initialHotelState);
-    toast.success(`${updatedHotel.hotel_name} has been updated successfully`);
+
+      const response = await axios.put(
+        `${baseURL}hotels/${editingHotel.hotelId}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+
+      toast.success("Hotel updated successfully");
+
+      setIsEditDialogOpen(false);
+      setEditingHotel(initialHotelState);
+
+      fetchHotels(); // refresh list
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.errorMessage || "Failed to update hotel";
+
+      toast.error(message);
+      console.error("Update Hotel Error:", error);
+    }
   };
 
-  const handleDeleteHotel = (hotelId: number) => {
-    const hotel = hotels.find((h) => h.hotel_id === hotelId);
-    console.log("🗑️ Deleting hotel:", hotel?.hotel_name);
-    setHotels((prev) => prev.filter((h) => h.hotel_id !== hotelId));
-    toast.success(`${hotel?.hotel_name} has been deleted successfully`);
+  const handleDeleteHotel = async (hotelId: number) => {
+    try {
+      const hotel = hotels1.find((h) => h.hotel_id === hotelId);
+
+      const response = await axios.delete(`${baseURL}hotels/${hotelId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success(`Hotel has been deleted successfully`);
+
+      fetchHotels(); // refresh hotel list
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.errorMessage || "Failed to delete hotel";
+
+      toast.error(message);
+      console.error("Delete Hotel Error:", error);
+    }
   };
 
   const openEditDialog = (hotel: Hotel) => {
@@ -350,23 +429,24 @@ function HotelMaster() {
     new Set(hotels.map((h) => h.city).filter(Boolean)),
   );
   const uniqueCountries = Array.from(
-    new Set(hotels.map((h) => h.country).filter(Boolean)),
+    new Set(hotels1.map((h) => h.countryName).filter(Boolean)),
   );
 
   // Apply filters and sorting
-  const filteredAndSortedHotels = hotels
+  const filteredAndSortedHotels = hotels1
     .filter((hotel) => {
       const matchesSearch =
-        hotel.hotel_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        hotel.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        hotel.state.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        hotel.country.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCity = filterCity === "all" || hotel.city === filterCity;
+        hotel?.hotelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        hotel?.cityName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        hotel?.stateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        hotel?.countryName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCity =
+        filterCity === "all" || hotel?.cityName === filterCity;
       const matchesCountry =
-        filterCountry === "all" || hotel.country === filterCountry;
+        filterCountry === "all" || hotel?.countryName === filterCountry;
       const matchesRating =
         filterStarRating === "all" ||
-        Math.floor(hotel.star_rating) === parseInt(filterStarRating);
+        Math.floor(hotel?.starRating) === parseInt(filterStarRating);
 
       return matchesSearch && matchesCity && matchesCountry && matchesRating;
     })
@@ -404,6 +484,86 @@ function HotelMaster() {
     );
   };
 
+  //  ---------------------------- Api Calling --------------------------------
+  // const token =
+  //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInVzZXJJZCI6NTMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzczMjIzMDgyLCJleHAiOjE3NzMzMDk0ODJ9.fqHqVWaecvVNvCxm59iNtMvs2Yfpd1ZOq8DkcIEQRiE";
+  const token = sessionStorage.getItem("token");
+  const fetchHotels = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get(`${baseURL}hotels`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setHotels1(response.data);
+    } catch (error) {
+      console.error("Hotels API Error", error);
+    }
+  };
+
+  const fetchCountries = async () => {
+    try {
+      const response = await axios.get(`${baseURL}countries`);
+
+      setCountries(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchStates = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get<any>(
+        `${baseURL}states/byCountry/${selectedCountryId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setStates(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchCities = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get<any>(
+        `${baseURL}cities/byState/${selectedStateId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setCities(response.data);
+    } catch (error) {
+      console.error("Error fetching Cities:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchHotels();
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCountryId) {
+      fetchStates();
+    }
+  }, [selectedCountryId]);
+  useEffect(() => {
+    if (selectedStateId) {
+      fetchCities();
+    }
+  }, [selectedStateId]);
+
+  //  ---------------------------- Api Calling --------------------------------
+
   return (
     <div className="space-y-6 animate-fade-in pb-5">
       {/* Header */}
@@ -440,11 +600,11 @@ function HotelMaster() {
                   <Input
                     id="hotel-name"
                     placeholder="Enter hotel name"
-                    value={newHotel.hotel_name}
+                    value={newHotel.hotelName}
                     onChange={(e) =>
                       setNewHotel((prev) => ({
                         ...prev,
-                        hotel_name: e.target.value,
+                        hotelName: e.target.value,
                       }))
                     }
                     maxLength={255}
@@ -469,41 +629,8 @@ function HotelMaster() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      placeholder="City"
-                      value={newHotel.city}
-                      onChange={(e) =>
-                        setNewHotel((prev) => ({
-                          ...prev,
-                          city: e.target.value,
-                        }))
-                      }
-                      maxLength={100}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      placeholder="State"
-                      value={newHotel.state}
-                      onChange={(e) =>
-                        setNewHotel((prev) => ({
-                          ...prev,
-                          state: e.target.value,
-                        }))
-                      }
-                      maxLength={100}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
                     <Label htmlFor="country">Country</Label>
-                    <Input
+                    {/* <Input
                       id="country"
                       placeholder="Country"
                       value={newHotel.country}
@@ -514,6 +641,100 @@ function HotelMaster() {
                         }))
                       }
                       maxLength={100}
+                    /> */}
+                    <SearchableSelect
+                      value={selectedCountryId}
+                      placeholder="Select Country"
+                      items={countries}
+                      labelKey="countryName"
+                      valueKey="countryId"
+                      onChange={(value) => {
+                        const selectedCountry = countries.find(
+                          (c) => c.countryId === value,
+                        );
+
+                        setSelectedCountryId(value);
+
+                        setNewHotel((prev) => ({
+                          ...prev,
+                          country: selectedCountry?.countryName || "",
+                          countryId: value,
+                        }));
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State</Label>
+                    {/* <Input
+                      id="state"
+                      placeholder="State"
+                      value={newHotel.state}
+                      onChange={(e) =>
+                        setNewHotel((prev) => ({
+                          ...prev,
+                          state: e.target.value,
+                        }))
+                      }
+                      maxLength={100}
+                    /> */}
+
+                    <SearchableSelect
+                      value={selectedStateId}
+                      placeholder="Select State"
+                      items={states}
+                      labelKey="stateName"
+                      valueKey="stateId"
+                      onChange={(value) => {
+                        const selectedState = states.find(
+                          (c) => c.stateId === value,
+                        );
+
+                        setSelectedStateId(value);
+
+                        setNewHotel((prev) => ({
+                          ...prev,
+                          state: selectedState?.countryName || "",
+                          stateId: value,
+                        }));
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    {/* <Input
+                      id="city"
+                      placeholder="City"
+                      value={newHotel.city}
+                      onChange={(e) =>
+                        setNewHotel((prev) => ({
+                          ...prev,
+                          city: e.target.value,
+                        }))
+                      }
+                      maxLength={100}
+                    /> */}
+                    <SearchableSelect
+                      value={selectdCitiesId}
+                      placeholder="Select City"
+                      items={cities}
+                      labelKey="cityName"
+                      valueKey="cityId"
+                      onChange={(value) => {
+                        const selectedCity = cities.find(
+                          (c) => c.cityId === value,
+                        );
+
+                        setSelectedCitiesId(value);
+
+                        setNewHotel((prev) => ({
+                          ...prev,
+                          city: selectedCity?.cityName || "",
+                          cityId: value,
+                        }));
+                      }}
                     />
                   </div>
                   <div className="space-y-2">
@@ -521,11 +742,11 @@ function HotelMaster() {
                     <Input
                       id="postal-code"
                       placeholder="Postal Code"
-                      value={newHotel.postal_code}
+                      value={newHotel.postalCode}
                       onChange={(e) =>
                         setNewHotel((prev) => ({
                           ...prev,
-                          postal_code: e.target.value,
+                          postalCode: e.target.value,
                         }))
                       }
                       maxLength={20}
@@ -597,11 +818,11 @@ function HotelMaster() {
                       max="5"
                       step="0.1"
                       placeholder="4.5"
-                      value={newHotel.star_rating || ""}
+                      value={newHotel.starRating || ""}
                       onChange={(e) =>
                         setNewHotel((prev) => ({
                           ...prev,
-                          star_rating: parseFloat(e.target.value) || 0,
+                          starRating: parseFloat(e.target.value) || 0,
                         }))
                       }
                     />
@@ -734,7 +955,7 @@ function HotelMaster() {
                     <GoogleMap
                       latitude={newHotel.latitude}
                       longitude={newHotel.longitude}
-                      hotelName={newHotel.hotel_name || "New Hotel"}
+                      hotelName={newHotel.hotelName || "New Hotel"}
                       height="200px"
                     />
                   </div>
@@ -843,7 +1064,7 @@ function HotelMaster() {
             <Building2 className="w-8 h-8 text-primary" />
             <div>
               <p className="text-sm text-muted-foreground">Total Hotels</p>
-              <p className="text-2xl font-bold">{hotels.length}</p>
+              <p className="text-2xl font-bold">{hotels1.length}</p>
             </div>
           </CardContent>
         </Card>
@@ -866,14 +1087,14 @@ function HotelMaster() {
             <div>
               <p className="text-sm text-muted-foreground">Avg Rating</p>
               <p className="text-2xl font-bold">
-                {hotels.length > 0
+                {hotels1.length > 0
                   ? (
-                      hotels.reduce(
-                        (sum, hotel) => sum + hotel.star_rating,
+                      hotels1.reduce(
+                        (sum, hotel) => sum + hotel.starRating,
                         0,
-                      ) / hotels.length
+                      ) / hotels1.length
                     ).toFixed(1)
-                  : "0"}
+                  : 0}
               </p>
             </div>
           </CardContent>
@@ -894,7 +1115,7 @@ function HotelMaster() {
       <div className="space-y-4">
         {filteredAndSortedHotels.map((hotel) => (
           <Card
-            key={hotel.hotel_id}
+            key={hotel?.hotelId}
             className="hover:shadow-md transition-shadow p-0"
           >
             <CardContent className="p-3">
@@ -902,9 +1123,9 @@ function HotelMaster() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-lg font-semibold">
-                      {hotel.hotel_name}
+                      {hotel?.hotelName}
                     </h3>
-                    <Badge variant="outline">ID: {hotel.hotel_id}</Badge>
+                    <Badge variant="outline">ID: {hotel?.hotelId}</Badge>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
@@ -912,28 +1133,28 @@ function HotelMaster() {
                       <div className="flex items-center gap-2 text-sm">
                         <MapPin className="w-4 h-4 text-muted-foreground" />
                         <span>
-                          {hotel.city}, {hotel.country}
+                          {hotel?.cityName}, {hotel?.countryName}
                         </span>
                       </div>
-                      {hotel.phone && (
+                      {hotel?.phone && (
                         <div className="flex items-center gap-2 text-sm">
                           <Phone className="w-4 h-4 text-muted-foreground" />
-                          <span>{hotel.phone}</span>
+                          <span>{hotel?.phone}</span>
                         </div>
                       )}
-                      {hotel.email && (
+                      {hotel?.email && (
                         <div className="flex items-center gap-2 text-sm">
                           <Mail className="w-4 h-4 text-muted-foreground" />
-                          <span>{hotel.email}</span>
+                          <span>{hotel?.email}</span>
                         </div>
                       )}
                     </div>
 
                     <div className="space-y-2">
-                      {renderStars(hotel.star_rating)}
+                      {renderStars(hotel?.starRating)}
                       <div className="flex items-center gap-2 text-sm">
                         <Bed className="w-4 h-4 text-muted-foreground" />
-                        <span>{hotel.number_of_rooms} rooms</span>
+                        <span>{2} rooms</span>
                       </div>
                       {(hotel.checkin_time || hotel.checkout_time) && (
                         <div className="flex items-center gap-2 text-sm">
@@ -946,11 +1167,11 @@ function HotelMaster() {
                     </div>
 
                     <div className="space-y-2">
-                      {hotel.website && (
+                      {hotel?.website && (
                         <div className="flex items-center gap-2 text-sm">
                           <Globe className="w-4 h-4 text-muted-foreground" />
                           <a
-                            href={hotel.website}
+                            href={hotel?.website}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary hover:underline"
@@ -959,7 +1180,7 @@ function HotelMaster() {
                           </a>
                         </div>
                       )}
-                      {hotel.latitude && hotel.longitude && (
+                      {hotel?.latitude && hotel?.longitude && (
                         <div className="flex items-center gap-2 text-sm">
                           <MapPin className="w-4 h-4 text-green-600" />
                           <button
@@ -972,16 +1193,18 @@ function HotelMaster() {
                       )}
                       <p className="text-xs text-muted-foreground">
                         Created:{" "}
-                        {new Date(hotel.created_at).toLocaleDateString()}
+                        {new Date(hotel?.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
 
-                  {hotel.description && (
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {hotel.description}
-                    </p>
-                  )}
+                  {/* {hotel.description && ( */}
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                    {
+                      "Modern hotel near Prophet's Mosque with excellent facilities for Umrah pilgrims."
+                    }
+                  </p>
+                  {/* )} */}
                 </div>
 
                 <div className="flex items-center gap-2 ml-4">
@@ -1034,7 +1257,7 @@ function HotelMaster() {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDeleteHotel(hotel.hotel_id)}
+                          onClick={() => handleDeleteHotel(hotel.hotelId)}
                           className="bg-red-600 hover:bg-red-700"
                         >
                           Delete
@@ -1063,11 +1286,11 @@ function HotelMaster() {
 
       {/* Map Dialog */}
       <Dialog open={isMapDialogOpen} onOpenChange={setIsMapDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogContent className="!max-w-[60vw] w-[100vw] h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Map className="w-5 h-5 text-green-600" />
-              {selectedHotel?.hotel_name} - Location
+              {selectedHotel?.hotelName} - Location
             </DialogTitle>
             <DialogDescription>
               Interactive map showing hotel location and nearby landmarks
@@ -1082,7 +1305,7 @@ function HotelMaster() {
                   <div>
                     <p className="text-sm font-medium">Address</p>
                     <p className="text-sm text-muted-foreground">
-                      {selectedHotel.address}
+                      {selectedHotel?.address}
                     </p>
                   </div>
                   <div>
@@ -1097,7 +1320,7 @@ function HotelMaster() {
                 <GoogleMap
                   latitude={selectedHotel.latitude}
                   longitude={selectedHotel.longitude}
-                  hotelName={selectedHotel.hotel_name}
+                  hotelName={selectedHotel.hotelName}
                   height="500px"
                   zoom={16}
                 />
@@ -1108,7 +1331,7 @@ function HotelMaster() {
 
       {/* Edit Dialog - Similar structure to Create Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="!max-w-[60vw] w-[100vw] h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Hotel</DialogTitle>
             <DialogDescription>Update hotel information</DialogDescription>
@@ -1124,11 +1347,11 @@ function HotelMaster() {
                 <Input
                   id="edit-hotel-name"
                   placeholder="Enter hotel name"
-                  value={editingHotel.hotel_name}
+                  value={editingHotel?.hotelName}
                   onChange={(e) =>
                     setEditingHotel((prev) => ({
                       ...prev,
-                      hotel_name: e.target.value,
+                      hotelName: e.target.value,
                     }))
                   }
                   maxLength={255}
@@ -1140,7 +1363,7 @@ function HotelMaster() {
                 <Textarea
                   id="edit-address"
                   placeholder="Enter hotel address"
-                  value={editingHotel.address}
+                  value={editingHotel?.address}
                   onChange={(e) =>
                     setEditingHotel((prev) => ({
                       ...prev,
@@ -1154,10 +1377,10 @@ function HotelMaster() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="edit-city">City</Label>
-                  <Input
+                  {/* <Input
                     id="edit-city"
                     placeholder="City"
-                    value={editingHotel.city}
+                    value={editingHotel?.cityName}
                     onChange={(e) =>
                       setEditingHotel((prev) => ({
                         ...prev,
@@ -1165,14 +1388,34 @@ function HotelMaster() {
                       }))
                     }
                     maxLength={100}
+                  /> */}
+                  <SearchableSelect
+                    value={editingHotel.cityId}
+                    placeholder="Select City"
+                    items={cities}
+                    labelKey="cityName"
+                    valueKey="cityId"
+                    onChange={(value) => {
+                      const selectedCity = cities.find(
+                        (c) => c.cityId === value,
+                      );
+
+                      setSelectedCitiesId(value);
+
+                      setNewHotel((prev) => ({
+                        ...prev,
+                        city: selectedCity?.cityName || "",
+                        cityId: value,
+                      }));
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-state">State</Label>
-                  <Input
+                  {/* <Input
                     id="edit-state"
                     placeholder="State"
-                    value={editingHotel.state}
+                    value={editingHotel?.stateName}
                     onChange={(e) =>
                       setEditingHotel((prev) => ({
                         ...prev,
@@ -1180,6 +1423,26 @@ function HotelMaster() {
                       }))
                     }
                     maxLength={100}
+                  /> */}
+                  <SearchableSelect
+                    value={editingHotel.stateId}
+                    placeholder="Select State"
+                    items={states}
+                    labelKey="stateName"
+                    valueKey="stateId"
+                    onChange={(value) => {
+                      const selectedState = states.find(
+                        (c) => c.stateId === value,
+                      );
+
+                      setSelectedStateId(value);
+
+                      setNewHotel((prev) => ({
+                        ...prev,
+                        state: selectedState?.countryName || "",
+                        stateId: value,
+                      }));
+                    }}
                   />
                 </div>
               </div>
@@ -1187,10 +1450,10 @@ function HotelMaster() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="edit-country">Country</Label>
-                  <Input
+                  {/* <Input
                     id="edit-country"
                     placeholder="Country"
-                    value={editingHotel.country}
+                    value={editingHotel?.countryName}
                     onChange={(e) =>
                       setEditingHotel((prev) => ({
                         ...prev,
@@ -1198,6 +1461,26 @@ function HotelMaster() {
                       }))
                     }
                     maxLength={100}
+                  /> */}
+                  <SearchableSelect
+                    value={editingHotel?.countryId}
+                    placeholder="Select Country"
+                    items={countries}
+                    labelKey="countryName"
+                    valueKey="countryId"
+                    onChange={(value) => {
+                      const selectedCountry = countries.find(
+                        (c) => c.countryId === value,
+                      );
+
+                      setSelectedCountryId(value);
+
+                      setNewHotel((prev) => ({
+                        ...prev,
+                        country: selectedCountry?.countryName || "",
+                        countryId: value,
+                      }));
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -1205,11 +1488,11 @@ function HotelMaster() {
                   <Input
                     id="edit-postal-code"
                     placeholder="Postal Code"
-                    value={editingHotel.postal_code}
+                    value={editingHotel?.postalCode}
                     onChange={(e) =>
                       setEditingHotel((prev) => ({
                         ...prev,
-                        postal_code: e.target.value,
+                        postalCode: e.target.value,
                       }))
                     }
                     maxLength={20}
@@ -1226,7 +1509,7 @@ function HotelMaster() {
                 <Input
                   id="edit-phone"
                   placeholder="+1-234-567-8900"
-                  value={editingHotel.phone}
+                  value={editingHotel?.phone}
                   onChange={(e) =>
                     setEditingHotel((prev) => ({
                       ...prev,
@@ -1243,7 +1526,7 @@ function HotelMaster() {
                   id="edit-email"
                   type="email"
                   placeholder="hotel@example.com"
-                  value={editingHotel.email}
+                  value={editingHotel?.email}
                   onChange={(e) =>
                     setEditingHotel((prev) => ({
                       ...prev,
@@ -1259,7 +1542,7 @@ function HotelMaster() {
                 <Input
                   id="edit-website"
                   placeholder="https://hotel.com"
-                  value={editingHotel.website}
+                  value={editingHotel?.website}
                   onChange={(e) =>
                     setEditingHotel((prev) => ({
                       ...prev,
@@ -1280,11 +1563,11 @@ function HotelMaster() {
                     max="5"
                     step="0.1"
                     placeholder="4.5"
-                    value={editingHotel.star_rating || ""}
+                    value={editingHotel?.starRating || ""}
                     onChange={(e) =>
                       setEditingHotel((prev) => ({
                         ...prev,
-                        star_rating: parseFloat(e.target.value) || 0,
+                        starRating: parseFloat(e.target.value) || 0,
                       }))
                     }
                   />
@@ -1443,7 +1726,7 @@ function HotelMaster() {
 
       {/* View Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="!max-w-[60vw] w-[100vw] h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Hotel Details</DialogTitle>
             <DialogDescription>
@@ -1460,7 +1743,7 @@ function HotelMaster() {
                       Hotel Name
                     </Label>
                     <p className="text-lg font-semibold">
-                      {selectedHotel.hotel_name}
+                      {selectedHotel?.hotelName}
                     </p>
                   </div>
 
@@ -1468,7 +1751,7 @@ function HotelMaster() {
                     <Label className="text-sm font-medium text-muted-foreground">
                       Address
                     </Label>
-                    <p className="text-sm">{selectedHotel.address}</p>
+                    <p className="text-sm">{selectedHotel?.address}</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -1476,13 +1759,13 @@ function HotelMaster() {
                       <Label className="text-sm font-medium text-muted-foreground">
                         City
                       </Label>
-                      <p className="text-sm">{selectedHotel.city}</p>
+                      <p className="text-sm">{selectedHotel?.cityName}</p>
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">
                         State
                       </Label>
-                      <p className="text-sm">{selectedHotel.state}</p>
+                      <p className="text-sm">{selectedHotel?.stateName}</p>
                     </div>
                   </div>
 
@@ -1491,13 +1774,13 @@ function HotelMaster() {
                       <Label className="text-sm font-medium text-muted-foreground">
                         Country
                       </Label>
-                      <p className="text-sm">{selectedHotel.country}</p>
+                      <p className="text-sm">{selectedHotel?.countryName}</p>
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">
                         Postal Code
                       </Label>
-                      <p className="text-sm">{selectedHotel.postal_code}</p>
+                      <p className="text-sm">{selectedHotel?.postalCode}</p>
                     </div>
                   </div>
                 </div>
@@ -1507,21 +1790,21 @@ function HotelMaster() {
                     <Label className="text-sm font-medium text-muted-foreground">
                       Phone
                     </Label>
-                    <p className="text-sm">{selectedHotel.phone}</p>
+                    <p className="text-sm">{selectedHotel?.phone}</p>
                   </div>
 
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">
                       Email
                     </Label>
-                    <p className="text-sm">{selectedHotel.email}</p>
+                    <p className="text-sm">{selectedHotel?.email}</p>
                   </div>
 
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">
                       Website
                     </Label>
-                    <p className="text-sm">{selectedHotel.website}</p>
+                    <p className="text-sm">{selectedHotel?.website}</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -1530,14 +1813,14 @@ function HotelMaster() {
                         Star Rating
                       </Label>
                       <div className="flex items-center gap-2">
-                        {renderStars(selectedHotel.star_rating)}
+                        {renderStars(selectedHotel?.starRating)}
                       </div>
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">
                         Rooms
                       </Label>
-                      <p className="text-sm">{selectedHotel.number_of_rooms}</p>
+                      <p className="text-sm">02</p>
                     </div>
                   </div>
 
@@ -1563,14 +1846,20 @@ function HotelMaster() {
                   <Label className="text-sm font-medium text-muted-foreground">
                     Amenities
                   </Label>
-                  <p className="text-sm">{selectedHotel.amenities}</p>
+                  <p className="text-sm">
+                    Wi-Fi, Halal Restaurant, Prayer Facilities, Air
+                    Conditioning, Concierge Service
+                  </p>
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">
                     Description
                   </Label>
-                  <p className="text-sm">{selectedHotel.description}</p>
+                  <p className="text-sm">
+                    Premium residence with stunning Kaaba views, perfect for
+                    Hajj and Umrah pilgrims.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

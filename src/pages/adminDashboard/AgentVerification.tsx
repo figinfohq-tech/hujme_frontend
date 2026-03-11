@@ -433,8 +433,7 @@ function AgentVerification() {
     ).length,
   };
 
-  const token =
-    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwidXNlcklkIjo1MywiaWF0IjoxNzczMTIzNDQxLCJleHAiOjE3NzMyMDk4NDF9.af69uLZTDsYYTQ3TmWkF80AZNQk5_kaxnnr7rcwBkX4";
+  const token ="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInVzZXJJZCI6NTMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzczMjIzMDgyLCJleHAiOjE3NzMzMDk0ODJ9.fqHqVWaecvVNvCxm59iNtMvs2Yfpd1ZOq8DkcIEQRiE"
   const fetchAgentDocuments = async (agentId: any) => {
     try {
       // const token = sessionStorage.getItem("token");

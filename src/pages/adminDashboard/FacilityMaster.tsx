@@ -242,8 +242,8 @@ function FacilityMaster() {
   //   );
   // };
 
-  const token =
-    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwidXNlcklkIjo1MywiaWF0IjoxNzczMTIzNDQxLCJleHAiOjE3NzMyMDk4NDF9.af69uLZTDsYYTQ3TmWkF80AZNQk5_kaxnnr7rcwBkX4";
+  // const token ="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInVzZXJJZCI6NTMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzczMjIzMDgyLCJleHAiOjE3NzMzMDk0ODJ9.fqHqVWaecvVNvCxm59iNtMvs2Yfpd1ZOq8DkcIEQRiE"
+  const token = sessionStorage.getItem("token");
 
   const toggleFacilityStatus = async (facility: any) => {
     try {
@@ -314,7 +314,7 @@ function FacilityMaster() {
 
   const fetchFacilities = async () => {
     try {
-      // const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}facilities`, {
         headers: {
           Authorization: `Bearer ${token}`,
