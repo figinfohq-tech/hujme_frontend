@@ -433,10 +433,11 @@ function AgentVerification() {
     ).length,
   };
 
-  const token ="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInVzZXJJZCI6NTMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzczMjIzMDgyLCJleHAiOjE3NzMzMDk0ODJ9.fqHqVWaecvVNvCxm59iNtMvs2Yfpd1ZOq8DkcIEQRiE"
+  // const token ="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInVzZXJJZCI6NTMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzczMjIzMDgyLCJleHAiOjE3NzMzMDk0ODJ9.fqHqVWaecvVNvCxm59iNtMvs2Yfpd1ZOq8DkcIEQRiE"
+  const token = sessionStorage.getItem("token");
   const fetchAgentDocuments = async (agentId: any) => {
     try {
-      // const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(
         `${baseURL}agent-documents/byAgent/${agentId}`,
         {
@@ -456,7 +457,7 @@ function AgentVerification() {
   const fetchAgents = async () => {
     try {
       setIsLoading(true);
-      // const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get(`${baseURL}agents`, {
         headers: { Authorization: `Bearer ${token}` },
       });
