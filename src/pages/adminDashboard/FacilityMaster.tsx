@@ -43,6 +43,7 @@ import {
 import { baseURL } from "@/utils/constant/url";
 import axios from "axios";
 import { toast } from "react-toastify";
+import Loader from "@/components/Loader";
 
 interface Facility {
   id: string;
@@ -116,6 +117,7 @@ function FacilityMaster() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [editingFacilityId, setEditingFacilityId] = useState<string | null>(
     null,
   );
@@ -242,8 +244,9 @@ function FacilityMaster() {
   //   );
   // };
 
-  // const token ="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInVzZXJJZCI6NTMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzczMjIzMDgyLCJleHAiOjE3NzMzMDk0ODJ9.fqHqVWaecvVNvCxm59iNtMvs2Yfpd1ZOq8DkcIEQRiE"
-  const token = sessionStorage.getItem("token");
+  const token =
+    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInVzZXJJZCI6NTMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzczMzA5OTA0LCJleHAiOjE3NzMzOTYzMDR9.zPxgffrrtt9Os5fvACGk8SkPM0OEriOupGaaeYYgEoU";
+  // const token = sessionStorage.getItem("token");
 
   const toggleFacilityStatus = async (facility: any) => {
     try {
@@ -314,15 +317,18 @@ function FacilityMaster() {
 
   const fetchFacilities = async () => {
     try {
-      const token = sessionStorage.getItem("token");
+      // const token = sessionStorage.getItem("token");
+      setIsLoading(true);
       const response = await axios.get(`${baseURL}facilities`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       setFacilities1(response.data);
+      setIsLoading(false);
     } catch (error) {
       console.error("Documents API Error", error);
+      setIsLoading(false);
     }
   };
 
@@ -385,6 +391,10 @@ function FacilityMaster() {
   useEffect(() => {
     fetchFacilities();
   }, []);
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <>

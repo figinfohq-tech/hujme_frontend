@@ -59,6 +59,7 @@ import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
 import { toast } from "react-toastify";
 import SearchableSelect from "@/components/SearchableSelect";
+import Loader from "@/components/Loader";
 
 interface Hotel {
   hotel_id: number;
@@ -208,6 +209,7 @@ function HotelMaster() {
   const [selectedStateId, setSelectedStateId] = useState("");
   const [selectdCitiesId, setSelectedCitiesId] = useState("");
   const [selectedCountryId, setSelectedCountryId] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -286,6 +288,15 @@ function HotelMaster() {
     return errors;
   };
 
+  const resetHotelForm = () => {
+    setNewHotel(initialHotelState);
+    setEditingHotel(initialHotelState);
+
+    setSelectedCountryId("");
+    setSelectedStateId("");
+    setSelectedCitiesId("");
+  };
+
   const handleCreateHotel = async () => {
     const errors = validateHotel(newHotel);
 
@@ -311,20 +322,19 @@ function HotelMaster() {
         longitude: newHotel.longitude || 0,
       };
 
-
       const response = await axios.post(`${baseURL}hotels`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-
       toast.success("Hotel added successfully");
 
       setIsCreateDialogOpen(false);
       setNewHotel(initialHotelState);
+      resetHotelForm();
 
-      fetchHotels(); // list refresh
+      fetchHotels();
     } catch (error) {
       const message =
         error?.response?.data?.errorMessage || "Failed to create hotel";
@@ -356,10 +366,7 @@ function HotelMaster() {
         starRating: editingHotel.starRating || 0,
         latitude: editingHotel.latitude || 0,
         longitude: editingHotel.longitude || 0,
-        createdBy: 1,
-        updatedBy: 1,
       };
-
 
       const response = await axios.put(
         `${baseURL}hotels/${editingHotel.hotelId}`,
@@ -371,13 +378,13 @@ function HotelMaster() {
         },
       );
 
-
       toast.success("Hotel updated successfully");
 
       setIsEditDialogOpen(false);
       setEditingHotel(initialHotelState);
+      resetHotelForm();
 
-      fetchHotels(); // refresh list
+      fetchHotels();
     } catch (error: any) {
       const message =
         error?.response?.data?.errorMessage || "Failed to update hotel";
@@ -410,7 +417,12 @@ function HotelMaster() {
   };
 
   const openEditDialog = (hotel: Hotel) => {
+    console.log("EditingHotel===>", hotel);
+
     setEditingHotel({ ...hotel });
+    setSelectedCountryId(hotel.countryId);
+    setSelectedStateId(hotel.stateId);
+    setSelectedCitiesId(hotel.cityId);
     setIsEditDialogOpen(true);
   };
 
@@ -485,20 +497,23 @@ function HotelMaster() {
   };
 
   //  ---------------------------- Api Calling --------------------------------
-  // const token =
-  //   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInVzZXJJZCI6NTMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzczMjIzMDgyLCJleHAiOjE3NzMzMDk0ODJ9.fqHqVWaecvVNvCxm59iNtMvs2Yfpd1ZOq8DkcIEQRiE";
-  const token = sessionStorage.getItem("token");
+  const token =
+    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInVzZXJJZCI6NTMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzczMzA5OTA0LCJleHAiOjE3NzMzOTYzMDR9.zPxgffrrtt9Os5fvACGk8SkPM0OEriOupGaaeYYgEoU";
+  // const token = sessionStorage.getItem("token");
   const fetchHotels = async () => {
     try {
-      const token = sessionStorage.getItem("token");
+      // const token = sessionStorage.getItem("token");
+      setIsLoading(true);
       const response = await axios.get(`${baseURL}hotels`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       setHotels1(response.data);
+      setIsLoading(false);
     } catch (error) {
       console.error("Hotels API Error", error);
+      setIsLoading(false);
     }
   };
 
@@ -514,7 +529,7 @@ function HotelMaster() {
 
   const fetchStates = async () => {
     try {
-      const token = sessionStorage.getItem("token");
+      // const token = sessionStorage.getItem("token");
       const response = await axios.get<any>(
         `${baseURL}states/byCountry/${selectedCountryId}`,
         {
@@ -531,7 +546,7 @@ function HotelMaster() {
 
   const fetchCities = async () => {
     try {
-      const token = sessionStorage.getItem("token");
+      // const token = sessionStorage.getItem("token");
       const response = await axios.get<any>(
         `${baseURL}cities/byState/${selectedStateId}`,
         {
@@ -564,6 +579,10 @@ function HotelMaster() {
 
   //  ---------------------------- Api Calling --------------------------------
 
+  if (isLoading) {
+    return <Loader />;
+  }
+
   return (
     <div className="space-y-6 animate-fade-in pb-5">
       {/* Header */}
@@ -575,7 +594,16 @@ function HotelMaster() {
           </p>
         </div>
 
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog
+          open={isCreateDialogOpen}
+          onOpenChange={(open) => {
+            setIsCreateDialogOpen(open);
+
+            if (!open) {
+              resetHotelForm();
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
@@ -972,7 +1000,10 @@ function HotelMaster() {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setIsCreateDialogOpen(false)}
+                onClick={() => {
+                  setIsCreateDialogOpen(false);
+                  resetHotelForm();
+                }}
               >
                 Cancel
               </Button>
@@ -1330,7 +1361,16 @@ function HotelMaster() {
       </Dialog>
 
       {/* Edit Dialog - Similar structure to Create Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog
+        open={isEditDialogOpen}
+        onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+
+          if (!open) {
+            resetHotelForm();
+          }
+        }}
+      >
         <DialogContent className="!max-w-[60vw] w-[100vw] h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Hotel</DialogTitle>
@@ -1390,7 +1430,7 @@ function HotelMaster() {
                     maxLength={100}
                   /> */}
                   <SearchableSelect
-                    value={editingHotel.cityId}
+                    value={editingHotel?.cityId || ""}
                     placeholder="Select City"
                     items={cities}
                     labelKey="cityName"
@@ -1402,9 +1442,9 @@ function HotelMaster() {
 
                       setSelectedCitiesId(value);
 
-                      setNewHotel((prev) => ({
+                      setEditingHotel((prev) => ({
                         ...prev,
-                        city: selectedCity?.cityName || "",
+                        cityName: selectedCity?.cityName || "",
                         cityId: value,
                       }));
                     }}
@@ -1425,7 +1465,7 @@ function HotelMaster() {
                     maxLength={100}
                   /> */}
                   <SearchableSelect
-                    value={editingHotel.stateId}
+                    value={editingHotel?.stateId || ""}
                     placeholder="Select State"
                     items={states}
                     labelKey="stateName"
@@ -1437,9 +1477,9 @@ function HotelMaster() {
 
                       setSelectedStateId(value);
 
-                      setNewHotel((prev) => ({
+                      setEditingHotel((prev) => ({
                         ...prev,
-                        state: selectedState?.countryName || "",
+                        stateName: selectedState?.stateName || "",
                         stateId: value,
                       }));
                     }}
@@ -1463,7 +1503,7 @@ function HotelMaster() {
                     maxLength={100}
                   /> */}
                   <SearchableSelect
-                    value={editingHotel?.countryId}
+                    value={editingHotel?.countryId || ""}
                     placeholder="Select Country"
                     items={countries}
                     labelKey="countryName"
@@ -1475,9 +1515,9 @@ function HotelMaster() {
 
                       setSelectedCountryId(value);
 
-                      setNewHotel((prev) => ({
+                      setEditingHotel((prev) => ({
                         ...prev,
-                        country: selectedCountry?.countryName || "",
+                        countryName: selectedCountry?.countryName || "",
                         countryId: value,
                       }));
                     }}
