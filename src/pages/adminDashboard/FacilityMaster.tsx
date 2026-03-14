@@ -244,9 +244,7 @@ function FacilityMaster() {
   //   );
   // };
 
-  const token =
-    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInVzZXJJZCI6NTMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzczMzA5OTA0LCJleHAiOjE3NzMzOTYzMDR9.zPxgffrrtt9Os5fvACGk8SkPM0OEriOupGaaeYYgEoU";
-  // const token = sessionStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const toggleFacilityStatus = async (facility: any) => {
     try {
@@ -317,7 +315,7 @@ function FacilityMaster() {
 
   const fetchFacilities = async () => {
     try {
-      // const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       setIsLoading(true);
       const response = await axios.get(`${baseURL}facilities`, {
         headers: {

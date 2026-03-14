@@ -296,6 +296,9 @@ function HotelMaster() {
     setSelectedStateId("");
     setSelectedCitiesId("");
   };
+  
+    const token = sessionStorage.getItem("token");
+
 
   const handleCreateHotel = async () => {
     const errors = validateHotel(newHotel);
@@ -497,12 +500,9 @@ function HotelMaster() {
   };
 
   //  ---------------------------- Api Calling --------------------------------
-  const token =
-    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWl6YWhtZWQ3MTcwQGdtYWlsLmNvbSIsInVzZXJJZCI6NTMsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzczMzA5OTA0LCJleHAiOjE3NzMzOTYzMDR9.zPxgffrrtt9Os5fvACGk8SkPM0OEriOupGaaeYYgEoU";
-  // const token = sessionStorage.getItem("token");
   const fetchHotels = async () => {
     try {
-      // const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       setIsLoading(true);
       const response = await axios.get(`${baseURL}hotels`, {
         headers: {
@@ -529,7 +529,7 @@ function HotelMaster() {
 
   const fetchStates = async () => {
     try {
-      // const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<any>(
         `${baseURL}states/byCountry/${selectedCountryId}`,
         {
@@ -546,7 +546,7 @@ function HotelMaster() {
 
   const fetchCities = async () => {
     try {
-      // const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.get<any>(
         `${baseURL}cities/byState/${selectedStateId}`,
         {

@@ -24,22 +24,22 @@ const SignIn = ({ packageId }) => {
   const handleSubmit = async (values, { resetForm, setSubmitting }) => {
     try {
         // STATIC ADMIN LOGIN
-    if (
-      values.email === "admin@hujme.com" &&
-      values.password === "admin@1234"
-    ) {
-      sessionStorage.setItem("role", "ADMIN");
-       sessionStorage.setItem(
-        "userDetails",
-        JSON.stringify({
-          firstName: "ADMIN",
-          lastName: "admin@hujme.com",
-        }));
-      toast.success("Admin login successful!");
-      navigate("/");
-      window.location.reload();
-      return;
-    }
+    // if (
+    //   values.email === "admin@hujme.com" &&
+    //   values.password === "admin@1234"
+    // ) {
+    //   sessionStorage.setItem("role", "ADMIN");
+    //    sessionStorage.setItem(
+    //     "userDetails",
+    //     JSON.stringify({
+    //       firstName: "ADMIN",
+    //       lastName: "admin@hujme.com",
+    //     }));
+    //   toast.success("Admin login successful!");
+    //   navigate("/");
+    //   window.location.reload();
+    //   return;
+    // }
 
 // -----------------------------------Main Login Api Logic------------------------------------------
 
@@ -69,6 +69,22 @@ const SignIn = ({ packageId }) => {
       } else if (response.data.user.role === "USER") {
         {
           packageId ? navigate(`/package/${packageId}`) : navigate("/");
+        }
+      } else if (response.data.user.role === "USER") {
+        {
+          packageId ? navigate(`/package/${packageId}`) : navigate("/");
+        }
+      } else if (response.data.user.role === "USER") {
+        {
+          packageId ? navigate(`/package/${packageId}`) : navigate("/");
+        }
+      } else if (response.data.user.role === "USER") {
+        {
+          packageId ? navigate(`/package/${packageId}`) : navigate("/");
+        }
+      } else if (response.data.user.role === "ADMIN") {
+        {
+           navigate("/");
         }
       } else {
         navigate("/auth");
