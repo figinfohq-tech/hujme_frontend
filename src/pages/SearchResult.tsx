@@ -81,8 +81,6 @@ const SearchResults = () => {
   const token = sessionStorage.getItem("token");
   const role = sessionStorage.getItem("role");
 
-  console.log("dkjsakjdhaksd---->", countryId, stateId, cityId, travelTypeId);
-
   const openReviewsDialog = (pkg: any) => {
     setSelectedPackage(pkg);
     setIsDialogOpen(true);

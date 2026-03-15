@@ -19,6 +19,7 @@ import {
   MapPin,
   CalendarDays,
   Bed,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Dialog,
@@ -49,6 +50,7 @@ const Packages = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedPkg, setSelectedPkg] = useState<any>(false);
   const [agentId, setAgentId] = useState<any>("");
+  const [agent, setAgent] = useState<any>("");
   const [agentLogos, setAgentLogos] = useState<{ [key: string]: string }>({});
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
@@ -143,6 +145,7 @@ const Packages = () => {
       });
       sessionStorage.setItem("agentID", response.data.agentId);
       setAgentId(response.data.agentId);
+      setAgent(response.data);
     } catch (error) {
       console.error("GET API Error:", error);
     }
@@ -437,7 +440,23 @@ const Packages = () => {
         <hr className="border border-gray-300 mb-2" />
 
         <div className="flex justify-end mb-3 items-center">
-          {activeSubscription?.isActive ? (
+          {agent?.agencyStatus === "REJECTED" ? (
+            <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 px-4 py-2 rounded-md">
+              <AlertTriangle className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                This agent account has been rejected. Package creation is
+                disabled.
+              </span>
+            </div>
+          ) : !activeSubscription?.isActive ? (
+            <div className="flex items-center gap-2 text-yellow-700 bg-yellow-50 border border-yellow-200 px-4 py-2 rounded-md">
+              <AlertTriangle className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                Your subscription is inactive. Please activate your subscription
+                to add new packages.
+              </span>
+            </div>
+          ) : (
             <Button
               onClick={() => navigate("/add-package")}
               className="bg-primary text-primary-foreground"
@@ -445,7 +464,7 @@ const Packages = () => {
               <Plus className="w-4 h-4 mr-2" />
               Add New Package
             </Button>
-          ) : null}
+          )}
         </div>
 
         {isLoading ? (

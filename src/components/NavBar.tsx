@@ -22,9 +22,6 @@ const NavBar = () => {
   const userStr = sessionStorage.getItem("userDetails");
   const userDetails = userStr ? JSON.parse(userStr) : null;
 
-  console.log("user details--->", userDetails);
-  
-
   // user details
 
   return (
@@ -43,7 +40,7 @@ const NavBar = () => {
           <div
             className={`hidden md:flex items-center space-x-reverse gap-3 space-x-4`}
           >
-            {!token && !role? (
+            {!token && !role ? (
               <Link to="/auth">
                 <Button
                   variant="ghost"
@@ -98,26 +95,26 @@ const NavBar = () => {
               <div className="flex flex-col space-y-2 pt-4 border-t">
                 {/* <LanguageSelector /> */}
                 {!token && !role ? (
-              <Link to="/auth">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hover:bg-green-200"
-                >
-                  <User className={`w-4 h-4 `} />
-                  Login
-                </Button>
-              </Link>
-            ) : (
-              <div className="flex items-center">
-                <User className={`w-4 h-4 `} />
-                <span className="font-semibold text-sm">
-                  {" "}
-                  {`Welcome ${userDetails?.firstName} ${userDetails?.lastName}...`}
-                </span>
-              </div>
-            )}
-                {!token && !role  ? (
+                  <Link to="/auth">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hover:bg-green-200"
+                    >
+                      <User className={`w-4 h-4 `} />
+                      Login
+                    </Button>
+                  </Link>
+                ) : (
+                  <div className="flex items-center">
+                    <User className={`w-4 h-4 `} />
+                    <span className="font-semibold text-sm">
+                      {" "}
+                      {`Welcome ${userDetails?.firstName} ${userDetails?.lastName}...`}
+                    </span>
+                  </div>
+                )}
+                {!token && !role ? (
                   <Link to="/agent">
                     <Button
                       size="sm"

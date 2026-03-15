@@ -39,6 +39,8 @@ import {
   Shield,
   Star,
   Search,
+  ActivitySquare,
+  PanelTopInactive,
 } from "lucide-react";
 import { baseURL } from "@/utils/constant/url";
 import axios from "axios";
@@ -669,32 +671,69 @@ function FacilityMaster() {
         </div>
 
         {/* Facilities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredFacilities.map((facility: any) => {
-            // const TypeIcon = getTypeIcon(facility.type)
-            const TypeIcon = getTypeIcon(facility.category);
+        <div className="border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            {/* HEADER */}
+            <thead className="bg-primary/10 text-gray-700">
+              <tr>
+                <th className="px-4 py-3 text-left">Facility</th>
+                <th className="px-4 py-3 text-left">Category</th>
+                <th className="px-4 py-3 text-left">Description</th>
+                <th className="px-4 py-3 text-center">Usage</th>
+                <th className="px-4 py-3 text-center">Status</th>
+                <th className="px-4 py-3 text-center">Mandatory</th>
+                <th className="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
 
-            return (
-              <Card
-                key={facility.facilityId}
-                className="hover:shadow-md transition-shadow"
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
+            {/* BODY */}
+            <tbody>
+              {filteredFacilities.map((facility: any) => {
+                const TypeIcon = getTypeIcon(facility.category);
+
+                return (
+                  <tr
+                    key={facility.facilityId}
+                    // className={
+                    //   index % 2 === 0
+                    //     ? "bg-white hover:bg-primary/10"
+                    //     : "bg-primary/10 hover:bg-primary/5"
+                    // }
+                    className="hover:bg-primary/10"
+                  >
+                    {/* FACILITY NAME */}
+                    <td className="px-4 py-3 flex items-center gap-2">
                       <div
-                        className={`p-2 rounded-lg ${getCategoryColor(facility.category)}`}
+                        className={`flex items-center justify-center w-8 h-8 rounded-md ${getCategoryColor(
+                          facility.category,
+                        )}`}
                       >
-                        <TypeIcon className="w-5 h-5" />
+                        <TypeIcon className="w-4 h-4" />
                       </div>
-                      <div>
-                        <CardTitle className="text-lg">
-                          {facility.facilityName}
-                        </CardTitle>
-                        <CardDescription>{facility.category}</CardDescription>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        {facility.facilityName}
+                      </span>
+                    </td>
+
+                    {/* CATEGORY */}
+                    <td className="px-4 py-3">
+                      <Badge className={getCategoryColor(facility.category)}>
+                        {facility.category}
+                      </Badge>
+                    </td>
+
+                    {/* DESCRIPTION */}
+                    <td className="px-4 py-3 text-muted-foreground max-w-[300px] truncate">
+                      {facility.description}
+                    </td>
+
+                    {/* USAGE */}
+                    <td className="px-4 py-3 text-center font-medium">
+                      {facility.usageCount}
+                    </td>
+
+                    {/* STATUS */}
+                    <td className="px-4 py-3 text-center">
                       <Badge
                         variant={facility.isActive ? "default" : "secondary"}
                         className={
@@ -703,84 +742,72 @@ function FacilityMaster() {
                       >
                         {facility.isActive ? "Active" : "Inactive"}
                       </Badge>
+                    </td>
+
+                    {/* MANDATORY */}
+                    <td className="px-4 py-3 text-center">
                       {facility.isMandatory && (
                         <Badge variant="destructive">Mandatory</Badge>
                       )}
-                    </div>
-                  </div>
-                </CardHeader>
+                    </td>
 
-                <CardContent className="space-y-4">
-                  <div>
-                    <Badge className={getCategoryColor(facility.category)}>
-                      {facility.category}
-                    </Badge>
-                  </div>
+                    {/* ACTIONS */}
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleFacilityStatus(facility)}
+                          className={
+                            facility.isActive
+                              ? "text-red-600"
+                              : "text-green-600"
+                          }
+                        >
+                          {facility.isActive ? <>Deactivate</> : <>Activate</>}
+                        </Button>
 
-                  <p className="text-sm text-muted-foreground">
-                    {facility.description}
-                  </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setIsEditMode(true);
+                            setEditingFacilityId(facility.facilityId);
 
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Usage Count:</span>
-                    <span className="font-medium">
-                      {facility.usageCount} packages
-                    </span>
-                  </div>
+                            setNewFacility({
+                              name: facility.facilityName,
+                              category: facility.category,
+                              type: facility.category,
+                              description: facility.description,
+                              isActive: facility.isActive,
+                              isMandatory: facility.isMandatory ?? false,
+                            });
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => {
-                        setIsEditMode(true);
-                        setEditingFacilityId(facility.facilityId);
+                            setIsCreateDialogOpen(true);
+                          }}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
 
-                        setNewFacility({
-                          name: facility.facilityName,
-                          category: facility.category,
-                          type: facility.category,
-                          description: facility.description,
-                          isActive: facility.isActive,
-                          isMandatory: facility.isMandatory ?? false,
-                        });
-
-                        setIsCreateDialogOpen(true);
-                      }}
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleFacilityStatus(facility)}
-                      className={
-                        facility.isActive
-                          ? "text-red-600 hover:text-red-700"
-                          : "text-green-600 hover:text-green-700"
-                      }
-                    >
-                      {facility.isActive ? "Deactivate" : "Activate"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setDeleteFacilityId(facility.facilityId);
-                        setIsDeleteDialogOpen(true);
-                      }}
-                      className="text-red-600 hover:text-red-700"
-                      disabled={facility.isMandatory}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setDeleteFacilityId(facility.facilityId);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                          className="text-red-600"
+                          disabled={facility.isMandatory}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
         {filteredFacilities.length === 0 && (

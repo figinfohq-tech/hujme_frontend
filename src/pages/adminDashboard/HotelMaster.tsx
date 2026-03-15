@@ -420,7 +420,6 @@ function HotelMaster() {
   };
 
   const openEditDialog = (hotel: Hotel) => {
-    console.log("EditingHotel===>", hotel);
 
     setEditingHotel({ ...hotel });
     setSelectedCountryId(hotel.countryId);

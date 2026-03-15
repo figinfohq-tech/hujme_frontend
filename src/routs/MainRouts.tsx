@@ -51,6 +51,7 @@ import FacilityMaster from "@/pages/adminDashboard/FacilityMaster";
 import HotelMaster from "@/pages/adminDashboard/HotelMaster";
 import AgentManagement from "@/pages/adminDashboard/AgentManagement";
 import ReportsAnalytics from "@/pages/adminDashboard/ReportsAnalytics";
+import AgentVerificationDetails from "@/pages/adminDashboard/AgentVerificationDetails";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
@@ -175,6 +176,7 @@ const MainRouts = () => {
               <Route path="hotel-master" element={<HotelMaster />} />
               <Route path="agent-management" element={<AgentManagement />} />
               <Route path="reports" element={<ReportsAnalytics />} />
+              <Route path="/agent-verification-details" element={<AgentVerificationDetails />} />
             </Route>
           ) : (
             <Route path="*" element={<Navigate to="/auth" replace />} />
