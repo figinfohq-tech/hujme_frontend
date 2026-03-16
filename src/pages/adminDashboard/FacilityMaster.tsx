@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
+import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
@@ -39,13 +33,13 @@ import {
   Shield,
   Star,
   Search,
-  ActivitySquare,
-  PanelTopInactive,
+  Loader2,
 } from "lucide-react";
 import { baseURL } from "@/utils/constant/url";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Loader from "@/components/Loader";
+import { useNavigate } from "react-router";
 
 interface Facility {
   id: string;
@@ -120,9 +114,12 @@ function FacilityMaster() {
   const [filterType, setFilterType] = useState<string>("all");
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [editingFacilityId, setEditingFacilityId] = useState<string | null>(
     null,
   );
+
+  const navigate = useNavigate();
 
   const [newFacility, setNewFacility] = useState({
     name: "",
@@ -138,20 +135,6 @@ function FacilityMaster() {
     isActive: true,
     isMandatory: false,
   });
-
-  const resetFacilityForm = () => {
-    setIsEditMode(false);
-    setEditingFacilityId(null);
-
-    setNewFacility({
-      name: "",
-      category: "Basic",
-      type: "Hotel",
-      description: "",
-      isActive: true,
-      isMandatory: false,
-    });
-  };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -204,48 +187,6 @@ function FacilityMaster() {
     return colors[index % colors.length];
   };
 
-  // const handleCreateFacility = () => {
-  //   if (!newFacility.name || !newFacility.description) {
-  //     toast.error("Please fill in all required fields");
-  //     return;
-  //   }
-
-  //   const facility: Facility = {
-  //     id: Date.now().toString(),
-  //     ...newFacility,
-  //     usageCount: 0,
-  //   };
-
-  //   console.log("✅ Creating new facility:", facility);
-  //   setFacilities((prev) => [...prev, facility]);
-  //   setIsCreateDialogOpen(false);
-  //   setNewFacility({
-  //     name: "",
-  //     category: "Basic",
-  //     type: "Hotel",
-  //     description: "",
-  //     isActive: true,
-  //     isMandatory: false,
-  //   });
-  //   toast.success(`${facility.name} facility created successfully`);
-  // };
-
-  // const toggleFacilityStatus = (facilityId: string) => {
-  //   setFacilities((prev) =>
-  //     prev.map((facility) =>
-  //       facility.id === facilityId
-  //         ? { ...facility, isActive: !facility.isActive }
-  //         : facility,
-  //     ),
-  //   );
-
-  //   const facility = facilities.find((f) => f.id === facilityId);
-  //   console.log(`🔄 Toggled facility status: ${facility?.name}`);
-  //   toast.success(
-  //     `Facility ${facility?.isActive ? "deactivated" : "activated"} successfully`,
-  //   );
-  // };
-
   const token = sessionStorage.getItem("token");
 
   const toggleFacilityStatus = async (facility: any) => {
@@ -276,15 +217,21 @@ function FacilityMaster() {
     }
   };
 
-  const deleteFacility = async (facilityId: string) => {
-    const facility = facilities1.find((f: any) => f.facilityId === facilityId);
+  const deleteFacility = async () => {
+    const facility = facilities1.find(
+      (f: any) => f.facilityId === deleteFacilityId,
+    );
+
     if (!deleteFacilityId) return;
+
     if (facility?.isMandatory) {
       toast.error("Cannot delete mandatory facility");
       return;
     }
 
     try {
+      setIsDeleting(true);
+
       await axios.delete(`${baseURL}facilities/${deleteFacilityId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -300,6 +247,8 @@ function FacilityMaster() {
     } catch (error) {
       console.error("❌ Delete Facility API Error:", error);
       toast.error("Failed to delete facility");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -332,62 +281,6 @@ function FacilityMaster() {
     }
   };
 
-  const handleCreateFacility = async () => {
-    if (!newFacility.name || !newFacility.description) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    const payload = {
-      facilityName: newFacility.name,
-      description: newFacility.description,
-      category: newFacility.category,
-      isActive: newFacility.isActive,
-    };
-
-    try {
-      if (isEditMode && editingFacilityId) {
-        // UPDATE API
-        await axios.put(`${baseURL}facilities/${editingFacilityId}`, payload, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        toast.success("Facility updated successfully");
-      } else {
-        // CREATE API
-        const response = await axios.post(`${baseURL}facilities`, payload, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        toast.success(
-          `${response.data.facilityName} facility created successfully`,
-        );
-      }
-
-      setIsCreateDialogOpen(false);
-      setIsEditMode(false);
-      setEditingFacilityId(null);
-
-      setNewFacility({
-        name: "",
-        category: "Basic",
-        type: "Hotel",
-        description: "",
-        isActive: true,
-        isMandatory: false,
-      });
-
-      fetchFacilities();
-    } catch (error) {
-      console.error("❌ Facility API Error:", error);
-      toast.error("Operation failed");
-    }
-  };
-
   useEffect(() => {
     fetchFacilities();
   }, []);
@@ -408,7 +301,14 @@ function FacilityMaster() {
             </p>
           </div>
 
-          <Dialog
+          <Button
+            onClick={() => navigate("/facility-add")}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Facility
+          </Button>
+          {/* <Dialog
             open={isCreateDialogOpen}
             onOpenChange={(open) => {
               setIsCreateDialogOpen(open);
@@ -566,7 +466,7 @@ function FacilityMaster() {
                 </Button>
               </div>
             </DialogContent>
-          </Dialog>
+          </Dialog> */}
         </div>
 
         {/* Filters */}
@@ -771,19 +671,12 @@ function FacilityMaster() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setIsEditMode(true);
-                            setEditingFacilityId(facility.facilityId);
-
-                            setNewFacility({
-                              name: facility.facilityName,
-                              category: facility.category,
-                              type: facility.category,
-                              description: facility.description,
-                              isActive: facility.isActive,
-                              isMandatory: facility.isMandatory ?? false,
+                            navigate("/facility-add", {
+                              state: {
+                                facility: facility,
+                                isEditMode: true,
+                              },
                             });
-
-                            setIsCreateDialogOpen(true);
                           }}
                         >
                           <Edit className="w-4 h-4" />
@@ -840,8 +733,13 @@ function FacilityMaster() {
               Cancel
             </Button>
 
-            <Button variant="destructive" onClick={() => deleteFacility()}>
-              Yes, Delete
+            <Button
+              variant="destructive"
+              onClick={deleteFacility}
+              disabled={isDeleting}
+            >
+              {isDeleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {isDeleting ? "Deleting..." : "Yes, Delete"}
             </Button>
           </div>
         </DialogContent>

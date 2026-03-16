@@ -126,8 +126,7 @@ const PackageDetails = () => {
       const response = await axios.get(`${baseURL}packages/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("response package---->", response.data);
-      
+
       fetchAgentLogo(response.data.data.agentId);
       setPackageDetail(response.data);
     } catch (error) {
@@ -138,9 +137,6 @@ const PackageDetails = () => {
 
   const fetchAgentLogo = async (agentId: number) => {
     if (!agentId) return;
-
-    console.log("agent id ----->", agentId);
-    
 
     try {
       const token = sessionStorage.getItem("token");
@@ -289,7 +285,10 @@ const PackageDetails = () => {
                             {packageDetail?.duration} days
                           </span>
 
-                          <Badge variant="secondary" className="text-xs sm:text-sm">
+                          <Badge
+                            variant="secondary"
+                            className="text-xs sm:text-sm"
+                          >
                             {packageDetail?.data?.packageType}
                           </Badge>
                         </div>
