@@ -52,15 +52,14 @@ const PaymentProcessComfirm = () => {
 
   const fetchBookingDetails = async () => {
     try {
-      const bookingId = booking.bookingId;
       const token = sessionStorage.getItem("token");
 
-      if (!booking) {
+      if (!booking?.bookingId) {
         throw new Error("Booking not found");
       }
 
       const response = await axios.get(
-        `${baseURL}bookings/${bookingId}`, // 👈 API path
+        `${baseURL}bookings/${booking.bookingId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -68,18 +67,18 @@ const PaymentProcessComfirm = () => {
           },
         },
       );
+
       setBookingById(response.data);
     } catch (error: any) {
       console.error("Fetch Booking Error:", error);
-    } finally {
     }
   };
 
   useEffect(() => {
-    if (booking.bookingId) {
+    if (booking?.bookingId) {
       fetchBookingDetails();
     }
-  }, [booking.bookingId]);
+  }, [booking]);
 
   useEffect(() => {
     fetchPackage();
@@ -117,7 +116,7 @@ const PaymentProcessComfirm = () => {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Amount:</span>
                 <span className="font-medium">
-                  ₹{totalAmt.toLocaleString()}
+                  ₹{totalAmt?.toLocaleString()}
                   {/* ₹{90000} */}
                 </span>
               </div>
@@ -129,7 +128,7 @@ const PaymentProcessComfirm = () => {
                     ? totalAmount??
                     : partialAmount??
                   ).toLocaleString()} */}
-                  {totalAmt.toLocaleString()}
+                  {totalAmt?.toLocaleString()}
                 </span>
               </div>
               {paymentType === "partial" && (
@@ -137,7 +136,7 @@ const PaymentProcessComfirm = () => {
                   <span className="text-muted-foreground">Remaining:</span>
                   <span className="font-medium text-orange-600">
                     {/* ₹{(totalAmount? - partialAmount?).toLocaleString()} */}₹
-                    {bookinById?.totalAmt.toLocaleString()}
+                    {bookinById?.totalAmt?.toLocaleString()}
                   </span>
                 </div>
               )}

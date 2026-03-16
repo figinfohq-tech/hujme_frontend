@@ -157,9 +157,7 @@ export const BookingFlow: React.FC = () => {
   // };
 
   const calculateTotalAmount = (finalTravelerCount: number) => {
-    const price = Number(
-      packageData?.booking?.packageDetails?.data?.price || 0,
-    );
+    const price = Number(packageData?.price || 0);
     return price * finalTravelerCount;
   };
 
@@ -439,11 +437,7 @@ export const BookingFlow: React.FC = () => {
               </div>
               <div>
                 <p className="font-semibold text-lg">
-                  ₹
-                  {(
-                    packageData?.booking?.packageDetails?.data?.price || 0
-                  ).toLocaleString()}{" "}
-                  per person
+                  ₹{(packageData?.price || 0).toLocaleString()} per person
                 </p>
               </div>
             </div>
@@ -768,10 +762,7 @@ export const BookingFlow: React.FC = () => {
                 {existingBooking
                   ? existingBooking.travelerCount + travelers.length
                   : travelers.length}{" "}
-                traveler(s) × ₹
-                {(
-                  packageData?.booking?.packageDetails?.data?.price || 0
-                ).toLocaleString()}
+                traveler(s) × ₹{(packageData?.price || 0).toLocaleString()}
               </p>
             </div>
 
