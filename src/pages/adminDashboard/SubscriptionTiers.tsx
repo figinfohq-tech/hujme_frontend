@@ -43,6 +43,7 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
+  IndianRupee,
 } from "lucide-react";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
@@ -58,7 +59,7 @@ interface SubscriptionTier {
   seatLimit: number;
   isActive: boolean;
   features: string[];
-  agentCount: number;
+  activeSubscriptionCount: number;
 }
 
 function SubscriptionTiers() {
@@ -72,7 +73,7 @@ function SubscriptionTiers() {
       seatLimit: 50,
       isActive: true,
       features: ["Basic Support", "Standard Facilities", "Email Notifications"],
-      agentCount: 45,
+      activeSubscriptionCount: 45,
     },
     {
       id: "2",
@@ -88,7 +89,7 @@ function SubscriptionTiers() {
         "SMS & Email Notifications",
         "Analytics Dashboard",
       ],
-      agentCount: 89,
+      activeSubscriptionCount: 89,
     },
     {
       id: "3",
@@ -105,7 +106,7 @@ function SubscriptionTiers() {
         "Advanced Analytics",
         "API Access",
       ],
-      agentCount: 23,
+      activeSubscriptionCount: 23,
     },
     {
       id: "4",
@@ -116,7 +117,7 @@ function SubscriptionTiers() {
       seatLimit: 20,
       isActive: false,
       features: ["Email Support", "Basic Facilities"],
-      agentCount: 0,
+      activeSubscriptionCount: 0,
     },
   ]);
   const [tiers, setTiers] = useState<any>([]);
@@ -263,9 +264,9 @@ function SubscriptionTiers() {
   };
 
   const deactivateTier = async (tier: any) => {
-    if (tier?.agentCount > 0) {
+    if (tier?.activeSubscriptionCount > 0) {
       toast.error(
-        `Cannot deactivate ${tier?.subscriptionName} tier - ${tier?.agentCount} agents are currently using this plan. Please migrate them to another tier first.`,
+        `Cannot deactivate ${tier?.subscriptionName} tier - ${tier?.activeSubscriptionCount} agents are currently using this plan. Please migrate them to another tier first.`,
       );
       return;
     }
@@ -297,9 +298,9 @@ function SubscriptionTiers() {
     }
   };
   const activateTier = async (tier: any) => {
-    if (tier?.agentCount > 0) {
+    if (tier?.activeSubscriptionCount > 0) {
       toast.error(
-        `Cannot deactivate ${tier?.subscriptionName} tier - ${tier?.agentCount} agents are currently using this plan. Please migrate them to another tier first.`,
+        `Cannot deactivate ${tier?.subscriptionName} tier - ${tier?.activeSubscriptionCount} agents are currently using this plan. Please migrate them to another tier first.`,
       );
       return;
     }
@@ -333,9 +334,9 @@ function SubscriptionTiers() {
 
   const deleteTier = async (tiers: any) => {
     // Business validation (same as your logic)
-    if (tiers?.agentCount > 0) {
+    if (tiers?.activeSubscriptionCount > 0) {
       toast.error(
-        `Cannot delete ${tiers?.subscriptionName} tier - ${tiers?.agentCount} agents are currently subscribed. Please migrate all agents before deletion.`,
+        `Cannot delete ${tiers?.subscriptionName} tier - ${tiers?.activeSubscriptionCount} agents are currently subscribed. Please migrate all agents before deletion.`,
       );
       return;
     }
@@ -367,15 +368,22 @@ function SubscriptionTiers() {
     fetchSubscriptionsTiers();
   }, []);
 
-  const activeTierCount = tiers1.filter((t) => t.isActive).length;
-  const totalRevenue = tiers1.reduce(
-    (sum, tier) => sum + tier.price * tier.agentCount,
+  const activeTierCount = tiers.filter((t) => t.isActive).length;
+  const totalRevenue = tiers.reduce(
+    (sum, tier) => sum + tier.price * tier.activeSubscriptionCount,
     0,
   );
-  const totalAgents = tiers1.reduce((sum, tier) => sum + tier.agentCount, 0);
-  const mostPopularTier = tiers1.reduce((prev, current) =>
-    prev.agentCount > current.agentCount ? prev : current,
+  const totalAgents = tiers.reduce(
+    (sum, tier) => sum + tier.activeSubscriptionCount,
+    0,
   );
+  const mostPopularTier = tiers?.length
+    ? tiers.reduce((prev, current) =>
+        prev.activeSubscriptionCount > current.activeSubscriptionCount
+          ? prev
+          : current,
+      )
+    : null;
 
   if (isLoading) {
     return <Loader />;
@@ -564,11 +572,11 @@ function SubscriptionTiers() {
 
         <Card className="p-0">
           <CardContent className="flex items-center gap-4 p-4">
-            <DollarSign className="w-8 h-8 text-green-600" />
+            <IndianRupee className="w-8 h-8 text-green-600" />
             <div>
               <p className="text-sm text-muted-foreground">Annual Revenue</p>
               <p className="text-2xl text-primary font-bold">
-                ₹{totalRevenue.toLocaleString()}
+                {(totalRevenue * 12).toLocaleString()}
               </p>
             </div>
           </CardContent>
@@ -580,7 +588,7 @@ function SubscriptionTiers() {
             <div>
               <p className="text-sm text-muted-foreground">Most Popular</p>
               <p className="text-lg text-primary font-bold">
-                {mostPopularTier.name}
+                {mostPopularTier?.subscriptionName}
               </p>
             </div>
           </CardContent>
@@ -592,10 +600,10 @@ function SubscriptionTiers() {
         {tiers.map((tier: any) => (
           <Card
             key={tier?.subscriptionId}
-            className={`relative overflow-hidden ${tier?.subscriptionName === "Premium" ? "ring-2 ring-secondary" : ""}`}
+            className={`relative overflow-hidden ${tier?.subscriptionName === mostPopularTier?.subscriptionName ? "ring-2 ring-secondary" : ""}`}
           >
-            {tier?.subscriptionName === "Premium" && (
-              <div className="absolute top-0 right-0 bg-hajj-accent text-white px-3 py-1 text-xs font-medium">
+            {tier?.subscriptionName === mostPopularTier?.subscriptionName && (
+              <div className="absolute top-0 right-0 bg-secondary text-white px-3 py-1 text-xs font-medium border-l border-b border-white rounded-bl-lg">
                 POPULAR
               </div>
             )}
@@ -629,8 +637,8 @@ function SubscriptionTiers() {
                 </div>
               </div>
               <CardDescription>
-                {160} active subscribers
-                {tier.agentCount > 0 && !tier.isActive && (
+                {tier?.activeSubscriptionCount} active subscribers
+                {tier.activeSubscriptionCount > 0 && !tier.isActive && (
                   <span className="text-yellow-600 ml-2">
                     ⚠️ Has active users
                   </span>
@@ -680,7 +688,7 @@ function SubscriptionTiers() {
                     size="sm"
                     onClick={() => deactivateTier(tier)}
                     className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-                    disabled={tier?.agentCount > 0}
+                    disabled={tier?.activeSubscriptionCount > 0}
                   >
                     <XCircle className="w-4 h-4 mr-1" />
                     Deactivate
@@ -703,7 +711,7 @@ function SubscriptionTiers() {
                       variant="outline"
                       size="sm"
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      disabled={tier.agentCount > 0}
+                      disabled={tier.activeSubscriptionCount > 0}
                     >
                       <Trash2 className="w-4 h-4" />
                       Delete
@@ -719,11 +727,12 @@ function SubscriptionTiers() {
                         Are you sure you want to permanently delete the{" "}
                         <strong>{tier.name}</strong> tier? This action cannot be
                         undone and will remove all tier configurations.
-                        {tier.agentCount > 0 && (
+                        {tier.activeSubscriptionCount > 0 && (
                           <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-800">
                             <strong>Warning:</strong> This tier has{" "}
-                            {tier.agentCount} active subscribers. You must
-                            migrate all agents to other tiers before deletion.
+                            {tier.activeSubscriptionCount} active subscribers.
+                            You must migrate all agents to other tiers before
+                            deletion.
                           </div>
                         )}
                       </AlertDialogDescription>
@@ -733,7 +742,7 @@ function SubscriptionTiers() {
                       <AlertDialogAction
                         onClick={() => deleteTier(tier)}
                         className="bg-red-600 hover:bg-red-700"
-                        disabled={tier.agentCount > 0}
+                        disabled={tier.activeSubscriptionCount > 0}
                       >
                         Delete Permanently
                       </AlertDialogAction>
@@ -742,12 +751,13 @@ function SubscriptionTiers() {
                 </AlertDialog>
               </div>
 
-              {/* {tier.agentCount > 0 && ( */}
-              <div className="text-xs text-muted-foreground bg-blue-50 p-2 rounded">
-                💡 Tip: To deactivate or delete this tier, first migrate all{" "}
-                {tier.agentCount} subscribers to other active tiers.
-              </div>
-              {/* )} */}
+              {tier.activeSubscriptionCount > 0 && (
+                <div className="text-xs text-muted-foreground bg-blue-50 p-2 rounded">
+                  💡 Tip: To deactivate or delete this tier, first migrate all{" "}
+                  {tier.activeSubscriptionCount} subscribers to other active
+                  tiers.
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -871,23 +881,27 @@ function SubscriptionTiers() {
                       prev ? { ...prev, isActive: checked } : null,
                     )
                   }
-                  disabled={editingTier.agentCount > 0 && editingTier.isActive}
+                  disabled={
+                    editingTier.activeSubscriptionCount > 0 &&
+                    editingTier.isActive
+                  }
                 />
                 <Label htmlFor="edit-tier-active">
                   Active (available for new subscriptions)
-                  {editingTier.agentCount > 0 && editingTier.isActive && (
-                    <span className="text-xs text-muted-foreground block">
-                      Cannot deactivate - has active subscribers
-                    </span>
-                  )}
+                  {editingTier.activeSubscriptionCount > 0 &&
+                    editingTier.isActive && (
+                      <span className="text-xs text-muted-foreground block">
+                        Cannot deactivate - has active subscribers
+                      </span>
+                    )}
                 </Label>
               </div>
 
-              {editingTier.agentCount > 0 && (
+              {editingTier.activeSubscriptionCount > 0 && (
                 <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded">
-                  <strong>Note:</strong> This tier has {editingTier.agentCount}{" "}
-                  active subscribers. Changes to limits will affect existing
-                  users.
+                  <strong>Note:</strong> This tier has{" "}
+                  {editingTier.activeSubscriptionCount} active subscribers.
+                  Changes to limits will affect existing users.
                 </div>
               )}
             </div>
