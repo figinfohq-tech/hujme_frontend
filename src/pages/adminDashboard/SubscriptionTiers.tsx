@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -44,7 +44,10 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import { toast } from "sonner";
+import axios from "axios";
+import { baseURL } from "@/utils/constant/url";
+import Loader from "@/components/Loader";
+import { toast } from "react-toastify";
 
 interface SubscriptionTier {
   id: string;
@@ -59,9 +62,7 @@ interface SubscriptionTier {
 }
 
 function SubscriptionTiers() {
-  console.log("👑 SubscriptionTiers page rendered");
-
-  const [tiers, setTiers] = useState<SubscriptionTier[]>([
+  const [tiers1, setTiers1] = useState<SubscriptionTier[]>([
     {
       id: "1",
       name: "Basic",
@@ -118,10 +119,11 @@ function SubscriptionTiers() {
       agentCount: 0,
     },
   ]);
-
+  const [tiers, setTiers] = useState<any>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingTier, setEditingTier] = useState<SubscriptionTier | null>(null);
+  const [editingTier, setEditingTier] = useState<any>(null);
   const [newTier, setNewTier] = useState({
     name: "",
     price: 0,
@@ -131,117 +133,229 @@ function SubscriptionTiers() {
     isActive: true,
   });
 
-  const handleCreateTier = () => {
+  //  ---------------------------- Api Calling --------------------------------
+  const token = sessionStorage.getItem("token");
+  const fetchSubscriptionsTiers = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${baseURL}subscriptions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setTiers(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Hotels API Error", error);
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateTier = async () => {
     if (!newTier.name || newTier.price <= 0) {
       toast.error("Please fill in all required fields with valid values");
       return;
     }
 
-    // Check for duplicate tier names
+    // Duplicate check
     if (
       tiers.some(
-        (tier) => tier.name.toLowerCase() === newTier.name.toLowerCase(),
+        (tier: any) =>
+          tier.subscriptionName.toLowerCase() === newTier.name.toLowerCase(),
       )
     ) {
       toast.error("A tier with this name already exists");
       return;
     }
 
-    const tier: SubscriptionTier = {
-      id: Date.now().toString(),
-      ...newTier,
-      features: ["Basic Support", "Standard Facilities"],
-      agentCount: 0,
-    };
+    try {
+      const payload = {
+        subscriptionName: newTier.name,
+        price: newTier.price,
+        validityMonths: newTier.validity,
+        maxPackages: newTier.maxPackages,
+        seatLimit: newTier.seatLimit,
+        isActive: newTier.isActive,
+      };
 
-    console.log("✅ Creating new tier:", tier);
-    setTiers((prev) => [...prev, tier]);
-    setIsCreateDialogOpen(false);
-    setNewTier({
-      name: "",
-      price: 0,
-      validity: 1,
-      maxPackages: 1,
-      seatLimit: 10,
-      isActive: true,
-    });
-    toast.success(`${tier.name} tier created successfully`);
+      const response = await axios.post(`${baseURL}subscriptions`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setIsCreateDialogOpen(false);
+
+      setNewTier({
+        name: "",
+        price: 0,
+        validity: 1,
+        maxPackages: 1,
+        seatLimit: 10,
+        isActive: true,
+      });
+
+      toast.success("Tier created successfully");
+      fetchSubscriptionsTiers();
+    } catch (error) {
+      console.error("❌ API Error:", error);
+      toast.error("Failed to create tier");
+    }
   };
 
-  const handleEditTier = () => {
-    if (!editingTier || !editingTier.name || editingTier.price <= 0) {
+  const handleEditTier = async () => {
+    if (
+      !editingTier ||
+      !editingTier.subscriptionName ||
+      editingTier.price <= 0
+    ) {
       toast.error("Please fill in all required fields with valid values");
       return;
     }
 
-    // Check for duplicate tier names (excluding current tier)
+    // Duplicate check (excluding current)
     if (
       tiers.some(
-        (tier) =>
-          tier.id !== editingTier.id &&
-          tier.name.toLowerCase() === editingTier.name.toLowerCase(),
+        (tier: any) =>
+          tier?.subscriptionId !== editingTier?.subscriptionId &&
+          tier?.subscriptionName.toLowerCase() ===
+            editingTier?.subscriptionName.toLowerCase(),
       )
     ) {
       toast.error("A tier with this name already exists");
       return;
     }
 
-    console.log("✏️ Updating tier:", editingTier);
-    setTiers((prev) =>
-      prev.map((tier) => (tier.id === editingTier.id ? editingTier : tier)),
-    );
-    setIsEditDialogOpen(false);
-    setEditingTier(null);
-    toast.success(`${editingTier.name} tier updated successfully`);
+    try {
+      const payload = {
+        subscriptionName: editingTier.subscriptionName,
+        price: editingTier.price,
+        validityMonths: editingTier.validityMonths,
+        maxPackages: editingTier.maxPackages,
+        seatLimit: editingTier.seatLimit,
+        isActive: editingTier.isActive,
+      };
+
+      await axios.put(
+        `${baseURL}subscriptions/${editingTier.subscriptionId}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      // ✅ Close dialog + reset
+      setIsEditDialogOpen(false);
+      setEditingTier(null);
+
+      toast.success(
+        `${editingTier.subscriptionName} tier updated successfully.`,
+      );
+      fetchSubscriptionsTiers();
+    } catch (error) {
+      console.error("❌ Update API Error:", error);
+      toast.error("Failed to update tier");
+    }
   };
 
-  const deactivateTier = (tierId: string) => {
-    const tier = tiers.find((t) => t.id === tierId);
-    if (!tier) return;
-
-    if (tier.agentCount > 0) {
+  const deactivateTier = async (tier: any) => {
+    if (tier?.agentCount > 0) {
       toast.error(
-        `Cannot deactivate ${tier.name} tier - ${tier.agentCount} agents are currently using this plan. Please migrate them to another tier first.`,
+        `Cannot deactivate ${tier?.subscriptionName} tier - ${tier?.agentCount} agents are currently using this plan. Please migrate them to another tier first.`,
       );
       return;
     }
 
-    console.log("🔒 Deactivating tier:", tier.name);
-    setTiers((prev) =>
-      prev.map((t) => (t.id === tierId ? { ...t, isActive: false } : t)),
-    );
-    toast.success(
-      `${tier.name} tier has been deactivated. New subscriptions are no longer available.`,
-    );
+    try {
+      const payload = {
+        ...tier,
+        isActive: false,
+      };
+
+      await axios.put(
+        `${baseURL}subscriptions/${tier.subscriptionId}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      toast.success(
+        `${tier?.subscriptionName} tier has been deactivated successfully.`,
+      );
+      fetchSubscriptionsTiers();
+    } catch (error) {
+      console.error("❌ Deactivate API Error:", error);
+      toast.error("Failed to deactivate tier");
+    }
   };
-
-  const activateTier = (tierId: string) => {
-    const tier = tiers.find((t) => t.id === tierId);
-    if (!tier) return;
-
-    console.log("🔓 Activating tier:", tier.name);
-    setTiers((prev) =>
-      prev.map((t) => (t.id === tierId ? { ...t, isActive: true } : t)),
-    );
-    toast.success(
-      `${tier.name} tier has been activated and is now available for new subscriptions.`,
-    );
-  };
-
-  const deleteTier = (tierId: string) => {
-    const tier = tiers.find((t) => t.id === tierId);
-    if (!tier) return;
-
-    if (tier.agentCount > 0) {
+  const activateTier = async (tier: any) => {
+    if (tier?.agentCount > 0) {
       toast.error(
-        `Cannot delete ${tier.name} tier - ${tier.agentCount} agents are currently subscribed. Please migrate all agents to other tiers before deletion.`,
+        `Cannot deactivate ${tier?.subscriptionName} tier - ${tier?.agentCount} agents are currently using this plan. Please migrate them to another tier first.`,
       );
       return;
     }
 
-    console.log("🗑️ Deleting tier:", tier.name);
-    setTiers((prev) => prev.filter((t) => t.id !== tierId));
-    toast.success(`${tier.name} tier has been permanently deleted.`);
+    try {
+      const payload = {
+        ...tier,
+        isActive: true,
+      };
+
+      await axios.put(
+        `${baseURL}subscriptions/${tier.subscriptionId}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      toast.success(
+        `${tier?.subscriptionName} tier has been activated successfully.`,
+      );
+      fetchSubscriptionsTiers();
+    } catch (error) {
+      console.error("❌ Deactivate API Error:", error);
+      toast.error("Failed to deactivate tier");
+    }
+  };
+
+  const deleteTier = async (tiers: any) => {
+    // Business validation (same as your logic)
+    if (tiers?.agentCount > 0) {
+      toast.error(
+        `Cannot delete ${tiers?.subscriptionName} tier - ${tiers?.agentCount} agents are currently subscribed. Please migrate all agents before deletion.`,
+      );
+      return;
+    }
+
+    try {
+      await axios.delete(`${baseURL}subscriptions/${tiers?.subscriptionId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      toast.success(
+        `${tiers.subscriptionName} tier has been permanently deleted.`,
+      );
+      fetchSubscriptionsTiers();
+    } catch (error) {
+      console.error("❌ Delete API Error:", error);
+      toast.error("Failed to delete tier");
+    }
   };
 
   const openEditDialog = (tier: SubscriptionTier) => {
@@ -249,15 +363,23 @@ function SubscriptionTiers() {
     setIsEditDialogOpen(true);
   };
 
-  const activeTierCount = tiers.filter((t) => t.isActive).length;
-  const totalRevenue = tiers.reduce(
+  useEffect(() => {
+    fetchSubscriptionsTiers();
+  }, []);
+
+  const activeTierCount = tiers1.filter((t) => t.isActive).length;
+  const totalRevenue = tiers1.reduce(
     (sum, tier) => sum + tier.price * tier.agentCount,
     0,
   );
-  const totalAgents = tiers.reduce((sum, tier) => sum + tier.agentCount, 0);
-  const mostPopularTier = tiers.reduce((prev, current) =>
+  const totalAgents = tiers1.reduce((sum, tier) => sum + tier.agentCount, 0);
+  const mostPopularTier = tiers1.reduce((prev, current) =>
     prev.agentCount > current.agentCount ? prev : current,
   );
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <div className="space-y-6 animate-fade-in pb-5">
@@ -272,7 +394,23 @@ function SubscriptionTiers() {
           </p>
         </div>
 
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog
+          open={isCreateDialogOpen}
+          onOpenChange={(open) => {
+            setIsCreateDialogOpen(open);
+
+            if (!open) {
+              setNewTier({
+                name: "",
+                price: 0,
+                validity: 1,
+                maxPackages: 1,
+                seatLimit: 10,
+                isActive: true,
+              });
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
@@ -428,7 +566,7 @@ function SubscriptionTiers() {
           <CardContent className="flex items-center gap-4 p-4">
             <DollarSign className="w-8 h-8 text-green-600" />
             <div>
-              <p className="text-sm text-muted-foreground">Monthly Revenue</p>
+              <p className="text-sm text-muted-foreground">Annual Revenue</p>
               <p className="text-2xl text-primary font-bold">
                 ₹{totalRevenue.toLocaleString()}
               </p>
@@ -451,12 +589,12 @@ function SubscriptionTiers() {
 
       {/* Tiers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tiers.map((tier) => (
+        {tiers.map((tier: any) => (
           <Card
-            key={tier.id}
-            className={`relative overflow-hidden ${tier.name === "Premium" ? "ring-2 ring-secondary" : ""}`}
+            key={tier?.subscriptionId}
+            className={`relative overflow-hidden ${tier?.subscriptionName === "Premium" ? "ring-2 ring-secondary" : ""}`}
           >
-            {tier.name === "Premium" && (
+            {tier?.subscriptionName === "Premium" && (
               <div className="absolute top-0 right-0 bg-hajj-accent text-white px-3 py-1 text-xs font-medium">
                 POPULAR
               </div>
@@ -464,7 +602,9 @@ function SubscriptionTiers() {
 
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl">{tier.name}</CardTitle>
+                <CardTitle className="text-xl">
+                  {tier?.subscriptionName}
+                </CardTitle>
                 <div className="flex items-center gap-2">
                   <Badge
                     variant={tier.isActive ? "default" : "secondary"}
@@ -489,7 +629,7 @@ function SubscriptionTiers() {
                 </div>
               </div>
               <CardDescription>
-                {tier.agentCount} active subscribers
+                {160} active subscribers
                 {tier.agentCount > 0 && !tier.isActive && (
                   <span className="text-yellow-600 ml-2">
                     ⚠️ Has active users
@@ -504,7 +644,8 @@ function SubscriptionTiers() {
                   ₹{tier.price}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  per {tier.validity} month{tier.validity > 1 ? "s" : ""}
+                  per {tier.validityMonths} month
+                  {tier.validityMonths > 1 ? "s" : ""}
                 </p>
               </div>
 
@@ -519,20 +660,8 @@ function SubscriptionTiers() {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="w-4 h-4 text-primary/90" />
-                  <span>{tier.validity} month validity</span>
+                  <span>{tier.validityMonths} month validity</span>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Features:</p>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  {tier.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="w-1 h-1 bg-secondary rounded-full" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
               </div>
 
               <div className="flex gap-2 pt-4">
@@ -549,9 +678,9 @@ function SubscriptionTiers() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => deactivateTier(tier.id)}
+                    onClick={() => deactivateTier(tier)}
                     className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-                    disabled={tier.agentCount > 0}
+                    disabled={tier?.agentCount > 0}
                   >
                     <XCircle className="w-4 h-4 mr-1" />
                     Deactivate
@@ -560,7 +689,7 @@ function SubscriptionTiers() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => activateTier(tier.id)}
+                    onClick={() => activateTier(tier)}
                     className="text-green-600 hover:text-green-700 hover:bg-green-50"
                   >
                     <CheckCircle className="w-4 h-4 mr-1" />
@@ -577,6 +706,7 @@ function SubscriptionTiers() {
                       disabled={tier.agentCount > 0}
                     >
                       <Trash2 className="w-4 h-4" />
+                      Delete
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -601,7 +731,7 @@ function SubscriptionTiers() {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => deleteTier(tier.id)}
+                        onClick={() => deleteTier(tier)}
                         className="bg-red-600 hover:bg-red-700"
                         disabled={tier.agentCount > 0}
                       >
@@ -612,12 +742,12 @@ function SubscriptionTiers() {
                 </AlertDialog>
               </div>
 
-              {tier.agentCount > 0 && (
-                <div className="text-xs text-muted-foreground bg-blue-50 p-2 rounded">
-                  💡 Tip: To deactivate or delete this tier, first migrate all{" "}
-                  {tier.agentCount} subscribers to other active tiers.
-                </div>
-              )}
+              {/* {tier.agentCount > 0 && ( */}
+              <div className="text-xs text-muted-foreground bg-blue-50 p-2 rounded">
+                💡 Tip: To deactivate or delete this tier, first migrate all{" "}
+                {tier.agentCount} subscribers to other active tiers.
+              </div>
+              {/* )} */}
             </CardContent>
           </Card>
         ))}
@@ -640,7 +770,7 @@ function SubscriptionTiers() {
                 <Input
                   id="edit-tier-name"
                   placeholder="e.g., Professional"
-                  value={editingTier.name}
+                  value={editingTier.subscriptionName}
                   onChange={(e) =>
                     setEditingTier((prev) =>
                       prev ? { ...prev, name: e.target.value } : null,
@@ -675,11 +805,14 @@ function SubscriptionTiers() {
                     id="edit-tier-validity"
                     type="number"
                     min="1"
-                    value={editingTier.validity}
+                    value={editingTier.validityMonths}
                     onChange={(e) =>
                       setEditingTier((prev) =>
                         prev
-                          ? { ...prev, validity: parseInt(e.target.value) || 1 }
+                          ? {
+                              ...prev,
+                              validityMonths: parseInt(e.target.value) || 1,
+                            }
                           : null,
                       )
                     }
