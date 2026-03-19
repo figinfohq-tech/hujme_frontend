@@ -56,6 +56,7 @@ import AddFacility from "@/pages/adminDashboard/AddFacility";
 import AddHotelPage from "@/pages/adminDashboard/AddHotelPage";
 import EditHotelPage from "@/pages/adminDashboard/EditHotelPage";
 import ViewHotelPage from "@/pages/adminDashboard/ViewHotelPage";
+import AdminUpgradeSubscription from "@/pages/adminDashboard/AdminUpgradeSubscription";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
@@ -174,7 +175,7 @@ const MainRouts = () => {
               }
             >
               <Route index element={<AdminDashboard />} />
-              <Route path="agent-verification" element={<AgentVerification />} />
+              <Route path="agent-management" element={<AgentVerification />} />
               <Route path="subscription-tiers" element={<SubscriptionTiers />} />
               <Route path="facility-master" element={<FacilityMaster />} />
               <Route path="facility-add" element={<AddFacility />} />
@@ -182,9 +183,10 @@ const MainRouts = () => {
               <Route path="add-hotel" element={<AddHotelPage />} />
               <Route path="edit-hotel" element={<EditHotelPage />} />
               <Route path="view-hotel" element={<ViewHotelPage />} />
-              <Route path="agent-management" element={<AgentManagement />} />
+              {/* <Route path="agent-management" element={<AgentManagement />} /> */}
               <Route path="reports" element={<ReportsAnalytics />} />
               <Route path="/agent-verification-details" element={<AgentVerificationDetails />} />
+              <Route path="/upgrade-subscription" element={<AdminUpgradeSubscription />} />
             </Route>
           ) : (
             <Route path="*" element={<Navigate to="/auth" replace />} />

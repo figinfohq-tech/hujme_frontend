@@ -13,6 +13,10 @@ import {
   Calendar,
   RotateCcw,
   Filter,
+  Package,
+  BookUserIcon,
+  File,
+  Crown,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -73,25 +77,11 @@ const requiredDocuments = [
   { key: "pan_gst", name: "PAN / GST Certificate", required: true },
   { key: "owner_passport", name: "Owner's Passport Copy", required: true },
   { key: "owner_aadhar", name: "Owner's Aadhar Card", required: true },
-  {
-    key: "bank_details",
-    name: "Company Bank Account Details (Cancelled Cheque)",
-    required: true,
-  },
-  {
-    key: "address_proof",
-    name: "Office Address Proof (Electricity Bill / Rental Agreement)",
-    required: true,
-  },
-  {
-    key: "company_logo",
-    name: "Company Logo & Profile Photo",
-    required: false,
-  },
 ];
 
 function AgentVerification() {
   const [agentsData, setAgentsData] = useState<any>([]);
+  const [documentsMap, setDocumentsMap] = useState<any>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(false);
@@ -166,6 +156,30 @@ function AgentVerification() {
     }
   };
 
+  const getTierColor = (tier: string) => {
+    if (!tier) return "bg-gray-100 text-gray-800"; // ✅ handle null/undefined
+
+    const colors = [
+      "bg-blue-100 text-blue-800",
+      "bg-green-100 text-green-800",
+      "bg-purple-100 text-purple-800",
+      "bg-yellow-100 text-yellow-800",
+      "bg-pink-100 text-pink-800",
+      "bg-indigo-100 text-indigo-800",
+      "bg-orange-100 text-orange-800",
+      "bg-teal-100 text-teal-800",
+    ];
+
+    let hash = 0;
+    for (let i = 0; i < tier.length; i++) {
+      hash = tier.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const index = Math.abs(hash) % colors.length;
+
+    return colors[index];
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "APPROVED":
@@ -179,6 +193,18 @@ function AgentVerification() {
       default:
         return Clock;
     }
+  };
+
+  const getDocumentStatus = (docs: any[]) => {
+    if (!docs || docs.length === 0) return "NOT UPLOADED";
+
+    const hasRejected = docs.some((doc) => doc.status === "REJECTED");
+    if (hasRejected) return "REJECTED";
+
+    const hasPending = docs.some((doc) => doc.status === "UPLOADED");
+    if (hasPending) return "PENDING";
+
+    return "COMPLETED";
   };
 
   const filteredAgents = agentsData.filter((agent: any) => {
@@ -222,6 +248,26 @@ function AgentVerification() {
     }
   };
 
+  const fetchDocument = async (id: number) => {
+    try {
+      const token = sessionStorage.getItem("token");
+
+      const response = await axios.get(
+        `${baseURL}agent-documents/byAgent/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      setDocumentsMap((prev: any) => ({
+        ...prev,
+        [id]: response.data,
+      }));
+    } catch (error) {
+      console.error("GET API Error:", error);
+    }
+  };
+
   const fetchViewImage = async () => {
     try {
       const token = sessionStorage.getItem("token");
@@ -259,6 +305,14 @@ function AgentVerification() {
   useEffect(() => {
     fetchAgents();
   }, []);
+
+  useEffect(() => {
+    if (agentsData.length) {
+      agentsData.forEach((agent: any) => {
+        fetchDocument(agent.agentId);
+      });
+    }
+  }, [agentsData]);
 
   if (isLoading) {
     return <Loader />;
@@ -371,7 +425,7 @@ function AgentVerification() {
         <div className="space-y-4">
           {filteredAgents.map((agent: any) => {
             const StatusIcon = getStatusIcon(agent.agencyStatus);
-
+            const status = getDocumentStatus(documentsMap[agent?.agentId]);
             return (
               <Card
                 key={agent.agentId}
@@ -407,10 +461,19 @@ function AgentVerification() {
                             <Phone className="w-3 h-3" />
                             <span>{agent?.agencyPhone}</span>
                           </div>
+                        </div>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             <span>
                               {new Date(agent?.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              Last updated:{" "}
+                              {new Date(agent.updatedAt).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
@@ -418,9 +481,35 @@ function AgentVerification() {
 
                       <div className="flex flex-col gap-2 ml-4">
                         <div className="flex items-center gap-2">
+                          <Package className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {agent?.totalPackages} Packages
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <File className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              Documents
+                            </span>
+                            <Badge
+                              variant={
+                                status === "COMPLETED"
+                                  ? "default"
+                                  : status === "REJECTED"
+                                    ? "destructive"
+                                    : "secondary"
+                              }
+                            >
+                              {status}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">
-                            Documents: {"2"}/
+                            Documents:{" "}
+                            {documentsMap[agent.agentId]?.length || 0}/
                             {requiredDocuments.filter((d) => d.required).length}{" "}
                             required uploaded
                           </span>
@@ -431,17 +520,10 @@ function AgentVerification() {
                             {agent?.address}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            Last updated:{" "}
-                            {new Date(agent.updatedAt).toLocaleDateString()}
-                          </span>
-                        </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-end gap-4">
                       <Badge
                         className={`${getStatusColor(agent?.agencyStatus)} flex items-center gap-1`}
                       >
@@ -449,19 +531,43 @@ function AgentVerification() {
                         {agent?.agencyStatus.replace("_", " ").toUpperCase()}
                       </Badge>
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          navigate("/agent-verification-details", {
-                            state: { agent },
-                          })
-                        }
-                        className="hover:bg-secondary"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        Review
-                      </Button>
+                      {/* <Badge className={getStatusColor(agent?.status)}>
+                          {agent.status}
+                        </Badge> */}
+                      <span className="text-sm text-muted-foreground">
+                        Active subscription:{" "}
+                        <Badge className={getTierColor(agent?.subscription)}>
+                          {agent?.subscription}
+                        </Badge>
+                      </span>
+
+                      <div className="flex items-center gap-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            navigate("/agent-verification-details", {
+                              state: { agent },
+                            })
+                          }
+                          className="hover:bg-secondary"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Review
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            navigate("/upgrade-subscription", {
+                              state: { agent },
+                            })
+                          }
+                        >
+                          <Crown className="w-4 h-4 mr-2" />
+                          Change Tier
+                        </Button>
+                      </div>
                     </div>
                   </div>
 

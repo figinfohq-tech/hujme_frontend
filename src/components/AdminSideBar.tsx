@@ -31,9 +31,9 @@ const AdminSideBar = () => {
       path: "/",
     },
     {
-      name: "Agent Verification",
-      icon: <FileCheck size={20} />,
-      path: "/agent-verification",
+      name: "Agent management",
+      icon: <Users size={20} />,
+      path: "/agent-management",
     },
     {
       name: "Subscription Tiers",
@@ -42,7 +42,7 @@ const AdminSideBar = () => {
     },
     { name: "Facility Master", icon: <Building size={20} />, path: "/facility-master" },
     { name: "Hotel Master", icon: <Building2 size={20} />, path: "/hotel-master" },
-    { name: "Agent Management", icon: <Users size={20} />, path: "/agent-management" },
+    // { name: "Agent Management", icon: <Users size={20} />, path: "/agent-management" },
     {
       name: "Reports & Analytics",
       icon: <BarChart3 size={20} />,

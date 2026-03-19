@@ -417,10 +417,16 @@ function AgentVerificationDetails() {
                   {agentsData?.gstnumber}
                 </p>
               </div>
-              <div className="col-span-2">
+              <div className="">
                 <p className="text-sm font-medium">Office Address</p>
                 <p className="text-sm text-muted-foreground">
                   {agentsData?.address}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">License</p>
+                <p className="text-sm text-muted-foreground">
+                  {agentsData?.license}
                 </p>
               </div>
             </div>

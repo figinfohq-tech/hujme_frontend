@@ -536,7 +536,7 @@ export const DocumentsAgent = () => {
               {uploadedCount === requiredDocuments.length && (
                 <div className="flex items-center gap-2 text-green-600 text-sm">
                   <CheckCircle className="h-4 w-4" />
-                  <span>All documents uploaded for {currentPilgrim.name}!</span>
+                  <span>All documents uploaded for {currentPilgrim?.name}!</span>
                 </div>
               )}
             </CardContent>
