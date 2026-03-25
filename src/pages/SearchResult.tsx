@@ -25,6 +25,7 @@ import {
   Eye,
   Search,
   Bed,
+  ImageIcon,
 } from "lucide-react";
 // import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -972,16 +973,21 @@ const SearchResults = () => {
                         {/* Price and Actions */}
                         <div className="flex justify-between mt-2 items-center">
                           {result?.roomType ? (
-                            // <div className="flex justify-end">
-                            <div className="flex items-center gap-2 px-3 py-1.5 mb-2 bg-secondary/30 rounded-lg border-2 border-secondary/50 text-sm font-medium shadow-sm">
+                            // <div className="flex gap-2 items-center">
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary/30 rounded-lg border-2 border-secondary/50 text-sm font-medium shadow-sm">
                               <Bed className="w-4 h-4" />
                               <span>{result.roomType}</span>
                             </div>
-                          ) : // </div>
-
+                          ) : // {/* <Button
+                          //   size="sm"
+                          //   className="flex items-center gap-2 text-white shadow-md hover:scale-[1.02] hover:shadow-lg transition-all duration-200">
+                          //   <ImageIcon className="w-4 h-4" />
+                          //   Media Gallery
+                          // </Button> */}
+                          // </div>
                           null}
                           <div></div>
-                          <div className="flex flex-wrap gap-2 justify-end">
+                          <div className="flex gap-2 justify-end">
                             <Button
                               variant={
                                 compareList.includes(result.packageId)
@@ -998,6 +1004,30 @@ const SearchResults = () => {
                               {compareList.includes(result.packageId)
                                 ? "Remove"
                                 : "Compare"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="bg-gradient-button text-primary-foreground hover:opacity-90 transition-smooth"
+                              onClick={() => {
+                                const token = sessionStorage.getItem("token");
+                                const role = sessionStorage.getItem("role");
+                                return token
+                                  ? role === "USER"
+                                    ? navigate(`/customer/media-library`, {
+                                        state: {
+                                          result: result,
+                                        },
+                                      })
+                                    : null
+                                  : navigate(`/media-library`, {
+                                      state: {
+                                        result: result,
+                                      },
+                                    });
+                              }}
+                            >
+                              {/* <ImageIcon className="w-4 h-4" /> */}
+                              Media
                             </Button>
                             <Button
                               size="sm"

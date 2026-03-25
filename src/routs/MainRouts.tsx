@@ -57,6 +57,8 @@ import AddHotelPage from "@/pages/adminDashboard/AddHotelPage";
 import EditHotelPage from "@/pages/adminDashboard/EditHotelPage";
 import ViewHotelPage from "@/pages/adminDashboard/ViewHotelPage";
 import AdminUpgradeSubscription from "@/pages/adminDashboard/AdminUpgradeSubscription";
+import { MediaGallery } from "@/pages/agents/MediaGallery";
+import { MediaLibrary } from "@/pages/user/MediaLibrary";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
@@ -83,6 +85,7 @@ const MainRouts = () => {
           <Route path="/agent-registration" element={<AgentRegistration />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/dashboard/search" element={<SearchResults />} />
+          <Route path="/media-library" element={<MediaLibrary />} />
           <Route path="/package/:id" element={<PackageDetails />} />
           <Route path="/compare" element={<ComparePackages />} />
           <Route path="/payment-option" element={<ChoosePaymentOption />} />
@@ -116,6 +119,7 @@ const MainRouts = () => {
             <Route path="/" element={<UserSideBar />}>
               <Route index element={<Home />} />
               <Route path="/customer/search" element={<SearchResults />} />
+              <Route path="/customer/media-library" element={<MediaLibrary />} />
               <Route
                 path="/customer/package/:id"
                 element={<PackageDetails />}
@@ -152,6 +156,7 @@ const MainRouts = () => {
               <Route path="profiles" element={<ProfilePage />} />
               <Route path="bank-account" element={<BankAccountsPage />} />
               <Route path="subscription" element={<SubscriptionPage />} />
+              <Route path="media-gallery" element={<MediaGallery />} />
               <Route
                 path="subscription-details"
                 element={<SubscriptionDetails />}

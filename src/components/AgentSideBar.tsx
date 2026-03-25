@@ -11,6 +11,7 @@ import {
   Star,
   Crown,
   Landmark,
+  Images,
 } from "lucide-react";
 
 const AgentSidebar = () => {
@@ -39,6 +40,11 @@ const AgentSidebar = () => {
       name: "Analytics",
       icon: <BarChart2 size={20} />,
       path: "/analytics",
+    },
+    {
+      name: "Media Gallery",
+      icon: <Images size={20} />,
+      path: "/media-gallery",
     },
   ];
 
