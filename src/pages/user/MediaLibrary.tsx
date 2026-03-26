@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ImageOff } from "lucide-react";
+import { ArrowLeft, ImageOff } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { MediaCard } from "@/components/features/MediaCard";
 import { MediaCardSkeleton } from "@/components/features/MediaCardSkeleton";
@@ -10,7 +10,8 @@ import { useMediaData } from "@/hooks/useMediaData";
 import type { MediaItem, MediaType } from "@/types";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
+import { Button } from "@/components/ui/button";
 
 export const MediaLibrary = () => {
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
@@ -25,7 +26,7 @@ export const MediaLibrary = () => {
   const [isLoading, setIsLoading] = useState<any>(false);
 
   const token = sessionStorage.getItem("token");
-
+  const navigate = useNavigate();
   const location = useLocation();
 
   const result = location.state?.result;
@@ -113,13 +114,23 @@ export const MediaLibrary = () => {
     <>
       {/* <Header /> */}
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-4">
-          <h1 className="text-3xl font-bold mb-0 text-primary">
-            Media Library
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Browse our collection of videos and images
-          </p>
+        <div className="max-w-full container mx-auto">
+          <div className="flex gap-1 my-3">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="text-primary/90 hover:text-foreground my-3"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+            </Button>
+            <div className="my-2">
+              <h1 className="text-2xl font-bold text-primary">Media Library</h1>
+
+              <p className="text-primary/90 text-sm mt-1">
+                Browse our collection of videos and images
+              </p>
+            </div>
+          </div>
         </div>
 
         <MediaFilters
