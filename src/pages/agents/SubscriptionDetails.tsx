@@ -397,7 +397,7 @@ function SubscriptionDetails() {
               <div className="text-2xl font-bold text-hajj-primary">
                 ₹{planeById?.price}
               </div>
-              <p className="text-sm text-muted-foreground">Monthly Cost</p>
+              <p className="text-sm text-muted-foreground">Subscription Cost</p>
             </div>
 
             <div className="text-center">
@@ -611,7 +611,7 @@ function SubscriptionDetails() {
             Usage History
           </CardTitle>
           <CardDescription>
-            Your monthly package and seat usage trends
+            Your Subscription package and seat usage trends
           </CardDescription>
         </CardHeader>
         <CardContent>

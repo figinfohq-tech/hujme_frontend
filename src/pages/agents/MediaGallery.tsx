@@ -6,6 +6,7 @@ import {
   Trash2,
   PlayCircle,
   Image as ImageIcon,
+  Eye,
 } from "lucide-react";
 import { MediaForm } from "@/components/forms/MediaForm";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
 import { toast } from "react-toastify";
 import Loader from "@/components/Loader";
+import { MediaViewer } from "@/components/features/MediaViewer";
 
 export const MediaGallery = () => {
   const navigate = useNavigate();
@@ -41,6 +43,7 @@ export const MediaGallery = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mediaToDelete, setMediaToDelete] = useState<MediaItem | null>(null);
   const [agent, setAgent] = useState<any>({});
@@ -66,9 +69,12 @@ export const MediaGallery = () => {
   const fetchMedia = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`${baseURL}media-library`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${baseURL}media-library/agent/${agent.agentId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       setIsMedia(response.data);
     } catch (error) {
       console.error("Error fetching Agent:", error);
@@ -81,6 +87,12 @@ export const MediaGallery = () => {
     fetchAgent();
     fetchMedia();
   }, []);
+
+  useEffect(() => {
+    if (agent.agentId) {
+      fetchMedia();
+    }
+  }, [agent.agentId]);
 
   const handleOpenCreate = () => {
     setFormMode("create");
@@ -97,6 +109,16 @@ export const MediaGallery = () => {
   const handleCloseForm = () => {
     setFormOpen(false);
     setSelectedMedia(null);
+  };
+
+  const handleCloseViewer = () => {
+    setViewerOpen(false);
+    setTimeout(() => setSelectedMedia(null), 200);
+  };
+
+  const handleCardClick = (item: MediaItem) => {
+    setSelectedMedia(item);
+    setViewerOpen(true);
   };
 
   // const handleSubmit = async (data: any) => {
@@ -274,7 +296,7 @@ export const MediaGallery = () => {
                 isMedia.map((item: any) => (
                   <TableRow key={item.mediaId}>
                     <TableCell>
-                      {item?.mediaType === "video" ? (
+                      {item?.mediaType === "VIDEO" ? (
                         <PlayCircle className="h-5 w-5 text-primary" />
                       ) : (
                         <ImageIcon className="h-5 w-5 text-secondary" />
@@ -324,13 +346,20 @@ export const MediaGallery = () => {
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1">
                         <Button
                           size="icon"
                           variant="ghost"
                           onClick={() => handleOpenEdit(item)}
                         >
                           <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleCardClick(item)}
+                        >
+                          <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           size="icon"
@@ -376,6 +405,13 @@ export const MediaGallery = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* media Viewer */}
+      <MediaViewer
+        media={selectedMedia}
+        open={viewerOpen}
+        onClose={handleCloseViewer}
+      />
     </>
   );
 };

@@ -9,17 +9,51 @@ interface MediaCardProps {
 }
 
 export const MediaCard = ({ media, onClick }: MediaCardProps) => {
+  const getEmbedUrl = (url: string) => {
+    if (!url) return "";
+
+    // youtu.be format
+    if (url.includes("youtu.be")) {
+      const id = url.split("/").pop()?.split("?")[0];
+      return `https://www.youtube.com/embed/${id}`;
+    }
+
+    // youtube watch format
+    if (url.includes("youtube.com/watch")) {
+      const id = new URL(url).searchParams.get("v");
+      return `https://www.youtube.com/embed/${id}`;
+    }
+
+    return url;
+  };
+
   return (
     <Card
       className="h-full cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 p-0"
       onClick={onClick}
     >
       <div className="relative">
-        <img
-          src={media?.thumbnailUrl}
-          alt={media?.title}
-          className="w-full h-48 object-cover rounded-t-lg"
-        />
+        {media?.mediaType === "VIDEO" ? (
+          <div className="relative">
+            <iframe
+              width="100%"
+              height="100%"
+              className="w-full h-48 object-cover rounded-t-lg pointer-events-none"
+              src={getEmbedUrl(media?.mediaUrl)}
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            />
+
+            {/* Overlay for Click */}
+            <div className="absolute inset-0 z-10" onClick={onClick}></div>
+          </div>
+        ) : (
+          <img
+            src={media?.thumbnailUrl}
+            alt={media?.title}
+            className="w-full h-48 object-cover rounded-t-lg"
+          />
+        )}
         <div className="absolute top-2 right-2 bg-black/60 rounded-full p-2">
           {media?.mediaType === "VIDEO" ? (
             <PlayCircle className="h-5 w-5 text-white" />
