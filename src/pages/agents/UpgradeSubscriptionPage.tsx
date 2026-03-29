@@ -5,6 +5,8 @@ import {
   Users,
   Calendar,
   CheckCircle,
+  Video,
+  Image,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,55 +32,6 @@ import { toast } from "react-toastify";
 import Loader from "@/components/Loader";
 
 const UpgradeSubscriptionPage = () => {
-  const [availableTiers] = useState<any>([
-    {
-      id: "1",
-      name: "Basic",
-      price: 990,
-      validity: 1,
-      maxPackages: 5,
-      seatLimit: 50,
-      features: [
-        "Basic Support",
-        "Standard Facilities",
-        "Email Notifications",
-        "Basic Analytics",
-      ],
-    },
-    {
-      id: "2",
-      name: "Premium",
-      price: 2990,
-      validity: 3,
-      maxPackages: 20,
-      seatLimit: 200,
-      features: [
-        "Priority Support",
-        "All Facilities",
-        "SMS & Email Notifications",
-        "Advanced Analytics",
-        "Custom Branding",
-      ],
-      popular: true,
-    },
-    {
-      id: "3",
-      name: "Enterprise",
-      price: 5990,
-      validity: 6,
-      maxPackages: 100,
-      seatLimit: 1000,
-      features: [
-        "24/7 Support",
-        "Custom Facilities",
-        "All Notifications",
-        "Premium Analytics",
-        "API Access",
-        "Dedicated Manager",
-      ],
-    },
-  ]);
-
   const [subscriptions, setSubscriptions] = useState([]);
   const [selectedTier, setSelectedTier] = useState<any>(null);
   const [agentSubscription, setAgentSubscription] = useState<any[]>([]);
@@ -116,7 +69,7 @@ const UpgradeSubscriptionPage = () => {
         },
       });
 
-      setSubscriptions(res.data);
+      setSubscriptions(res.data);      
       setLoading(false);
     } catch (error) {
       console.error("API Error:", error);
@@ -227,7 +180,7 @@ const UpgradeSubscriptionPage = () => {
 
       {/* SAME cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        {subscriptions?.map((tier) => (
+        {subscriptions?.map((tier: any) => (
           <Card
             key={tier?.subscriptionId}
             className={`relative cursor-pointer transition-all ${
@@ -260,32 +213,33 @@ const UpgradeSubscriptionPage = () => {
             </CardHeader>
 
             <CardContent className="space-y-4">
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Package className="w-4 h-4 text-primary/90" />
-                  <span>{tier?.maxPackages} packages</span>
+                  <span>{tier.maxPackages} packages</span>
                 </div>
+
                 <div className="flex items-center gap-2 text-sm">
                   <Users className="w-4 h-4 text-primary/90" />
-                  <span>{tier?.seatLimit} seats limit</span>
+                  <span>{tier.seatLimit} seats limit</span>
                 </div>
+
                 <div className="flex items-center gap-2 text-sm">
+                  <Image className="w-4 h-4 text-primary/90" />
+                  <span>{tier.maxPhotos} images limit</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm">
+                  <Video className="w-4 h-4 text-primary/90" />
+                  <span>{tier.maxVideos} videos limit</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm col-span-2">
                   <Calendar className="w-4 h-4 text-primary/90" />
-                  <span>{tier?.validityMonths} month validity</span>
+                  <span>{tier.validityMonths} month validity</span>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Features:</p>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  {availableTiers?.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <CheckCircle className="w-3 h-3 text-green-600" />
-                      {feature.features}
-                    </li>
-                  ))}
-                </ul>
-              </div>
 
               {tier.subscriptionId === activeSubscription?.subscriptionId && (
                 <Badge className="w-full justify-center bg-green-200 text-green-800">

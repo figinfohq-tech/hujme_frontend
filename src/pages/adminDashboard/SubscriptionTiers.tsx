@@ -44,6 +44,8 @@ import {
   CheckCircle,
   XCircle,
   IndianRupee,
+  Image,
+  Video,
 } from "lucide-react";
 import axios from "axios";
 import { baseURL } from "@/utils/constant/url";
@@ -131,6 +133,8 @@ function SubscriptionTiers() {
     validity: 1,
     maxPackages: 1,
     seatLimit: 10,
+    maxPhotos: 0,
+    maxVideos: 0,
     isActive: true,
   });
 
@@ -177,9 +181,11 @@ function SubscriptionTiers() {
         validityMonths: newTier.validity,
         maxPackages: newTier.maxPackages,
         seatLimit: newTier.seatLimit,
+        maxPhotos: newTier.maxPhotos,
+        maxVideos: newTier.maxVideos,
         isActive: newTier.isActive,
       };
-
+      
       const response = await axios.post(`${baseURL}subscriptions`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -235,6 +241,8 @@ function SubscriptionTiers() {
         validityMonths: editingTier.validityMonths,
         maxPackages: editingTier.maxPackages,
         seatLimit: editingTier.seatLimit,
+        maxPhotos: editingTier.maxPhotos,
+        maxVideos: editingTier.maxVideos,
         isActive: editingTier.isActive,
       };
 
@@ -513,6 +521,39 @@ function SubscriptionTiers() {
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="max-images">Images Limit *</Label>
+                  <Input
+                    id="max-images"
+                    type="number"
+                    min="1"
+                    value={newTier.maxPhotos}
+                    onChange={(e) =>
+                      setNewTier((prev) => ({
+                        ...prev,
+                        maxPhotos: parseInt(e.target.value) || 1,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="max-videos">Videos Limit *</Label>
+                  <Input
+                    id="max-videos"
+                    type="number"
+                    min="1"
+                    value={newTier.maxVideos}
+                    onChange={(e) =>
+                      setNewTier((prev) => ({
+                        ...prev,
+                        maxVideos: parseInt(e.target.value) || 10,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
 
               <div className="flex items-center space-x-2">
                 <Switch
@@ -657,16 +698,28 @@ function SubscriptionTiers() {
                 </p>
               </div>
 
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Package className="w-4 h-4 text-primary/90" />
                   <span>{tier.maxPackages} packages</span>
                 </div>
+
                 <div className="flex items-center gap-2 text-sm">
                   <Users className="w-4 h-4 text-primary/90" />
                   <span>{tier.seatLimit} seats limit</span>
                 </div>
+
                 <div className="flex items-center gap-2 text-sm">
+                  <Image className="w-4 h-4 text-primary/90" />
+                  <span>{tier.maxPhotos} images limit</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm">
+                  <Video className="w-4 h-4 text-primary/90" />
+                  <span>{tier.maxVideos} videos limit</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm col-span-2">
                   <Calendar className="w-4 h-4 text-primary/90" />
                   <span>{tier.validityMonths} month validity</span>
                 </div>
@@ -864,6 +917,47 @@ function SubscriptionTiers() {
                           ? {
                               ...prev,
                               seatLimit: parseInt(e.target.value) || 10,
+                            }
+                          : null,
+                      )
+                    }
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-max-videos">Images Limit *</Label>
+                  <Input
+                    id="edit-max-videos"
+                    type="number"
+                    min="1"
+                    value={editingTier.maxPhotos}
+                    onChange={(e) =>
+                      setEditingTier((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              maxPhotos: parseInt(e.target.value) || 1,
+                            }
+                          : null,
+                      )
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-image-limit">Videos Limit *</Label>
+                  <Input
+                    id="edit-image-limit"
+                    type="number"
+                    min="1"
+                    value={editingTier.maxVideos}
+                    onChange={(e) =>
+                      setEditingTier((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              maxVideos: parseInt(e.target.value) || 10,
                             }
                           : null,
                       )

@@ -668,6 +668,8 @@ function SubscriptionDetails() {
                     <th className="px-4 py-3 font-bold">Plan Name</th>
                     <th className="px-4 py-3 font-bold">Package Limit</th>
                     <th className="px-4 py-3 font-bold">Seat Limit</th>
+                    <th className="px-4 py-3 font-bold">Image Limit</th>
+                    <th className="px-4 py-3 font-bold">Video Limit</th>
                     <th className="px-4 py-3 font-bold">Price</th>
                     <th className="px-4 py-3 font-bold">Start Date</th>
                     <th className="px-4 py-3 font-bold">End Date</th>
@@ -693,6 +695,12 @@ function SubscriptionDetails() {
 
                       <td className="px-4 py-3 text-gray-600">
                         {item?.seatLimit}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {item?.maxPhotos}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {item?.maxVideos}
                       </td>
 
                       <td className="px-4 py-3 text-gray-700 font-semibold">
