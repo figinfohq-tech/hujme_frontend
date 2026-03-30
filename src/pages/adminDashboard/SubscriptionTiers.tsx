@@ -35,7 +35,6 @@ import {
   Plus,
   Edit,
   Trash2,
-  DollarSign,
   Calendar,
   Package,
   Users,
@@ -65,64 +64,8 @@ interface SubscriptionTier {
 }
 
 function SubscriptionTiers() {
-  const [tiers1, setTiers1] = useState<SubscriptionTier[]>([
-    {
-      id: "1",
-      name: "Basic",
-      price: 990,
-      validity: 1,
-      maxPackages: 5,
-      seatLimit: 50,
-      isActive: true,
-      features: ["Basic Support", "Standard Facilities", "Email Notifications"],
-      activeSubscriptionCount: 45,
-    },
-    {
-      id: "2",
-      name: "Premium",
-      price: 2990,
-      validity: 3,
-      maxPackages: 20,
-      seatLimit: 200,
-      isActive: true,
-      features: [
-        "Priority Support",
-        "All Facilities",
-        "SMS & Email Notifications",
-        "Analytics Dashboard",
-      ],
-      activeSubscriptionCount: 89,
-    },
-    {
-      id: "3",
-      name: "Enterprise",
-      price: 5990,
-      validity: 6,
-      maxPackages: 100,
-      seatLimit: 1000,
-      isActive: true,
-      features: [
-        "24/7 Support",
-        "Custom Facilities",
-        "All Notifications",
-        "Advanced Analytics",
-        "API Access",
-      ],
-      activeSubscriptionCount: 23,
-    },
-    {
-      id: "4",
-      name: "Starter",
-      price: 490,
-      validity: 1,
-      maxPackages: 2,
-      seatLimit: 20,
-      isActive: false,
-      features: ["Email Support", "Basic Facilities"],
-      activeSubscriptionCount: 0,
-    },
-  ]);
   const [tiers, setTiers] = useState<any>([]);
+  const [subscriptionHeader, setSubscriptionHeader] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -150,6 +93,21 @@ function SubscriptionTiers() {
       });
 
       setTiers(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Hotels API Error", error);
+      setIsLoading(false);
+    }
+  };
+  const fetchSubscriptionsHeader = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${baseURL}subscriptions/stats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setSubscriptionHeader(response.data);
       setIsLoading(false);
     } catch (error) {
       console.error("Hotels API Error", error);
@@ -185,7 +143,7 @@ function SubscriptionTiers() {
         maxVideos: newTier.maxVideos,
         isActive: newTier.isActive,
       };
-      
+
       const response = await axios.post(`${baseURL}subscriptions`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -374,24 +332,13 @@ function SubscriptionTiers() {
 
   useEffect(() => {
     fetchSubscriptionsTiers();
+    fetchSubscriptionsHeader();
   }, []);
 
-  const activeTierCount = tiers.filter((t) => t.isActive).length;
-  const totalRevenue = tiers.reduce(
-    (sum, tier) => sum + tier.price * tier.activeSubscriptionCount,
-    0,
-  );
-  const totalAgents = tiers.reduce(
-    (sum, tier) => sum + tier.activeSubscriptionCount,
-    0,
-  );
-  const mostPopularTier = tiers?.length
-    ? tiers.reduce((prev, current) =>
-        prev.activeSubscriptionCount > current.activeSubscriptionCount
-          ? prev
-          : current,
-      )
-    : null;
+  const mostPopularTier =
+    tiers.find(
+      (t: any) => t.subscriptionId === subscriptionHeader?.mostPopularTier,
+    ) || null;
 
   if (isLoading) {
     return <Loader />;
@@ -595,7 +542,7 @@ function SubscriptionTiers() {
             <div>
               <p className="text-sm text-muted-foreground">Active Tiers</p>
               <p className="text-2xl text-primary font-bold">
-                {activeTierCount}
+                {subscriptionHeader?.activeTiers}
               </p>
             </div>
           </CardContent>
@@ -606,7 +553,9 @@ function SubscriptionTiers() {
             <Users className="w-8 h-8 text-primary" />
             <div>
               <p className="text-sm text-muted-foreground">Total Subscribers</p>
-              <p className="text-2xl text-primary font-bold">{totalAgents}</p>
+              <p className="text-2xl text-primary font-bold">
+                {subscriptionHeader?.activeSubscribers}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -617,7 +566,7 @@ function SubscriptionTiers() {
             <div>
               <p className="text-sm text-muted-foreground">Annual Revenue</p>
               <p className="text-2xl text-primary font-bold">
-                {(totalRevenue * 12).toLocaleString()}
+                {subscriptionHeader?.totalRevenue?.toLocaleString()}
               </p>
             </div>
           </CardContent>
@@ -731,7 +680,7 @@ function SubscriptionTiers() {
                   size="sm"
                   onClick={() => openEditDialog(tier)}
                 >
-                  <Edit className="w-4 h-4 mr-2" />
+                  <Edit className="w-4 h-4" />
                   Edit
                 </Button>
 
@@ -743,7 +692,7 @@ function SubscriptionTiers() {
                     className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
                     disabled={tier?.activeSubscriptionCount > 0}
                   >
-                    <XCircle className="w-4 h-4 mr-1" />
+                    <XCircle className="w-4 h-4" />
                     Deactivate
                   </Button>
                 ) : (
@@ -753,7 +702,7 @@ function SubscriptionTiers() {
                     onClick={() => activateTier(tier)}
                     className="text-green-600 hover:text-green-700 hover:bg-green-50"
                   >
-                    <CheckCircle className="w-4 h-4 mr-1" />
+                    <CheckCircle className="w-4 h-4" />
                     Activate
                   </Button>
                 )}

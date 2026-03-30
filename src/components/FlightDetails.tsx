@@ -119,7 +119,7 @@ interface CityType {
   cityName: string;
 }
 
-const FlightDetails = forwardRef(({ pkg, packageId }, ref) => {
+const FlightDetails = forwardRef(({ pkg, packageId, isDuplicate }, ref) => {
   const [addedFlights, setAddedFlights] = useState<FlightSegment[]>([]);
   const [flightDetails, setFlightDetails] = useState([]);
   const [isLoader, setIsLoader] = useState(false);
@@ -150,7 +150,7 @@ const FlightDetails = forwardRef(({ pkg, packageId }, ref) => {
     useState<any>(null);
   const [previewArrivalAirport, setPreviewArrivalAirport] = useState<any>(null);
 
-  const id = pkg?.packageId;
+  const id = isDuplicate ? packageId : pkg?.packageId;
 
   const fetchCountries = async () => {
     try {
@@ -615,7 +615,18 @@ const FlightDetails = forwardRef(({ pkg, packageId }, ref) => {
         };
 
         // ✅ ONLY UPDATE IF EXISTING + EDITED
-        if (flight.isExisting && flight.isEdited) {
+        if (isDuplicate) {
+          const response = await axios.post(
+            `${baseURL}package-airlines`,
+            payload,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
+        } else if (flight.isExisting && flight.isEdited) {
           const response = await axios.put(
             `${baseURL}package-airlines/${flight.id}`,
             payload,

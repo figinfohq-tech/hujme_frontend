@@ -125,8 +125,9 @@ export function AddNewPackage({
   const [flightSaved, setFlightSaved] = useState(false);
 
   const navigate = useNavigate();
-  const { state } = useLocation();
-  const pkg: any = state?.pkg;
+  const location = useLocation();
+  const isDuplicate = location.state?.isDuplicate;
+  const pkg = location.state;
 
   const hotelRef = useRef(null);
   const flightRef = useRef(null);
@@ -505,14 +506,27 @@ export function AddNewPackage({
         };
         let response;
 
-        if (pkg) {
+        if (isDuplicate === true) {
+          // ---------------------------------
+          //       DUPLICATE API (POST)
+          // ---------------------------------
+          response = await axios.post(`${baseURL}packages/create`, payload, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          toast.success("Package duplicated successfully!");
+        } else if (pkg) {
           // ---------------------------------
           //       UPDATE API (PUT)
           // ---------------------------------
           const updatePayload = {
             ...payload,
-            packageStatus: pkg.packageStatus, // 👈 only for update
+            packageStatus: pkg.packageStatus,
           };
+
           response = await axios.put(
             `${baseURL}packages/${pkg.packageId}`,
             updatePayload,
@@ -523,7 +537,6 @@ export function AddNewPackage({
               },
             },
           );
-          setIsLoader(false);
 
           toast.success("Package updated successfully!");
         } else {
@@ -537,15 +550,16 @@ export function AddNewPackage({
             },
           });
 
-          setIsLoader(false);
-          setPackagesData(response.data);
-
           toast.success("Package created successfully!");
-          if (pendingTab) {
-            setActiveTab(pendingTab);
-          }
         }
 
+        // common code
+        setIsLoader(false);
+        setPackagesData(response.data);
+
+        if (pendingTab) {
+          setActiveTab(pendingTab);
+        }
         // resetForm();
         // onOpenChange(false);
       } catch (error) {
@@ -582,13 +596,19 @@ export function AddNewPackage({
 
         <div className="space-y-1 mb-5">
           <h1 className="scroll-m-20 text-3xl font-semibold tracking-tight">
-            {pkg ? "Update Package" : "Add New Package"}
+            {isDuplicate
+              ? "Duplicate Package"
+              : pkg
+                ? "Update Package"
+                : "Add New Package"}
           </h1>
 
           <p className="text-muted-foreground">
-            {pkg
-              ? "Update the package details below"
-              : "Fill in the details to create a new package"}
+            {isDuplicate
+              ? "Modify the duplicated package details below"
+              : pkg
+                ? "Update the package details below"
+                : "Fill in the details to create a new package"}
           </p>
         </div>
 
@@ -1047,7 +1067,7 @@ export function AddNewPackage({
                   <Button variant="outline" onClick={() => navigate(-1)}>
                     Cancel
                   </Button>
-                  {pkg ? (
+                  {/* {pkg ? (
                     <Button type="submit">
                       {isLoader ? "Updating..." : "Update Package"}
                     </Button>
@@ -1055,7 +1075,10 @@ export function AddNewPackage({
                     <Button type="submit">
                       {isLoader ? "Creating..." : "Create Package"}
                     </Button>
-                  )}
+                  )} */}
+                  <Button type="submit">
+                    {isLoader ? "Saving..." : "Save Package"}
+                  </Button>
                 </div>
               </form>
             </TabsContent>
@@ -1064,7 +1087,8 @@ export function AddNewPackage({
               <HotelDetails
                 ref={hotelRef}
                 pkg={pkg}
-                packageId={packageData?.packageId || pkg?.packageId}
+                isDuplicate={isDuplicate}
+                packageId={packageData?.packageId}
                 setHotelSaved={setHotelSaved}
               />
             </TabsContent>
@@ -1074,11 +1098,16 @@ export function AddNewPackage({
               <FlightDetails
                 ref={flightRef}
                 pkg={pkg}
-                packageId={packageData.packageId}
+                packageId={ packageData?.packageId }
+                isDuplicate={isDuplicate}
               />
             </TabsContent>
             <TabsContent value="facilities" className="space-y-6 mt-4">
-              <Facilities pkg={pkg} packageId={packageData.packageId} />
+              <Facilities
+                pkg={pkg}
+               packageId={ packageData?.packageId }
+                isDuplicate={isDuplicate}
+              />
             </TabsContent>
           </Tabs>
           {/* </form> */}

@@ -19,7 +19,7 @@ import { baseURL } from "@/utils/constant/url";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 
-const Facilities = ({ pkg, packageId }) => {
+const Facilities = ({ pkg, packageId, isDuplicate }) => {
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [facilities, setFacilities] = useState([]);
   const [facilitiesDetails, setFacilitiesDetails] = useState([]);
@@ -138,11 +138,11 @@ const Facilities = ({ pkg, packageId }) => {
       const token = sessionStorage.getItem("token");
       if (!token) return toast.error("Token missing");
 
-      const finalPackageId = pkg ? id : packageId;
+      const finalPackageId =  packageId ?? id;
       if (!finalPackageId) return toast.error("Package missing — create first");
 
-      if (selectedFacilities.length === 0)
-        return toast.error("Select at least one facility");
+      // if (selectedFacilities.length === 0)
+      //   return toast.error("Select at least one facility");
 
       await axios.post(`${baseURL}package-facilities/bulk-create`, null, {
         params: {

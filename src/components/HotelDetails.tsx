@@ -58,7 +58,7 @@ interface SelectedHotel {
 }
 
 const HotelDetails = forwardRef((props: any, ref) => {
-  const { pkg, packageId, setHotelSaved } = props;
+  const { pkg, packageId, setHotelSaved, isDuplicate } = props;
   const [addedHotels, setAddedHotels] = useState<SelectedHotel[]>([]);
   const [countries, setCountries] = useState<any[]>([]);
   const [states, setStates] = useState<any[]>([]);
@@ -97,6 +97,7 @@ const HotelDetails = forwardRef((props: any, ref) => {
   );
 
   const id = pkg?.packageId;
+
   const navigate = useNavigate();
 
   // Fetch lists
@@ -505,25 +506,120 @@ const HotelDetails = forwardRef((props: any, ref) => {
     }
   };
 
+  // const handleSubmitHotels = async () => {
+  //   try {
+  //     setIsLoader(true);
+  //     const token = sessionStorage.getItem("token");
+  //     if (!addedHotels || addedHotels.length === 0) {
+  //       toast.error("Please add at least one hotel");
+  //       return false;
+  //     }
+
+  //     if (!pkg) {
+  //       if (!packageId) {
+  //         toast.error("package missing — once please create package");
+  //         return;
+  //       }
+  //     }
+
+  //     for (const hotel of addedHotels) {
+  //       const payload = {
+  //         packageId: id ?? packageId,
+  //         hotelId: Number(hotel.hotelId),
+  //         checkinDate: convertToISO(hotel.checkInDate, hotel.checkInTime),
+  //         checkoutDate: convertToISO(hotel.checkOutDate, hotel.checkOutTime),
+  //         checkinTime: convertToISO(hotel.checkInDate, hotel.checkInTime),
+  //         checkoutTime: convertToISO(hotel.checkOutDate, hotel.checkOutTime),
+  //         daysStay: calculateDaysStay(hotel.checkInDate, hotel.checkOutDate),
+  //         createdBy: 0,
+  //         updatedBy: 0,
+  //       };
+
+  //       if (isDuplicate) {
+  //         // CREATE only new records
+  //         const response = await axios.post(
+  //           `${baseURL}package-hotels`,
+  //           payload,
+  //           {
+  //             headers: { Authorization: `Bearer ${token}` },
+  //           },
+  //         );
+  //         const newPackageId =
+  //           response.data?.packageId || response.data?.package?.packageId;
+
+  //         if (newPackageId) {
+  //           setCurrentPackageId(newPackageId);
+  //         }
+
+  //         getPackagesByID(newPackageId);
+
+  //       } else if (hotel.packageHotelId) {
+  //         //  UPDATE only edited/existing records
+  //         await axios.put(
+  //           `${baseURL}package-hotels/${hotel.packageHotelId}`,
+  //           payload,
+  //           { headers: { Authorization: `Bearer ${token}` } },
+  //         );
+  //       } else {
+  //         // CREATE only new records
+  //         const response = await axios.post(
+  //           `${baseURL}package-hotels`,
+  //           payload,
+  //           {
+  //             headers: { Authorization: `Bearer ${token}` },
+  //           },
+  //         );
+  //         const newPackageId =
+  //           response.data?.packageId || response.data?.package?.packageId;
+
+  //         if (newPackageId) {
+  //           setCurrentPackageId(newPackageId);
+  //         }
+
+  //         getPackagesByID(newPackageId);
+  //       }
+  //     }
+  //     await getPackagesByID(currentPackageId ?? id ?? packageId);
+  //    toast.success(
+  //     isDuplicate
+  //       ? "Hotels duplicated successfully!"
+  //       : pkg
+  //       ? "Hotels updated successfully!"
+  //       : "All hotels added successfully!"
+  //   );
+  //     setHotelSaved(true);
+  //     return true;
+  //     // after saving, refetch to sync server ids and data
+  //     // setAddedHotels([]);
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error("Failed to submit package");
+  //     return false;
+  //   } finally {
+  //     setIsLoader(false);
+  //   }
+  // };
+
   const handleSubmitHotels = async () => {
     try {
       setIsLoader(true);
       const token = sessionStorage.getItem("token");
+
       if (!addedHotels || addedHotels.length === 0) {
         toast.error("Please add at least one hotel");
         return false;
       }
 
-      if (!pkg) {
-        if (!packageId) {
-          toast.error("package missing — once please create package");
-          return;
-        }
+      if (!pkg && !packageId) {
+        toast.error("package missing — once please create package");
+        return;
       }
+
+      const finalPackageId = isDuplicate ? packageId : (id ?? packageId);
 
       for (const hotel of addedHotels) {
         const payload = {
-          packageId: id ?? packageId,
+          packageId: finalPackageId,
           hotelId: Number(hotel.hotelId),
           checkinDate: convertToISO(hotel.checkInDate, hotel.checkInTime),
           checkoutDate: convertToISO(hotel.checkOutDate, hotel.checkOutTime),
@@ -534,40 +630,43 @@ const HotelDetails = forwardRef((props: any, ref) => {
           updatedBy: 0,
         };
 
-        if (hotel.packageHotelId) {
-          //  UPDATE only edited/existing records
+        // ✅ DUPLICATE MODE → ALWAYS POST (IGNORE packageHotelId)
+        if (isDuplicate) {
+          await axios.post(`${baseURL}package-hotels`, payload, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+
+        // ✅ UPDATE MODE
+        else if (pkg && hotel.packageHotelId) {
           await axios.put(
             `${baseURL}package-hotels/${hotel.packageHotelId}`,
             payload,
             { headers: { Authorization: `Bearer ${token}` } },
           );
-        } else {
-          // CREATE only new records
-          const response = await axios.post(
-            `${baseURL}package-hotels`,
-            payload,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          );
-          const newPackageId =
-            response.data?.packageId || response.data?.package?.packageId;
+        }
 
-          if (newPackageId) {
-            setCurrentPackageId(newPackageId);
-          }
-
-          getPackagesByID(newPackageId);
+        // ✅ CREATE MODE
+        else {
+          await axios.post(`${baseURL}package-hotels`, payload, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
         }
       }
-      await getPackagesByID(currentPackageId ?? id ?? packageId);
+
+      // ✅ Only ONE API call after loop
+      await getPackagesByID(finalPackageId);
+
       toast.success(
-        pkg ? "Hotels updated successfully!" : "All hotels added successfully!",
+        isDuplicate
+          ? "Hotels duplicated successfully!"
+          : pkg
+            ? "Hotels updated successfully!"
+            : "All hotels added successfully!",
       );
+
       setHotelSaved(true);
       return true;
-      // after saving, refetch to sync server ids and data
-      // setAddedHotels([]);
     } catch (err) {
       console.error(err);
       toast.error("Failed to submit package");

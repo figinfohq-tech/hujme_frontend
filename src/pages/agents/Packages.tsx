@@ -20,6 +20,7 @@ import {
   CalendarDays,
   Bed,
   AlertTriangle,
+  Copy,
 } from "lucide-react";
 import {
   Dialog,
@@ -723,7 +724,7 @@ const Packages = () => {
                         </p>
                       </div>
                     </div>
-                    <div className="flex justify-between my-2">
+                    <div className="flex justify-between gap-4 my-2">
                       {pkg?.roomType ? (
                         // <div className="flex justify-end">
                         <div className="flex items-center gap-2 px-3 py-1.5 mb-2 bg-secondary/30 rounded-lg border-2 border-secondary/50 text-sm font-medium shadow-sm">
@@ -735,7 +736,7 @@ const Packages = () => {
                       null}
 
                       {/* 🔥 EXISTING BUTTONS & LOGIC UNCHANGED */}
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           variant="outline"
                           size="sm"
@@ -744,8 +745,18 @@ const Packages = () => {
                             navigate("/view-package", { state: { pkg } })
                           }
                         >
-                          <Eye className="w-4 h-4 mr-1" />
+                          <Eye className="w-4 h-4" />
                           View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            navigate("/add-package", {  state: { ...pkg, isDuplicate: true }, })
+                          }
+                        >
+                          <Copy className="w-4 h-4" />
+                          Duplicate
                         </Button>
 
                         {/* EDIT & DELETE → ONLY IF NOT COMPLETED */}
@@ -756,10 +767,10 @@ const Packages = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() =>
-                                  navigate("/add-package", { state: { pkg } })
+                                  navigate("/add-package", { state: { ...pkg, isDuplicate: false }, })
                                 }
                               >
-                                <Edit className="w-4 h-4 mr-1" />
+                                <Edit className="w-4 h-4" />
                                 Edit
                               </Button>
                             ) : null}
@@ -769,7 +780,7 @@ const Packages = () => {
                               size="sm"
                               onClick={() => handleDeleteViewPackage(pkg)}
                             >
-                              <Delete className="w-4 h-4 mr-1" />
+                              <Delete className="w-4 h-4" />
                               Delete
                             </Button>
                           </div>
