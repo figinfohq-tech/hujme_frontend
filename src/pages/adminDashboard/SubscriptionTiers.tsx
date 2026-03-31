@@ -99,6 +99,7 @@ function SubscriptionTiers() {
       setIsLoading(false);
     }
   };
+
   const fetchSubscriptionsHeader = async () => {
     try {
       setIsLoading(true);
@@ -590,7 +591,7 @@ function SubscriptionTiers() {
         {tiers.map((tier: any) => (
           <Card
             key={tier?.subscriptionId}
-            className={`relative overflow-hidden ${tier?.subscriptionName === mostPopularTier?.subscriptionName ? "ring-2 ring-secondary" : ""}`}
+            className={`relative overflow-hidden ${tier?.subscriptionName === mostPopularTier?.subscriptionName ? "ring-2 ring-secondary" : ""} ${tier?.isActive === false ? "ring-2 ring-destructive" : ""}`}
           >
             {tier?.subscriptionName === mostPopularTier?.subscriptionName && (
               <div className="absolute top-0 right-0 bg-secondary text-white px-3 py-1 text-xs font-medium border-l border-b border-white rounded-bl-lg">

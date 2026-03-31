@@ -69,7 +69,7 @@ const UpgradeSubscriptionPage = () => {
         },
       });
 
-      setSubscriptions(res.data);      
+      setSubscriptions(res.data);
       setLoading(false);
     } catch (error) {
       console.error("API Error:", error);
@@ -153,6 +153,11 @@ const UpgradeSubscriptionPage = () => {
     }
   }, [agent?.agentId]);
 
+  const activeSubscriptions = subscriptions?.filter((item) => item.isActive);
+  const maxCount = Math.max(
+    ...subscriptions.map((item) => item.activeSubscriptionCount || 0),
+  );  
+
   if (loading) {
     return <Loader />;
   }
@@ -180,7 +185,7 @@ const UpgradeSubscriptionPage = () => {
 
       {/* SAME cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        {subscriptions?.map((tier: any) => (
+        {activeSubscriptions?.map((tier: any) => (
           <Card
             key={tier?.subscriptionId}
             className={`relative cursor-pointer transition-all ${
@@ -191,25 +196,38 @@ const UpgradeSubscriptionPage = () => {
               tier?.subscriptionId === activeSubscription?.subscriptionId
                 ? "ring-2 ring-secondary bg-green-50"
                 : ""
-            }`}
+            } p-0 py-4`}
             onClick={() => setSelectedTier(tier)}
           >
             {/* POPULAR badge */}
-            <div className="absolute top-0 right-0 bg-secondary text-white px-3 py-1 text-xs font-medium rounded-bl-lg rounded-tr-lg">
-              POPULAR
-            </div>
+            {tier?.activeSubscriptionCount === maxCount && (
+              <div className="absolute top-0 right-0 bg-secondary text-white px-3 py-1 text-xs font-medium rounded-bl-lg rounded-tr-lg">
+                POPULAR
+              </div>
+            )}
 
-            <CardHeader className="text-center">
+            <CardHeader>
               <CardTitle className="text-xl">
                 {tier?.subscriptionName}
               </CardTitle>
-              <div className="text-3xl font-bold text-primary">
-                ₹{tier?.price}
-              </div>
-              <CardDescription className="text-primary/90">
-                per {tier?.validityMonths} month
-                {tier?.validityMonths > 1 ? "s" : ""}
+
+              <CardDescription>
+                {tier?.activeSubscriptionCount} active subscribers
+                {tier.activeSubscriptionCount > 0 && !tier.isActive && (
+                  <span className="text-yellow-600 ml-2">
+                    ⚠️ Has active users
+                  </span>
+                )}
               </CardDescription>
+              <div className="text-center mt-4">
+                <div className="text-3xl font-bold text-primary">
+                  ₹{tier?.price}
+                </div>
+                <CardDescription className="text-primary/90">
+                  per {tier?.validityMonths} month
+                  {tier?.validityMonths > 1 ? "s" : ""}
+                </CardDescription>
+              </div>
             </CardHeader>
 
             <CardContent className="space-y-4">
@@ -239,7 +257,6 @@ const UpgradeSubscriptionPage = () => {
                   <span>{tier.validityMonths} month validity</span>
                 </div>
               </div>
-
 
               {tier.subscriptionId === activeSubscription?.subscriptionId && (
                 <Badge className="w-full justify-center bg-green-200 text-green-800">
