@@ -7,11 +7,14 @@ import PackageBasicView from "./PackageBasicView";
 import HotelViewDetails from "./HotelViewDetails";
 import FlightViewDetails from "./FlightViewDetails";
 import FacilitiesViewDetails from "./FacilitiesViewDetails";
+import GalleryView from "./GalleryView";
 
 const PackageView = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const pkg = state?.pkg;
+  console.log("bsdfmndsbf==>", pkg);
+  
 
   const token = sessionStorage.getItem("token");
 
@@ -29,11 +32,12 @@ const PackageView = () => {
         </Button>
 
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="basic">Basic View Details</TabsTrigger>
             <TabsTrigger value="hotel">Hotel View Details </TabsTrigger>
             <TabsTrigger value="flights">Flight View Details</TabsTrigger>
             <TabsTrigger value="facilities">Facilities View</TabsTrigger>
+            <TabsTrigger value="gallery">Gallery View</TabsTrigger>
           </TabsList>
           {/* Basic View details */}
           <TabsContent value="basic">
@@ -54,6 +58,9 @@ const PackageView = () => {
 
           <TabsContent value="facilities">
             <FacilitiesViewDetails packageId={pkg.packageId} />
+          </TabsContent>
+          <TabsContent value="gallery">
+            <GalleryView package={pkg} />
           </TabsContent>
           {/* Facilities View Details */}
         </Tabs>

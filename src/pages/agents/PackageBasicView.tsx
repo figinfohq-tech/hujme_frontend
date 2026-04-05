@@ -70,7 +70,7 @@ const PackageBasicView = ({ packageId }) => {
       <div className="text-center p-10 text-red-500">No Package Found</div>
     );
   return (
-  <div className="p-3 sm:p-4 lg:p-6">
+  <div className="">
     <div className="space-y-4">
 
       {/* ---------------- Seat Information ---------------- */}

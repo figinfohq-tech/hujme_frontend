@@ -21,6 +21,8 @@ import {
   Bed,
   AlertTriangle,
   Copy,
+  ZoomOut,
+  ZoomIn,
 } from "lucide-react";
 import {
   Dialog,
@@ -30,6 +32,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 import { PackageFormDialog } from "@/components/PackageFormDialog";
 import axios from "axios";
@@ -52,7 +61,6 @@ const Packages = () => {
   const [selectedPkg, setSelectedPkg] = useState<any>(false);
   const [agentId, setAgentId] = useState<any>("");
   const [agent, setAgent] = useState<any>("");
-  const [agentLogos, setAgentLogos] = useState<{ [key: string]: string }>({});
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [packageFacilities, setPackageFacilities] = useState({});
@@ -60,6 +68,11 @@ const Packages = () => {
   const [agentSubscription, setAgentSubscription] = useState<any[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingPackage, setPendingPackage] = useState<any>(null);
+  const [packageImages, setPackageImages] = useState({});
+  const [open, setOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [imageZoomed, setImageZoomed] = useState(false);
+  const [selectedPkgImages, setSelectedPkgImages] = useState([]);
 
   const navigate = useNavigate();
 
@@ -188,10 +201,12 @@ const Packages = () => {
           },
         },
       );
-
+      const packagesData = response.data;
       setPackages(response.data);
       fetchFacilitiesForPackages(response.data);
-      fetchAgentLogos(response.data);
+      const logoMap = await fetchAgentLogos(packagesData);
+      // ✅ PASS logoMap
+      fetchImagesTemp(packagesData, logoMap);
       setIsLoading(false);
     } catch (error) {
       console.error("Package Fetch Error:", error);
@@ -231,9 +246,65 @@ const Packages = () => {
     }
   };
 
-  // fetching logo
-  const fetchAgentLogos = async (packagesData: any[]) => {
+  // ✅ FETCH IMAGES
+  const fetchImagesTemp = async (packagesData, logoMap) => {
     const token = sessionStorage.getItem("token");
+
+    try {
+      const imagesMap = {};
+
+      await Promise.all(
+        packagesData.map(async (pkg) => {
+          try {
+            const res = await axios.get(
+              `${baseURL}package-gallery/byPackageId/${pkg.packageId}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              },
+            );
+
+            const data = res.data || [];
+
+            const promises = data.map((item) => {
+              const fileName = item.filePath.split("/").pop();
+
+              return axios.get(`${baseURL}package-gallery/files`, {
+                headers: { Authorization: `Bearer ${token}` },
+                params: {
+                  fileName,
+                  agentId: pkg.agentId,
+                  packageId: pkg.packageId,
+                },
+                responseType: "blob",
+              });
+            });
+
+            const results = await Promise.all(promises);
+
+            let urls = results.map((res) => URL.createObjectURL(res.data));
+
+            // ✅ LOGO ALWAYS FIRST
+            if (logoMap[pkg.agentId]) {
+              urls.unshift(logoMap[pkg.agentId]); // 🔥 BEST METHOD
+            }
+
+            imagesMap[pkg.packageId] = urls;
+          } catch (err) {
+            imagesMap[pkg.packageId] = [];
+          }
+        }),
+      );
+
+      setPackageImages(imagesMap);
+    } catch (err) {
+      console.error("Fetch Error:", err);
+    }
+  };
+
+  // fetching logo
+  const fetchAgentLogos = async (packagesData) => {
+    const token = sessionStorage.getItem("token");
+
     try {
       const agentIds = [
         ...new Set(packagesData.map((pkg) => pkg.agentId).filter(Boolean)),
@@ -242,32 +313,31 @@ const Packages = () => {
       const logoRequests = agentIds.map(async (agentId) => {
         try {
           const res = await axios.get(`${baseURL}agents/get-logo/${agentId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
             responseType: "blob",
           });
 
           const imageUrl = URL.createObjectURL(res.data);
 
           return { agentId, logo: imageUrl };
-        } catch (err) {
+        } catch {
           return { agentId, logo: null };
         }
       });
 
       const logos = await Promise.all(logoRequests);
 
-      const logoMap: any = {};
+      const logoMap = {};
       logos.forEach(({ agentId, logo }) => {
         if (logo) {
           logoMap[agentId] = logo;
         }
       });
 
-      setAgentLogos(logoMap);
+      return logoMap; // ✅ IMPORTANT
     } catch (error) {
       console.error("Error fetching agent logos:", error);
+      return {};
     }
   };
 
@@ -412,6 +482,12 @@ const Packages = () => {
     }
   };
 
+  const handleView = (index, pkgId) => {
+    setSelectedIndex(index);
+    setSelectedPkgImages(packageImages[pkgId] || []);
+    setOpen(true);
+  };
+
   const canToggleStatus = (status: string) => {
     return status === "ACTIVE" || status === "INACTIVE" || status === "NEW";
   };
@@ -486,25 +562,43 @@ const Packages = () => {
               <Card className="overflow-hidden hover:shadow-elegant py-0 transition-smooth">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
                   {/* LEFT : IMAGE / LOGO */}
-                  <div className="md:col-span-1 h-48 md:h-full flex items-center justify-center bg-white border-r border-border">
-                    <a
-                      href={pkg.website || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`w-full h-full flex items-center justify-center transition ${
-                        pkg.website ? "hover:opacity-90" : "pointer-events-none"
-                      }`}
-                    >
-                      <img
-                        src={
-                          agentLogos[pkg.agentId]
-                            ? agentLogos[pkg.agentId]
-                            : "/placeholder.svg"
-                        }
-                        alt="Agent Logo"
-                        className="max-w-[90%] max-h-[90%] object-contain transition-transform duration-300 ease-in-out hover:scale-105 drop-shadow-sm"
-                      />
-                    </a>
+                  <div className="md:col-span-1 h-48 md:h-full bg-white border-r border-border">
+                    {/* <a
+    href={pkg.website || "#"}
+    target="_blank"
+    rel="noopener noreferrer"
+    className={`w-full h-full block ${
+      pkg.website ? "hover:opacity-90" : "pointer-events-none"
+    }`}
+  > */}
+                    <div>
+                      <Carousel className="w-full h-full group">
+                        <CarouselContent>
+                          {(packageImages[pkg.packageId]?.length > 0
+                            ? packageImages[pkg.packageId]
+                            : ["/placeholder.svg"]
+                          ).map((img, index) => (
+                            <CarouselItem key={index}>
+                              <div className="w-full h-48 md:h-full p-6 flex items-center justify-center">
+                                <img
+                                  src={img}
+                                  alt={`Image ${index}`}
+                                  className="w-full h-full object-cover transition-transform rounded duration-300 group-hover:scale-105"
+                                  onClick={() =>
+                                    handleView(index, pkg.packageId)
+                                  }
+                                />
+                              </div>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+
+                        {/* Navigation Buttons */}
+                        <CarouselPrevious className="left-0" />
+                        <CarouselNext className="right-0" />
+                      </Carousel>
+                      {/* </a> */}
+                    </div>
                   </div>
 
                   {/* RIGHT : DETAILS */}
@@ -752,7 +846,9 @@ const Packages = () => {
                           variant="outline"
                           size="sm"
                           onClick={() =>
-                            navigate("/add-package", {  state: { ...pkg, isDuplicate: true }, })
+                            navigate("/add-package", {
+                              state: { ...pkg, isDuplicate: true },
+                            })
                           }
                         >
                           <Copy className="w-4 h-4" />
@@ -767,7 +863,9 @@ const Packages = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() =>
-                                  navigate("/add-package", { state: { ...pkg, isDuplicate: false }, })
+                                  navigate("/add-package", {
+                                    state: { ...pkg, isDuplicate: false },
+                                  })
                                 }
                               >
                                 <Edit className="w-4 h-4" />
@@ -857,6 +955,53 @@ const Packages = () => {
               Yes, Activate
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Carousel dialog */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-5xl w-full p-4 flex items-center reletive justify-center">
+          <div className="w-full">
+            <Carousel opts={{ startIndex: selectedIndex }} className="w-full">
+              <CarouselContent>
+                {(selectedPkgImages.length > 0
+                  ? selectedPkgImages
+                  : ["/placeholder.svg"]
+                ).map((img, index) => (
+                  <CarouselItem key={index}>
+                    <div className="flex items-center justify-center h-[75vh]">
+                      <img
+                        src={img} // ✅ direct url (no .url)
+                        alt="preview"
+                        className={`max-h-full max-w-full object-contain rounded-xl transition-transform duration-300 ${
+                          imageZoomed
+                            ? "scale-150 cursor-zoom-out"
+                            : "scale-100 cursor-zoom-in"
+                        }`}
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {/* Navigation Buttons */}
+              <CarouselPrevious className="left-2" />
+              <CarouselNext className="right-2" />
+            </Carousel>
+          </div>
+          {/* Zoom Button */}
+          <Button
+            size="icon"
+            variant="secondary"
+            className="absolute top-14 right-6 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full"
+            onClick={() => setImageZoomed(!imageZoomed)}
+          >
+            {imageZoomed ? (
+              <ZoomOut className="h-4 w-4 text-white" />
+            ) : (
+              <ZoomIn className="h-4 w-4 text-white" />
+            )}
+          </Button>
         </DialogContent>
       </Dialog>
     </div>

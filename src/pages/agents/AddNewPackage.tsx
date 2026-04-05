@@ -35,6 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Gallery from "./Gallery";
 
 const packageFormSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(200),
@@ -619,7 +620,7 @@ export function AddNewPackage({
             onValueChange={handleTabChange}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="basic">Basic Details</TabsTrigger>
               <TabsTrigger value="hotel">Hotel Details </TabsTrigger>
               <TabsTrigger value="flights">
@@ -631,6 +632,7 @@ export function AddNewPackage({
                 {selectedFacilities.length > 0 &&
                   `(${selectedFacilities.length})`}
               </TabsTrigger>
+              <TabsTrigger value="gallery">Gallery </TabsTrigger>
             </TabsList>
 
             {/* create package */}
@@ -1106,6 +1108,13 @@ export function AddNewPackage({
               <Facilities
                 pkg={pkg}
                packageId={ packageData?.packageId }
+                isDuplicate={isDuplicate}
+              />
+            </TabsContent>
+            <TabsContent value="gallery" className="space-y-6 mt-4">
+              <Gallery
+                pkg={pkg}
+               packageId={ packageData }
                 isDuplicate={isDuplicate}
               />
             </TabsContent>

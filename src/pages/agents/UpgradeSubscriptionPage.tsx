@@ -38,7 +38,7 @@ const UpgradeSubscriptionPage = () => {
   const [agent, setAgent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
+  const [subscriptionHeader, setSubscriptionHeader] = useState<any>([]);
   const navigate = useNavigate();
   const token = sessionStorage.getItem("token");
   const userId = sessionStorage.getItem("userId");
@@ -76,6 +76,24 @@ const UpgradeSubscriptionPage = () => {
       setLoading(false);
     }
   };
+
+   const fetchSubscriptionsHeader = async () => {
+     try {
+       setLoading(true);
+       const response = await axios.get(`${baseURL}subscriptions/stats`, {
+         headers: {
+           Authorization: `Bearer ${token}`,
+         },
+       });
+       setSubscriptionHeader(response.data);
+       console.log("jhdjhdjhew==>",response.data);
+       
+       setLoading(false);
+     } catch (error) {
+       console.error("Stats API Error", error);
+       setLoading(false);
+     }
+   };
 
   const fetchAgentSubscription = async () => {
     try {
@@ -145,6 +163,7 @@ const UpgradeSubscriptionPage = () => {
   useEffect(() => {
     getSubscriptions();
     fetchAgent();
+    fetchSubscriptionsHeader();
   }, []);
 
   useEffect(() => {
@@ -153,10 +172,15 @@ const UpgradeSubscriptionPage = () => {
     }
   }, [agent?.agentId]);
 
-  const activeSubscriptions = subscriptions?.filter((item) => item.isActive);
-  const maxCount = Math.max(
-    ...subscriptions.map((item) => item.activeSubscriptionCount || 0),
-  );  
+  console.log("activeSubscriptions==>", subscriptions);
+  
+
+  const activeSubscriptions = subscriptions?.filter((item) => item.isActive);  
+
+  const popularSubscription = activeSubscriptions?.find(
+    (item) => item.subscriptionId === subscriptionHeader?.mostPopularTier,
+  );
+  console.log("popularSubscription===>", popularSubscription);
 
   if (loading) {
     return <Loader />;
@@ -200,7 +224,7 @@ const UpgradeSubscriptionPage = () => {
             onClick={() => setSelectedTier(tier)}
           >
             {/* POPULAR badge */}
-            {tier?.activeSubscriptionCount === maxCount && (
+            {tier?.subscriptionId === popularSubscription?.subscriptionId && (
               <div className="absolute top-0 right-0 bg-secondary text-white px-3 py-1 text-xs font-medium rounded-bl-lg rounded-tr-lg">
                 POPULAR
               </div>
@@ -211,14 +235,6 @@ const UpgradeSubscriptionPage = () => {
                 {tier?.subscriptionName}
               </CardTitle>
 
-              <CardDescription>
-                {tier?.activeSubscriptionCount} active subscribers
-                {tier.activeSubscriptionCount > 0 && !tier.isActive && (
-                  <span className="text-yellow-600 ml-2">
-                    ⚠️ Has active users
-                  </span>
-                )}
-              </CardDescription>
               <div className="text-center mt-4">
                 <div className="text-3xl font-bold text-primary">
                   ₹{tier?.price}

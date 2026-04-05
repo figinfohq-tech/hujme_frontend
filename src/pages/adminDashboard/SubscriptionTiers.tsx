@@ -565,7 +565,7 @@ function SubscriptionTiers() {
           <CardContent className="flex items-center gap-4 p-4">
             <IndianRupee className="w-8 h-8 text-green-600" />
             <div>
-              <p className="text-sm text-muted-foreground">Annual Revenue</p>
+              <p className="text-sm text-muted-foreground">Total Revenue</p>
               <p className="text-2xl text-primary font-bold">
                 {subscriptionHeader?.totalRevenue?.toLocaleString()}
               </p>
@@ -591,7 +591,7 @@ function SubscriptionTiers() {
         {tiers.map((tier: any) => (
           <Card
             key={tier?.subscriptionId}
-            className={`relative overflow-hidden ${tier?.subscriptionName === mostPopularTier?.subscriptionName ? "ring-2 ring-secondary" : ""} ${tier?.isActive === false ? "ring-2 ring-destructive" : ""}`}
+            className={`relative overflow-hidden ${tier?.subscriptionName === mostPopularTier?.subscriptionName ? "ring-2 ring-secondary" : ""}`}
           >
             {tier?.subscriptionName === mostPopularTier?.subscriptionName && (
               <div className="absolute top-0 right-0 bg-secondary text-white px-3 py-1 text-xs font-medium border-l border-b border-white rounded-bl-lg">
