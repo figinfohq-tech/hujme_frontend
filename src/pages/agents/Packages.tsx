@@ -248,58 +248,72 @@ const Packages = () => {
 
   // ✅ FETCH IMAGES
   const fetchImagesTemp = async (packagesData, logoMap) => {
-    const token = sessionStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
-    try {
-      const imagesMap = {};
+  try {
+    const imagesMap = {};
 
-      await Promise.all(
-        packagesData.map(async (pkg) => {
-          try {
-            const res = await axios.get(
-              `${baseURL}package-gallery/byPackageId/${pkg.packageId}`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              },
-            );
-
-            const data = res.data || [];
-
-            const promises = data.map((item) => {
-              const fileName = item.filePath.split("/").pop();
-
-              return axios.get(`${baseURL}package-gallery/files`, {
-                headers: { Authorization: `Bearer ${token}` },
-                params: {
-                  fileName,
-                  agentId: pkg.agentId,
-                  packageId: pkg.packageId,
-                },
-                responseType: "blob",
-              });
-            });
-
-            const results = await Promise.all(promises);
-
-            let urls = results.map((res) => URL.createObjectURL(res.data));
-
-            // ✅ LOGO ALWAYS FIRST
-            if (logoMap[pkg.agentId]) {
-              urls.unshift(logoMap[pkg.agentId]); // 🔥 BEST METHOD
+    await Promise.all(
+      packagesData.map(async (pkg) => {
+        try {
+          const res = await axios.get(
+            `${baseURL}package-gallery/byPackageId/${pkg?.packageId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
             }
+          );
 
-            imagesMap[pkg.packageId] = urls;
-          } catch (err) {
-            imagesMap[pkg.packageId] = [];
+          const data = res.data || [];
+
+          if (data.length === 0) {
+            imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
+              ? [logoMap[pkg?.agentId]]
+              : [];
+            return;
           }
-        }),
-      );
 
-      setPackageImages(imagesMap);
-    } catch (err) {
-      console.error("Fetch Error:", err);
-    }
-  };
+          const promises = data.map((item) => {
+            const fileName = item.filePath.split("/").pop();
+
+            return axios.get(`${baseURL}package-gallery/files`, {
+              headers: { Authorization: `Bearer ${token}` },
+              params: {
+                fileName,
+                agentId: pkg?.agentId,
+                packageId: pkg?.packageId,
+              },
+              responseType: "blob",
+            });
+          });
+
+          const results = await Promise.all(promises);
+
+          let urls = results.map((res) => URL.createObjectURL(res?.data));
+
+          if (logoMap[pkg?.agentId]) {
+            urls.unshift(logoMap[pkg?.agentId]);
+          }
+
+          imagesMap[pkg?.packageId] = urls;
+        } catch (err) {
+          // ✅ ONLY ignore 404
+          if (err.response?.status === 404) {
+            imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
+              ? [logoMap[pkg?.agentId]]
+              : [];
+          } else {
+            console.error("Image Fetch Error:", err);
+            imagesMap[pkg?.packageId] = [];
+          }
+        }
+      })
+    );
+
+    setPackageImages(imagesMap);
+  } catch (err) {
+    console.error("Fetch Error:", err);
+  }
+};
 
   // fetching logo
   const fetchAgentLogos = async (packagesData) => {
