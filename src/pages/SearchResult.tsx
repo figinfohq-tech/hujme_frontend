@@ -26,6 +26,8 @@ import {
   Search,
   Bed,
   ImageIcon,
+  ZoomOut,
+  ZoomIn,
 } from "lucide-react";
 // import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -42,6 +44,14 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import Loader from "@/components/Loader";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -75,6 +85,11 @@ const SearchResults = () => {
   const [travelType, setTravelType] = useState([]);
   const [selectedTravelTypeId, setSelectedTravelTypeId] = useState<string>("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [packageImages, setPackageImages] = useState({});
+  const [open, setOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [imageZoomed, setImageZoomed] = useState(false);
+  const [selectedPkgImages, setSelectedPkgImages] = useState([]);
   const [errors, setErrors] = useState({
     country: false,
     state: false,
@@ -214,8 +229,12 @@ const SearchResults = () => {
         params,
       });
 
+      const packagesData = response.data;
+
       setPackages(response.data);
-      fetchAgentLogos(response.data);
+      const logoMap = await fetchAgentLogos(packagesData);
+      // ✅ PASS logoMap
+      fetchImagesTemp(packagesData, logoMap);
       fetchFacilitiesForPackages(response.data);
     } catch (error) {
       console.error("Error fetching search results:", error);
@@ -255,8 +274,78 @@ const SearchResults = () => {
 
   // fetching type
 
+  const fetchImagesTemp = async (packagesData, logoMap) => {
+    const token = sessionStorage.getItem("token");
+
+    try {
+      const imagesMap = {};
+
+      await Promise.all(
+        packagesData.map(async (pkg) => {
+          try {
+            const res = await axios.get(
+              `${baseURL}package-gallery/byPackageId/${pkg?.packageId}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              },
+            );
+
+            const data = res.data || [];
+
+            if (data.length === 0) {
+              imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
+                ? [logoMap[pkg?.agentId]]
+                : [];
+              return;
+            }
+
+            const promises = data.map((item) => {
+              const fileName = item.filePath.split("/").pop();
+
+              return axios.get(`${baseURL}package-gallery/files`, {
+                headers: { Authorization: `Bearer ${token}` },
+                params: {
+                  fileName,
+                  agentId: pkg?.agentId,
+                  packageId: pkg?.packageId,
+                },
+                responseType: "blob",
+              });
+            });
+
+            const results = await Promise.all(promises);
+
+            let urls = results.map((res) => URL.createObjectURL(res?.data));
+
+            if (logoMap[pkg?.agentId]) {
+              urls.unshift(logoMap[pkg?.agentId]);
+            }
+
+            imagesMap[pkg?.packageId] = urls;
+          } catch (err) {
+            // ✅ ONLY ignore 404
+            if (err.response?.status === 404) {
+              imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
+                ? [logoMap[pkg?.agentId]]
+                : [];
+            } else {
+              console.error("Image Fetch Error:", err);
+              imagesMap[pkg?.packageId] = [];
+            }
+          }
+        }),
+      );
+
+      setPackageImages(imagesMap);
+    } catch (err) {
+      console.error("Fetch Error:", err);
+    }
+  };
+
   // fetching logo
-  const fetchAgentLogos = async (packagesData: any[]) => {
+  const fetchAgentLogos = async (packagesData) => {
+    const token = sessionStorage.getItem("token");
+
     try {
       const agentIds = [
         ...new Set(packagesData.map((pkg) => pkg.agentId).filter(Boolean)),
@@ -265,32 +354,31 @@ const SearchResults = () => {
       const logoRequests = agentIds.map(async (agentId) => {
         try {
           const res = await axios.get(`${baseURL}agents/get-logo/${agentId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
             responseType: "blob",
           });
 
           const imageUrl = URL.createObjectURL(res.data);
 
           return { agentId, logo: imageUrl };
-        } catch (err) {
+        } catch {
           return { agentId, logo: null };
         }
       });
 
       const logos = await Promise.all(logoRequests);
 
-      const logoMap: any = {};
+      const logoMap = {};
       logos.forEach(({ agentId, logo }) => {
         if (logo) {
           logoMap[agentId] = logo;
         }
       });
 
-      setAgentLogos(logoMap);
+      return logoMap; // ✅ IMPORTANT
     } catch (error) {
       console.error("Error fetching agent logos:", error);
+      return {};
     }
   };
 
@@ -424,6 +512,12 @@ const SearchResults = () => {
     }
 
     fetchSearchResult();
+  };
+
+  const handleView = (index, pkgId) => {
+    setSelectedIndex(index);
+    setSelectedPkgImages(packageImages[pkgId] || []);
+    setOpen(true);
   };
 
   if (isLoading) {
@@ -746,13 +840,13 @@ const SearchResults = () => {
               ) : (
                 filteredResults?.map((result: any) => (
                   <Card
-                    key={result.id}
+                    key={result.packageId}
                     className="overflow-hidden hover:shadow-elegant py-0 transition-smooth"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
                       {/* agency logo */}
                       <div className="md:col-span-1 h-48 md:h-full flex items-center justify-center bg-white border-r border-border">
-                        <a
+                        {/* <a
                           href={result.website || "#"}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -771,7 +865,35 @@ const SearchResults = () => {
                             alt="Agent Logo"
                             className="max-w-[90%] max-h-[90%] object-contain transition-transform duration-300 ease-in-out hover:scale-105 drop-shadow-sm"
                           />
-                        </a>
+                        </a> */}
+                        <div>
+                          <Carousel className="w-full h-full group">
+                            <CarouselContent>
+                              {(packageImages[result?.packageId]?.length > 0
+                                ? packageImages[result?.packageId]
+                                : ["/placeholder.svg"]
+                              ).map((img, index) => (
+                                <CarouselItem key={index}>
+                                  <div className="w-full h-48 md:h-full p-6 flex items-center justify-center">
+                                    <img
+                                      src={img}
+                                      alt={`Image ${index}`}
+                                      className="w-full h-full object-cover transition-transform rounded duration-300 group-hover:scale-105"
+                                      onClick={() =>
+                                        handleView(index, result?.packageId)
+                                      }
+                                    />
+                                  </div>
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+
+                            {/* Navigation Buttons */}
+                            <CarouselPrevious className="left-0" />
+                            <CarouselNext className="right-0" />
+                          </Carousel>
+                          {/* </a> */}
+                        </div>
                       </div>
 
                       {/* Package Details */}
@@ -1108,6 +1230,53 @@ const SearchResults = () => {
       )}
 
       <Footer />
+
+      {/* Carousel dialog */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-5xl w-full p-4 flex items-center reletive justify-center">
+          <div className="w-full">
+            <Carousel opts={{ startIndex: selectedIndex }} className="w-full">
+              <CarouselContent>
+                {(selectedPkgImages.length > 0
+                  ? selectedPkgImages
+                  : ["/placeholder.svg"]
+                ).map((img, index) => (
+                  <CarouselItem key={index}>
+                    <div className="flex items-center justify-center h-[75vh]">
+                      <img
+                        src={img} // ✅ direct url (no .url)
+                        alt="preview"
+                        className={`max-h-full max-w-full object-contain rounded-xl transition-transform duration-300 ${
+                          imageZoomed
+                            ? "scale-150 cursor-zoom-out"
+                            : "scale-100 cursor-zoom-in"
+                        }`}
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {/* Navigation Buttons */}
+              <CarouselPrevious className="left-2" />
+              <CarouselNext className="right-2" />
+            </Carousel>
+          </div>
+          {/* Zoom Button */}
+          <Button
+            size="icon"
+            variant="secondary"
+            className="absolute top-14 right-6 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full"
+            onClick={() => setImageZoomed(!imageZoomed)}
+          >
+            {imageZoomed ? (
+              <ZoomOut className="h-4 w-4 text-white" />
+            ) : (
+              <ZoomIn className="h-4 w-4 text-white" />
+            )}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

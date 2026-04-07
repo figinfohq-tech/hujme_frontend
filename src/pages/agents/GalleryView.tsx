@@ -22,9 +22,8 @@ const GalleryView = (pkg) => {
   const [imageZoomed, setImageZoomed] = useState(false);
 
   const token = sessionStorage.getItem("token");
-
-  const packageId = pkg.package.packageId;
-  const agentId = pkg.package.agentId;
+  const packageId = pkg?.package?.packageId;
+  const agentId = pkg?.package?.agentId;
 
   const handleView = (index) => {
     setSelectedIndex(index);

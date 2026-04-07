@@ -30,6 +30,7 @@ import HotelViewDetails from "./HotelViewDetails";
 import FlightViewDetails from "./FlightViewDetails";
 import FacilitiesViewDetails from "./FacilitiesViewDetails";
 import { ReviewsDialog } from "@/components/ReviewsDialog";
+import GalleryView from "./GalleryView";
 // import { BookingFlow } from "@/components/BookingFlow";
 // import { BookingConfirmation } from "@/components/BookingConfirmation";
 
@@ -361,11 +362,12 @@ const PackageDetails = () => {
 
             {/* Tabs */}
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="basic">Basic View</TabsTrigger>
                 <TabsTrigger value="hotel">Hotel View</TabsTrigger>
                 <TabsTrigger value="flights">Flight View</TabsTrigger>
                 <TabsTrigger value="facilities">Facilities View</TabsTrigger>
+                <TabsTrigger value="gallery">Gallery View</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="mt-2">
@@ -504,6 +506,11 @@ const PackageDetails = () => {
                     </div>
                   </CardContent> */}
                   <FacilitiesViewDetails packageId={id} />
+                </Card>
+              </TabsContent>
+              <TabsContent value="gallery" className="mt-2">
+                <Card className="p-0">
+                  <GalleryView package={packageDetail?.data} />
                 </Card>
               </TabsContent>
             </Tabs>
