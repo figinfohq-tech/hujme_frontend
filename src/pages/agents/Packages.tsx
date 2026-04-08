@@ -32,14 +32,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-
 import { PackageFormDialog } from "@/components/PackageFormDialog";
 import axios from "axios";
 import { PackageViewDialog } from "@/components/PackageViewDialog";
@@ -51,6 +43,7 @@ import { useNavigate } from "react-router";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { ReviewsDialog } from "@/components/ReviewsDialog";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const Packages = () => {
   const [packages, setPackages] = useState<any[]>([]);

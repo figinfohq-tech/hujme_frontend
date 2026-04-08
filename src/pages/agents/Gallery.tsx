@@ -5,17 +5,10 @@ import { Trash2, Upload, Pencil, Eye, ZoomOut, ZoomIn } from "lucide-react";
 import { baseURL } from "@/utils/constant/url";
 // import JSZip from "jszip";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import Loader from "@/components/Loader";
 import { toast } from "react-toastify";
 import { data } from "react-router";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const Gallery = ({ pkg, packageId }) => {
   const [fileResponses, setFileResponses] = useState([]);

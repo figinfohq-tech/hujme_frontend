@@ -4,15 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Eye, ZoomOut, ZoomIn } from "lucide-react";
 import { baseURL } from "@/utils/constant/url";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import Loader from "@/components/Loader";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const GalleryView = (pkg) => {
   const [fileResponses, setFileResponses] = useState([]);
