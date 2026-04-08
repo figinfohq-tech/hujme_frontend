@@ -12,9 +12,7 @@ import GalleryView from "./GalleryView";
 const PackageView = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const pkg = state?.pkg;
-  console.log("bsdfmndsbf==>", pkg);
-  
+  const pkg = state?.pkg;  
 
   const token = sessionStorage.getItem("token");
 

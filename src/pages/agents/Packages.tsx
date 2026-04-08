@@ -43,7 +43,8 @@ import { useNavigate } from "react-router";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { ReviewsDialog } from "@/components/ReviewsDialog";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import SimpleCarousel from "@/components/SimpleCarousel";
+import PreviewCarousel from "@/components/PreviewCarousel";
 
 const Packages = () => {
   const [packages, setPackages] = useState<any[]>([]);
@@ -241,72 +242,72 @@ const Packages = () => {
 
   // ✅ FETCH IMAGES
   const fetchImagesTemp = async (packagesData, logoMap) => {
-  const token = sessionStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
-  try {
-    const imagesMap = {};
+    try {
+      const imagesMap = {};
 
-    await Promise.all(
-      packagesData.map(async (pkg) => {
-        try {
-          const res = await axios.get(
-            `${baseURL}package-gallery/byPackageId/${pkg?.packageId}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-
-          const data = res.data?.data || [];
-
-          if (data.length === 0) {
-            imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
-              ? [logoMap[pkg?.agentId]]
-              : [];
-            return;
-          }
-
-          const promises = data.map((item) => {
-            const fileName = item.filePath.split("/").pop();
-
-            return axios.get(`${baseURL}package-gallery/files`, {
-              headers: { Authorization: `Bearer ${token}` },
-              params: {
-                fileName,
-                agentId: pkg?.agentId,
-                packageId: pkg?.packageId,
+      await Promise.all(
+        packagesData.map(async (pkg) => {
+          try {
+            const res = await axios.get(
+              `${baseURL}package-gallery/byPackageId/${pkg?.packageId}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
               },
-              responseType: "blob",
+            );
+
+            const data = res.data?.data || [];
+
+            if (data.length === 0) {
+              imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
+                ? [logoMap[pkg?.agentId]]
+                : [];
+              return;
+            }
+
+            const promises = data.map((item) => {
+              const fileName = item.filePath.split("/").pop();
+
+              return axios.get(`${baseURL}package-gallery/files`, {
+                headers: { Authorization: `Bearer ${token}` },
+                params: {
+                  fileName,
+                  agentId: pkg?.agentId,
+                  packageId: pkg?.packageId,
+                },
+                responseType: "blob",
+              });
             });
-          });
 
-          const results = await Promise.all(promises);
+            const results = await Promise.all(promises);
 
-          let urls = results.map((res) => URL.createObjectURL(res?.data));
+            let urls = results.map((res) => URL.createObjectURL(res?.data));
 
-          if (logoMap[pkg?.agentId]) {
-            urls.unshift(logoMap[pkg?.agentId]);
+            if (logoMap[pkg?.agentId]) {
+              urls.unshift(logoMap[pkg?.agentId]);
+            }
+
+            imagesMap[pkg?.packageId] = urls;
+          } catch (err) {
+            // ✅ ONLY ignore 404
+            if (err.response?.status === 404) {
+              imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
+                ? [logoMap[pkg?.agentId]]
+                : [];
+            } else {
+              console.error("Image Fetch Error:", err);
+              imagesMap[pkg?.packageId] = [];
+            }
           }
+        }),
+      );
 
-          imagesMap[pkg?.packageId] = urls;
-        } catch (err) {
-          // ✅ ONLY ignore 404
-          if (err.response?.status === 404) {
-            imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
-              ? [logoMap[pkg?.agentId]]
-              : [];
-          } else {
-            console.error("Image Fetch Error:", err);
-            imagesMap[pkg?.packageId] = [];
-          }
-        }
-      })
-    );
-
-    setPackageImages(imagesMap);
-  } catch (err) {
-    console.error("Fetch Error:", err);
-  }
-};
+      setPackageImages(imagesMap);
+    } catch (err) {
+      console.error("Fetch Error:", err);
+    }
+  };
 
   // fetching logo
   const fetchAgentLogos = async (packagesData) => {
@@ -595,7 +596,7 @@ const Packages = () => {
                         <CarouselNext className="right-0" />
                       </Carousel>
                     </div> */}
-                    <div className="w-full">
+                    {/* <div className="w-full">
                       <Carousel className="w-full group">
                         <CarouselContent>
                           {(packageImages[pkg?.packageId]?.length > 0
@@ -616,11 +617,21 @@ const Packages = () => {
                             </CarouselItem>
                           ))}
                         </CarouselContent>
-
-                        {/* Navigation Buttons */}
                         <CarouselPrevious className="left-2 sm:left-3 md:left-4" />
                         <CarouselNext className="right-2 sm:right-3 md:right-4" />
                       </Carousel>
+                    </div> */}
+                    <div className="w-full">
+                      <SimpleCarousel
+                        images={
+                          packageImages?.[pkg?.packageId]?.length > 0
+                            ? packageImages[pkg.packageId]
+                            : ["/placeholder.svg"]
+                        }
+                        onImageClick={(index) =>
+                          handleView(index, pkg?.packageId)
+                        }
+                      />
                     </div>
                   </div>
 
@@ -984,7 +995,7 @@ const Packages = () => {
       {/* Carousel dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-5xl w-full p-4 flex items-center reletive justify-center">
-          <div className="w-full">
+          {/* <div className="w-full">
             <Carousel opts={{ startIndex: selectedIndex }} className="w-full">
               <CarouselContent>
                 {(selectedPkgImages.length > 0
@@ -1006,11 +1017,17 @@ const Packages = () => {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-
-              {/* Navigation Buttons */}
               <CarouselPrevious className="left-2" />
               <CarouselNext className="right-2" />
             </Carousel>
+          </div> */}
+          <div className="w-full">
+            <PreviewCarousel
+              images={selectedPkgImages}
+              startIndex={selectedIndex}
+              imageZoomed={imageZoomed}
+              setImageZoomed={setImageZoomed}
+            />
           </div>
           {/* Zoom Button */}
           <Button

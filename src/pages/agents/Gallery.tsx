@@ -8,7 +8,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import Loader from "@/components/Loader";
 import { toast } from "react-toastify";
 import { data } from "react-router";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import PreviewCarousel from "@/components/PreviewCarousel";
 
 const Gallery = ({ pkg, packageId }) => {
   const [fileResponses, setFileResponses] = useState([]);
@@ -172,6 +172,11 @@ const Gallery = ({ pkg, packageId }) => {
     }
   };
 
+  const imageUrls =
+    fileResponses.length > 0
+      ? fileResponses.map((item) => item.url)
+      : ["/placeholder.svg"];
+
   if (loading) {
     return <Loader />;
   }
@@ -261,14 +266,14 @@ const Gallery = ({ pkg, packageId }) => {
       {/* Carousel dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-5xl w-full p-4 flex items-center reletive justify-center">
-          <div className="w-full">
+          {/* <div className="w-full">
             <Carousel opts={{ startIndex: selectedIndex }} className="w-full">
               <CarouselContent>
                 {fileResponses.map((img, index) => (
                   <CarouselItem key={index}>
-                    {/* Center Container */}
+                   
                     <div className="flex items-center justify-center h-[75vh]">
-                      {/* Image */}
+                      
                       <img
                         src={img.url}
                         alt="preview"
@@ -283,10 +288,17 @@ const Gallery = ({ pkg, packageId }) => {
                 ))}
               </CarouselContent>
 
-              {/* Navigation Buttons */}
               <CarouselPrevious className="left-2" />
               <CarouselNext className="right-2" />
             </Carousel>
+          </div> */}
+          <div className="w-full">
+            <PreviewCarousel
+              images={imageUrls}
+              startIndex={selectedIndex}
+              imageZoomed={imageZoomed}
+              setImageZoomed={setImageZoomed}
+            />
           </div>
           {/* Zoom Button */}
           <Button

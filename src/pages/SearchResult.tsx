@@ -45,13 +45,8 @@ import {
 } from "@/components/ui/command";
 import Loader from "@/components/Loader";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import SimpleCarousel from "@/components/SimpleCarousel";
+import PreviewCarousel from "@/components/PreviewCarousel";
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -866,7 +861,7 @@ const SearchResults = () => {
                             className="max-w-[90%] max-h-[90%] object-contain transition-transform duration-300 ease-in-out hover:scale-105 drop-shadow-sm"
                           />
                         </a> */}
-                        <div className="w-full">
+                        {/* <div className="w-full">
                           <Carousel className="w-full group">
                             <CarouselContent>
                               {(packageImages?.[result?.packageId] &&
@@ -889,10 +884,21 @@ const SearchResults = () => {
                               ))}
                             </CarouselContent>
 
-                            {/* Navigation Buttons */}
                             <CarouselPrevious className="left-2 sm:left-3 md:left-4" />
                             <CarouselNext className="right-2 sm:right-3 md:right-4" />
                           </Carousel>
+                        </div> */}
+                        <div className="w-full">
+                          <SimpleCarousel
+                            images={
+                              packageImages?.[result?.packageId]?.length > 0
+                                ? packageImages[result.packageId]
+                                : ["/placeholder.svg"]
+                            }
+                            onImageClick={(index) =>
+                              handleView(index, result?.packageId)
+                            }
+                          />
                         </div>
                       </div>
 
@@ -1234,7 +1240,7 @@ const SearchResults = () => {
       {/* Carousel dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-5xl w-full p-4 flex items-center reletive justify-center">
-          <div className="w-full">
+          {/* <div className="w-full">
             <Carousel opts={{ startIndex: selectedIndex }} className="w-full">
               <CarouselContent>
                 {(selectedPkgImages.length > 0
@@ -1256,11 +1262,17 @@ const SearchResults = () => {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-
-              {/* Navigation Buttons */}
               <CarouselPrevious className="left-2" />
               <CarouselNext className="right-2" />
             </Carousel>
+          </div> */}
+          <div className="w-full">
+            <PreviewCarousel
+              images={selectedPkgImages}
+              startIndex={selectedIndex}
+              imageZoomed={imageZoomed}
+              setImageZoomed={setImageZoomed}
+            />
           </div>
           {/* Zoom Button */}
           <Button
