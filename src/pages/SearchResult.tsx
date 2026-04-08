@@ -292,7 +292,6 @@ const SearchResults = () => {
 
   //           const data = res.data.data || [];
 
-
   //           if (data.length === 0) {
   //             imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
   //               ? [logoMap[pkg?.agentId]]
@@ -342,78 +341,77 @@ const SearchResults = () => {
   //     console.error("Fetch Error:", err);
   //   }
   // };
+
   const fetchImagesTemp = async (packagesData, logoMap) => {
-  const token = sessionStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
-  try {
-    const imagesMap = {};
+    try {
+      const imagesMap = {};
 
-    await Promise.allSettled(
-      packagesData.map(async (pkg) => {
-        try {
-          const res = await axios.get(
-            `${baseURL}package-gallery/byPackageId/${pkg?.packageId}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
+      await Promise.allSettled(
+        packagesData.map(async (pkg) => {
+          try {
+            const res = await axios.get(
+              `${baseURL}package-gallery/byPackageId/${pkg?.packageId}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+                validateStatus: (status) => status < 500, // ✅ KEY FIX
+              },
+            );
+
+            // ✅ HANDLE 404 WITHOUT ERROR
+            if (res.status === 404 || !res?.data?.data) {
+              imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
+                ? [logoMap[pkg?.agentId]]
+                : ["/placeholder.svg"];
+              return;
             }
-          );
 
-          const data = res?.data?.data || [];
+            const data = res.data.data;
 
-          if (!Array.isArray(data) || data.length === 0) {
+            const results = await Promise.allSettled(
+              data.map((item) => {
+                const fileName = item?.filePath?.split("/")?.pop();
+                if (!fileName) return null;
+
+                return axios.get(`${baseURL}package-gallery/files`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                  params: {
+                    fileName,
+                    agentId: pkg?.agentId,
+                    packageId: pkg?.packageId,
+                  },
+                  responseType: "blob",
+                });
+              }),
+            );
+
+            let urls = results
+              .filter((r) => r.status === "fulfilled" && r.value?.data)
+              .map((r) => URL.createObjectURL(r.value.data));
+
+            if (logoMap[pkg?.agentId]) {
+              urls.unshift(logoMap[pkg?.agentId]);
+            }
+
+            imagesMap[pkg?.packageId] =
+              urls.length > 0 ? urls : ["/placeholder.svg"];
+          } catch (err) {
+            // ❌ Ab yaha 404 kabhi nahi aayega
+            console.error("Unexpected Error:", err);
+
             imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
               ? [logoMap[pkg?.agentId]]
               : ["/placeholder.svg"];
-            return;
           }
+        }),
+      );
 
-          const results = await Promise.allSettled(
-            data.map((item) => {
-              const fileName = item?.filePath?.split("/")?.pop();
-
-              if (!fileName) return null;
-
-              return axios.get(`${baseURL}package-gallery/files`, {
-                headers: { Authorization: `Bearer ${token}` },
-                params: {
-                  fileName,
-                  agentId: pkg?.agentId,
-                  packageId: pkg?.packageId,
-                },
-                responseType: "blob",
-              });
-            })
-          );
-
-          let urls = results
-            .filter((r) => r.status === "fulfilled" && r.value?.data)
-            .map((r) => URL.createObjectURL(r.value.data));
-
-          if (logoMap[pkg?.agentId]) {
-            urls.unshift(logoMap[pkg?.agentId]);
-          }
-
-          imagesMap[pkg?.packageId] =
-            urls.length > 0 ? urls : ["/placeholder.svg"];
-        } catch (err) {
-          console.warn(
-            `Image fetch failed for package ${pkg?.packageId}`,
-            err?.response?.status
-          );
-
-          // ✅ ALWAYS fallback (NO CRASH)
-          imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
-            ? [logoMap[pkg?.agentId]]
-            : ["/placeholder.svg"];
-        }
-      })
-    );
-
-    setPackageImages(imagesMap);
-  } catch (err) {
-    console.error("Fetch Error:", err);
-  }
-};
+      setPackageImages(imagesMap);
+    } catch (err) {
+      console.error("Fetch Error:", err);
+    }
+  };
 
   // fetching logo
   const fetchAgentLogos = async (packagesData) => {
@@ -951,7 +949,9 @@ const SearchResults = () => {
                                   <div className="w-full aspect-[16/9] sm:aspect-[4/3] md:aspect-[16/9] lg:h-[300px] flex items-center justify-center overflow-hidden rounded-xl">
                                     <img
                                       src={img || "/placeholder.svg"}
-                                      onError={(e) =>(e.target.src = "/placeholder.svg")}
+                                      onError={(e) =>
+                                        (e.target.src = "/placeholder.svg")
+                                      }
                                       alt={`Image ${index}`}
                                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
                                       onClick={() =>
