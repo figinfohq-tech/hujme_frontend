@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/carousel";
 import Loader from "@/components/Loader";
 import { toast } from "react-toastify";
+import { data } from "react-router";
 
 const Gallery = ({ pkg, packageId }) => {
   const [fileResponses, setFileResponses] = useState([]);
@@ -46,7 +47,7 @@ const Gallery = ({ pkg, packageId }) => {
         },
       );
 
-      const data = res.data || [];
+      const data = res.data?.data || [];
 
       // 👉 Loop with GET API
       const promises = data.map((item) => {

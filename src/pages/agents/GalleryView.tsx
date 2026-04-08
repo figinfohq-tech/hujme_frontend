@@ -42,7 +42,7 @@ const GalleryView = (pkg) => {
         },
       );
 
-      const data = res.data || [];
+      const data = res.data?.data || [];
 
       // 👉 Loop with GET API
       const promises = data.map((item) => {
@@ -115,7 +115,7 @@ const GalleryView = (pkg) => {
                 <img
                   src={img.url}
                   alt="gallery"
-                  className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110"
+                  className="w-full h-50 object-cover transition-transform duration-300 group-hover:scale-110"
                 />
 
                 {/* Gradient Overlay */}

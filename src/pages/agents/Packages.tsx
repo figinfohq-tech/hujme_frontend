@@ -263,7 +263,7 @@ const Packages = () => {
             }
           );
 
-          const data = res.data || [];
+          const data = res.data?.data || [];
 
           if (data.length === 0) {
             imagesMap[pkg?.packageId] = logoMap[pkg?.agentId]
@@ -577,15 +577,7 @@ const Packages = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
                   {/* LEFT : IMAGE / LOGO */}
                   <div className="md:col-span-1 h-48 md:h-full bg-white border-r border-border">
-                    {/* <a
-    href={pkg.website || "#"}
-    target="_blank"
-    rel="noopener noreferrer"
-    className={`w-full h-full block ${
-      pkg.website ? "hover:opacity-90" : "pointer-events-none"
-    }`}
-  > */}
-                    <div>
+                    {/* <div>
                       <Carousel className="w-full h-full group">
                         <CarouselContent>
                           {(packageImages[pkg.packageId]?.length > 0
@@ -606,12 +598,36 @@ const Packages = () => {
                             </CarouselItem>
                           ))}
                         </CarouselContent>
-
-                        {/* Navigation Buttons */}
                         <CarouselPrevious className="left-0" />
                         <CarouselNext className="right-0" />
                       </Carousel>
-                      {/* </a> */}
+                    </div> */}
+                    <div className="w-full">
+                      <Carousel className="w-full group">
+                        <CarouselContent>
+                          {(packageImages[pkg?.packageId]?.length > 0
+                            ? packageImages[pkg?.packageId]
+                            : ["/placeholder.svg"]
+                          ).map((img, index) => (
+                            <CarouselItem key={index}>
+                              <div className="w-full aspect-[16/9] sm:aspect-[4/3] md:aspect-[16/9] lg:h-[300px] flex items-center justify-center overflow-hidden rounded-xl">
+                                <img
+                                  src={img}
+                                  alt={`Image ${index}`}
+                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
+                                  onClick={() =>
+                                    handleView(index, pkg?.packageId)
+                                  }
+                                />
+                              </div>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+
+                        {/* Navigation Buttons */}
+                        <CarouselPrevious className="left-2 sm:left-3 md:left-4" />
+                        <CarouselNext className="right-2 sm:right-3 md:right-4" />
+                      </Carousel>
                     </div>
                   </div>
 
