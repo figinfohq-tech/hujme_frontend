@@ -107,27 +107,28 @@ const GalleryView = (pkg) => {
             {fileResponses.map((img, index) => (
               <div
                 key={img.id}
-                className="group relative rounded-2xl overflow-hidden shadow-md bg-white dark:bg-gray-900"
+                className="rounded-2xl overflow-hidden shadow-md bg-white dark:bg-gray-900"
               >
                 {/* Image */}
-                <img
-                  src={img.url}
-                  alt="gallery"
-                  className="w-full h-50 object-cover transition-transform duration-300 group-hover:scale-110"
-                />
+                <div className="overflow-hidden">
+                  <img
+                    src={img.url}
+                    alt="gallery"
+                    className="w-full h-40 object-cover transition-transform duration-300 hover:scale-105"
+                  />
+                </div>
 
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition" />
-
-                {/* Actions */}
-                <div className="absolute top-2 right-2 flex gap-2">
-                  {/* View */}
+                {/* Bottom Card Section */}
+                <div className="p-3 flex justify-between items-center">
+                  {/* View Button */}
                   <Button
-                    size="icon"
-                    className="rounded-full shadow"
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center gap-2 rounded-lg"
                     onClick={() => handleView(index)}
                   >
                     <Eye className="w-4 h-4" />
+                    View
                   </Button>
                 </div>
               </div>
@@ -138,30 +139,6 @@ const GalleryView = (pkg) => {
       {/* Carousel dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-5xl w-full p-4 flex items-center reletive justify-center">
-          {/* <div className="w-full">
-            <Carousel opts={{ startIndex: selectedIndex }} className="w-full">
-              <CarouselContent>
-                {fileResponses.map((img, index) => (
-                  <CarouselItem key={index}>
-                    <div className="flex items-center justify-center h-[75vh]">
-                      <img
-                        src={img.url}
-                        alt="preview"
-                        className={`max-h-full max-w-full object-contain rounded-xl transition-transform duration-300 ${
-                          imageZoomed
-                            ? "scale-150 cursor-zoom-out"
-                            : "scale-100 cursor-zoom-in"
-                        }`}
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-
-              <CarouselPrevious className="left-2" />
-              <CarouselNext className="right-2" />
-            </Carousel>
-          </div> */}
           <div className="w-full">
             <PreviewCarousel
               images={imageUrls}

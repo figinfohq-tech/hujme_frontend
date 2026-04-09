@@ -59,6 +59,8 @@ import ViewHotelPage from "@/pages/adminDashboard/ViewHotelPage";
 import AdminUpgradeSubscription from "@/pages/adminDashboard/AdminUpgradeSubscription";
 import { MediaGallery } from "@/pages/agents/MediaGallery";
 import { MediaLibrary } from "@/pages/user/MediaLibrary";
+import LookupsMaster from "@/pages/adminDashboard/LookupsMaster";
+import AddLookups from "@/pages/adminDashboard/AddLookups";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
@@ -203,12 +205,14 @@ const MainRouts = () => {
               />
               <Route path="facility-master" element={<FacilityMaster />} />
               <Route path="facility-add" element={<AddFacility />} />
+              <Route path="Lookups-add" element={<AddLookups/>} />
               <Route path="hotel-master" element={<HotelMaster />} />
               <Route path="add-hotel" element={<AddHotelPage />} />
               <Route path="edit-hotel" element={<EditHotelPage />} />
               <Route path="view-hotel" element={<ViewHotelPage />} />
               {/* <Route path="agent-management" element={<AgentManagement />} /> */}
               <Route path="reports" element={<ReportsAnalytics />} />
+              <Route path="lookups-master" element={<LookupsMaster />} />
               <Route
                 path="/agent-verification-details"
                 element={<AgentVerificationDetails />}

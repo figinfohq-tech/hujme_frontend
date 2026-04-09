@@ -18,6 +18,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  LayoutList,
 } from "lucide-react";
 import { Button } from "./ui/button";
 
@@ -31,7 +32,7 @@ const AdminSideBar = () => {
       path: "/",
     },
     {
-      name: "Agent management",
+      name: "Agents",
       icon: <Users size={20} />,
       path: "/agent-management",
     },
@@ -40,8 +41,9 @@ const AdminSideBar = () => {
       icon: <Crown size={20} />,
       path: "subscription-tiers",
     },
-    { name: "Facility Master", icon: <Building size={20} />, path: "/facility-master" },
-    { name: "Hotel Master", icon: <Building2 size={20} />, path: "/hotel-master" },
+    { name: "Facilities", icon: <Building size={20} />, path: "/facility-master" },
+    { name: "Hotels", icon: <Building2 size={20} />, path: "/hotel-master" },
+    { name: "Lookups", icon: <LayoutList size={20} />, path: "/lookups-master" },
     // { name: "Agent Management", icon: <Users size={20} />, path: "/agent-management" },
     {
       name: "Reports & Analytics",

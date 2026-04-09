@@ -295,7 +295,7 @@ function FacilityMaster() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-primary">Facility Master</h2>
+            <h2 className="text-3xl font-bold text-primary">Facilities</h2>
             <p className="text-muted-foreground">
               Manage facilities available for package creation
             </p>
@@ -486,7 +486,7 @@ function FacilityMaster() {
               </div>
 
               <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-70">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -495,9 +495,21 @@ function FacilityMaster() {
                   <SelectItem value="Premium">Premium</SelectItem>
                   <SelectItem value="Luxury">Luxury</SelectItem>
                 </SelectContent>
+                {/* <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {facilities1.map((facilities, index) => {
+                    return (
+                      <>
+                        <SelectItem key={index} value={facilities?.category}>
+                          {facilities?.category}
+                        </SelectItem>
+                      </>
+                    );
+                  })}
+                </SelectContent> */}
               </Select>
 
-              <Select value={filterType} onValueChange={setFilterType}>
+              {/* <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
@@ -510,7 +522,7 @@ function FacilityMaster() {
                   <SelectItem value="Insurance">Insurance</SelectItem>
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
-              </Select>
+              </Select> */}
             </div>
           </CardContent>
         </Card>

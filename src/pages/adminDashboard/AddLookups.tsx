@@ -8,13 +8,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { baseURL } from "@/utils/constant/url";
@@ -24,21 +17,14 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "react-toastify";
 
-const AddFacility = () => {
+const AddLookups = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [newFacility, setNewFacility] = useState({
-    name: "",
-    category: "Basic" as "Basic" | "Premium" | "Luxury",
-    type: "Hotel" as
-      | "Hotel"
-      | "Transport"
-      | "Meals"
-      | "Guide"
-      | "Insurance"
-      | "Other",
+    lookupName: "",
+    lookupType: "",
+    lookupCode: "",
     description: "",
     isActive: true,
-    isMandatory: false,
   });
   const [editingFacilityId, setEditingFacilityId] = useState<string | null>(
     null,
@@ -49,58 +35,60 @@ const AddFacility = () => {
 
   const location = useLocation();
 
-  const facility = location.state?.facility;
+  const lookupsData = location.state?.lookups;
   // const isEditMode = location.state?.isEditMode || false;
 
+  console.log("lookups console.--->", lookupsData);
+
   useEffect(() => {
-    if (facility) {
+    if (lookupsData) {
       setNewFacility({
-        name: facility.facilityName,
-        category: facility.category,
-        type: facility.category,
-        description: facility.description,
-        isActive: facility.isActive,
-        isMandatory: facility.isMandatory ?? false,
+        lookupName: lookupsData.lookupName,
+        lookupType: lookupsData.lookupType,
+        lookupCode: lookupsData.lookupCode,
+        description: lookupsData.description,
+        isActive: lookupsData.isActive,
       });
 
-      setEditingFacilityId(facility.facilityId);
+      setEditingFacilityId(lookupsData.lookupId);
       setIsEditMode(true);
     }
-  }, [facility]);
+  }, [lookupsData]);
 
   const handleCreateFacility = async () => {
-    if (!newFacility.name || !newFacility.description) {
+    if (!newFacility.lookupName || !newFacility.description) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     const payload = {
-      facilityName: newFacility.name,
+      lookupName: newFacility.lookupName,
+      lookupType: newFacility.lookupType,
+      lookupCode: newFacility.lookupCode,
       description: newFacility.description,
-      category: newFacility.category,
       isActive: newFacility.isActive,
     };
 
     try {
       if (isEditMode) {
         // UPDATE API
-        await axios.put(`${baseURL}facilities/${editingFacilityId}`, payload, {
+        await axios.put(`${baseURL}lookups/${editingFacilityId}`, payload, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        toast.success("Facility updated successfully");
+        toast.success("lookup updated successfully");
       } else {
         // CREATE API
-        const response = await axios.post(`${baseURL}facilities`, payload, {
+        const response = await axios.post(`${baseURL}lookups`, payload, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
         toast.success(
-          `${response.data.facilityName} facility created successfully`,
+          `${response.data.lookupName} lookup created successfully`,
         );
       }
 
@@ -108,14 +96,13 @@ const AddFacility = () => {
       setEditingFacilityId(null);
 
       setNewFacility({
-        name: "",
-        category: "Basic",
-        type: "Hotel",
+        lookupName: "",
+        lookupType: "",
+        lookupCode: "",
         description: "",
         isActive: true,
-        isMandatory: false,
       });
-      await navigate("/facility-master");
+      await navigate("/lookups-master");
     } catch (error) {
       console.error("❌ Facility API Error:", error);
       toast.error("Operation failed");
@@ -127,12 +114,11 @@ const AddFacility = () => {
     setEditingFacilityId(null);
     navigate(-1);
     setNewFacility({
-      name: "",
-      category: "Basic",
-      type: "Hotel",
+      lookupName: "",
+      lookupType: "",
+      lookupCode: "",
       description: "",
       isActive: true,
-      isMandatory: false,
     });
   };
 
@@ -147,28 +133,28 @@ const AddFacility = () => {
         <Card>
           <CardHeader>
             <CardTitle>
-              {isEditMode ? "Edit Facility" : "Add New Facility"}
+              {isEditMode ? "Edit Lookups" : "Add New Lookups"}
             </CardTitle>
 
             <CardDescription>
               {isEditMode
-                ? "Update the facility details for agents packages"
-                : "Create a new facility for agents to include in their packages"}
+                ? "Update the Lookups details for agents packages"
+                : "Create a new Lookups for agents to include in their packages"}
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
             {/* FACILITY NAME */}
             <div className="space-y-2">
-              <Label htmlFor="facility-name">Facility Name</Label>
+              <Label htmlFor="lookups-name">Lookups Name</Label>
               <Input
-                id="facility-name"
-                placeholder="e.g., Premium Hotel Medina"
-                value={newFacility.name}
+                id="lookupsData-name"
+                placeholder="Enter lookup name..."
+                value={newFacility.lookupName}
                 onChange={(e) =>
                   setNewFacility((prev) => ({
                     ...prev,
-                    name: e.target.value,
+                    lookupName: e.target.value,
                   }))
                 }
               />
@@ -177,63 +163,40 @@ const AddFacility = () => {
             {/* CATEGORY + TYPE */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Category</Label>
-                <Select
-                  value={newFacility.category}
-                  onValueChange={(value: "Basic" | "Premium" | "Luxury") =>
-                    setNewFacility((prev) => ({ ...prev, category: value }))
+                <Label>lookup Type</Label>
+                <Input
+                  placeholder="Enter lookup type..."
+                  value={newFacility.lookupType}
+                  onChange={(e) =>
+                    setNewFacility((prev) => ({
+                      ...prev,
+                      lookupType: e.target.value,
+                    }))
                   }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    <SelectItem value="Basic">Basic</SelectItem>
-                    <SelectItem value="Premium">Premium</SelectItem>
-                    <SelectItem value="Luxury">Luxury</SelectItem>
-                  </SelectContent>
-                </Select>
+                />
               </div>
-
               <div className="space-y-2">
-                <Label>Type</Label>
-
-                <Select
-                  value={newFacility.type}
-                  onValueChange={(
-                    value:
-                      | "Hotel"
-                      | "Transport"
-                      | "Meals"
-                      | "Guide"
-                      | "Insurance"
-                      | "Other",
-                  ) => setNewFacility((prev) => ({ ...prev, type: value }))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    <SelectItem value="Hotel">Hotel</SelectItem>
-                    <SelectItem value="Transport">Transport</SelectItem>
-                    <SelectItem value="Meals">Meals</SelectItem>
-                    <SelectItem value="Guide">Guide</SelectItem>
-                    <SelectItem value="Insurance">Insurance</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Lookup Code</Label>
+                <Input
+                  placeholder="Enter lookup code..."
+                  value={newFacility.lookupCode}
+                  onChange={(e) =>
+                    setNewFacility((prev) => ({
+                      ...prev,
+                      lookupCode: e.target.value,
+                    }))
+                  }
+                />
               </div>
             </div>
 
             {/* DESCRIPTION */}
             <div className="space-y-2">
-              <Label htmlFor="facility-description">Description</Label>
+              <Label htmlFor="lookupsData-description">Description</Label>
 
               <Textarea
-                id="facility-description"
-                placeholder="Describe the facility and its features..."
+                id="lookupsData-description"
+                placeholder="Describe the lookupsData and its features..."
                 value={newFacility.description}
                 onChange={(e) =>
                   setNewFacility((prev) => ({
@@ -249,7 +212,7 @@ const AddFacility = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center space-x-2">
                 <Switch
-                  id="facility-active"
+                  id="lookupsData-active"
                   checked={newFacility.isActive}
                   onCheckedChange={(checked) =>
                     setNewFacility((prev) => ({
@@ -258,21 +221,7 @@ const AddFacility = () => {
                     }))
                   }
                 />
-                <Label htmlFor="facility-active">Active</Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="facility-mandatory"
-                  checked={newFacility.isMandatory}
-                  onCheckedChange={(checked) =>
-                    setNewFacility((prev) => ({
-                      ...prev,
-                      isMandatory: checked,
-                    }))
-                  }
-                />
-                <Label htmlFor="facility-mandatory">Mandatory</Label>
+                <Label htmlFor="lookupsData-active">Active</Label>
               </div>
             </div>
 
@@ -282,7 +231,7 @@ const AddFacility = () => {
                 onClick={handleCreateFacility}
                 className="flex-1 bg-primary hover:bg-primary/90"
               >
-                {isEditMode ? "Update Facility" : "Add Facility"}
+                {isEditMode ? "Update Lookups" : "Add Lookups"}
               </Button>
 
               <Button
@@ -301,4 +250,4 @@ const AddFacility = () => {
   );
 };
 
-export default AddFacility;
+export default AddLookups;

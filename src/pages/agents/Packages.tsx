@@ -571,56 +571,6 @@ const Packages = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
                   {/* LEFT : IMAGE / LOGO */}
                   <div className="md:col-span-1 h-48 md:h-full bg-white border-r border-border">
-                    {/* <div>
-                      <Carousel className="w-full h-full group">
-                        <CarouselContent>
-                          {(packageImages[pkg.packageId]?.length > 0
-                            ? packageImages[pkg.packageId]
-                            : ["/placeholder.svg"]
-                          ).map((img, index) => (
-                            <CarouselItem key={index}>
-                              <div className="w-full h-48 md:h-full p-6 flex items-center justify-center">
-                                <img
-                                  src={img}
-                                  alt={`Image ${index}`}
-                                  className="w-full h-full object-cover transition-transform rounded duration-300 group-hover:scale-105"
-                                  onClick={() =>
-                                    handleView(index, pkg.packageId)
-                                  }
-                                />
-                              </div>
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
-                        <CarouselPrevious className="left-0" />
-                        <CarouselNext className="right-0" />
-                      </Carousel>
-                    </div> */}
-                    {/* <div className="w-full">
-                      <Carousel className="w-full group">
-                        <CarouselContent>
-                          {(packageImages[pkg?.packageId]?.length > 0
-                            ? packageImages[pkg?.packageId]
-                            : ["/placeholder.svg"]
-                          ).map((img, index) => (
-                            <CarouselItem key={index}>
-                              <div className="w-full aspect-[16/9] sm:aspect-[4/3] md:aspect-[16/9] lg:h-[300px] flex items-center justify-center overflow-hidden rounded-xl">
-                                <img
-                                  src={img}
-                                  alt={`Image ${index}`}
-                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
-                                  onClick={() =>
-                                    handleView(index, pkg?.packageId)
-                                  }
-                                />
-                              </div>
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
-                        <CarouselPrevious className="left-2 sm:left-3 md:left-4" />
-                        <CarouselNext className="right-2 sm:right-3 md:right-4" />
-                      </Carousel>
-                    </div> */}
                     <div className="w-full">
                       <SimpleCarousel
                         images={
@@ -995,32 +945,6 @@ const Packages = () => {
       {/* Carousel dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-5xl w-full p-4 flex items-center reletive justify-center">
-          {/* <div className="w-full">
-            <Carousel opts={{ startIndex: selectedIndex }} className="w-full">
-              <CarouselContent>
-                {(selectedPkgImages.length > 0
-                  ? selectedPkgImages
-                  : ["/placeholder.svg"]
-                ).map((img, index) => (
-                  <CarouselItem key={index}>
-                    <div className="flex items-center justify-center h-[75vh]">
-                      <img
-                        src={img} // ✅ direct url (no .url)
-                        alt="preview"
-                        className={`max-h-full max-w-full object-contain rounded-xl transition-transform duration-300 ${
-                          imageZoomed
-                            ? "scale-150 cursor-zoom-out"
-                            : "scale-100 cursor-zoom-in"
-                        }`}
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="left-2" />
-              <CarouselNext className="right-2" />
-            </Carousel>
-          </div> */}
           <div className="w-full">
             <PreviewCarousel
               images={selectedPkgImages}
