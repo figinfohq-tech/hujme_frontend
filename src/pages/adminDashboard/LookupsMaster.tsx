@@ -53,7 +53,6 @@ interface Facility {
 }
 
 function LookupsMaster() {
- 
   const [facilities1, setFacilities1] = useState<any>([]);
   const [lookups, setLookups] = useState<any>([]);
   const [lookupsTypes, setLookupsTypes] = useState<any>([]);
@@ -205,7 +204,6 @@ function LookupsMaster() {
     return matchesSearch && matchesCategory && matchesType;
   });
 
-
   const fetchLookups = async () => {
     try {
       const token = sessionStorage.getItem("token");
@@ -215,7 +213,6 @@ function LookupsMaster() {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("lookups ====>", response.data);
       setLookups(response.data);
       setIsLoading(false);
     } catch (error) {
@@ -232,7 +229,6 @@ function LookupsMaster() {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("lookups Type ====>", response.data);
       setLookupsTypes(response.data);
       setIsLoading(false);
     } catch (error) {
@@ -245,8 +241,6 @@ function LookupsMaster() {
     fetchLookups();
     fetchLookupsType();
   }, []);
-
-  console.log("token--->", sessionStorage.getItem("token"));
 
   if (isLoading) {
     return <Loader />;

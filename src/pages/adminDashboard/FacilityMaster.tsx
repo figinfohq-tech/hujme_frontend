@@ -106,6 +106,7 @@ function FacilityMaster() {
     },
   ]);
   const [facilities1, setFacilities1] = useState<any>([]);
+  const [categories, setCategories] = useState<any>([]);
   const [deleteFacilityId, setDeleteFacilityId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -281,8 +282,29 @@ function FacilityMaster() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      setIsLoading(true);
+      const response = await axios.get(
+        `${baseURL}facilities/categories/distinct`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setCategories(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Categories API Error", error);
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchFacilities();
+    fetchCategories();
   }, []);
 
   if (isLoading) {
@@ -491,22 +513,16 @@ function FacilityMaster() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Basic">Basic</SelectItem>
-                  <SelectItem value="Premium">Premium</SelectItem>
-                  <SelectItem value="Luxury">Luxury</SelectItem>
-                </SelectContent>
-                {/* <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {facilities1.map((facilities, index) => {
+                  {categories.map((facilities: any, index: number) => {
                     return (
                       <>
-                        <SelectItem key={index} value={facilities?.category}>
-                          {facilities?.category}
+                        <SelectItem key={index} value={facilities}>
+                          {facilities}
                         </SelectItem>
                       </>
                     );
                   })}
-                </SelectContent> */}
+                </SelectContent>
               </Select>
 
               {/* <Select value={filterType} onValueChange={setFilterType}>

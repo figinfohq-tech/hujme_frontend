@@ -8,6 +8,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { baseURL } from "@/utils/constant/url";
@@ -29,6 +36,8 @@ const AddLookups = () => {
   const [editingFacilityId, setEditingFacilityId] = useState<string | null>(
     null,
   );
+  const [isLoading, setIsLoading] = useState(false);
+  const [lookups, setLookups] = useState<any>([]);
 
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate();
@@ -37,8 +46,6 @@ const AddLookups = () => {
 
   const lookupsData = location.state?.lookups;
   // const isEditMode = location.state?.isEditMode || false;
-
-  console.log("lookups console.--->", lookupsData);
 
   useEffect(() => {
     if (lookupsData) {
@@ -55,8 +62,34 @@ const AddLookups = () => {
     }
   }, [lookupsData]);
 
+  const fetchLookups = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      setIsLoading(true);
+      const response = await axios.get(`${baseURL}lookups/types/distinct`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setLookups(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("lookups API Error", error);
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLookups();
+  }, []);
+
   const handleCreateFacility = async () => {
-    if (!newFacility.lookupName || !newFacility.description) {
+    if (
+      !newFacility.lookupName ||
+      !newFacility.description ||
+      !newFacility.lookupName ||
+      !newFacility.lookupCode
+    ) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -164,16 +197,27 @@ const AddLookups = () => {
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>lookup Type</Label>
-                <Input
-                  placeholder="Enter lookup type..."
+                <Select
                   value={newFacility.lookupType}
-                  onChange={(e) =>
+                  onValueChange={(value) =>
                     setNewFacility((prev) => ({
                       ...prev,
-                      lookupType: e.target.value,
+                      lookupType: value,
                     }))
                   }
-                />
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select lookup type" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {lookups.map((item: any, index: any) => (
+                      <SelectItem key={index} value={item}>
+                        {item}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Lookup Code</Label>
