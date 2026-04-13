@@ -6,6 +6,7 @@ import { FaArrowLeft, FaLock } from "react-icons/fa";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "react-toastify";
 import { baseURL } from "@/utils/constant/url";
+import { Button } from "@/components/ui/button";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -55,13 +56,14 @@ const ResetPassword = () => {
 
   return (
     <>
-      <div
+      <Button
+        variant={"ghost"}
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer m-6 hover:text-primary"
       >
         <FaArrowLeft />
         Back to Login
-      </div>
+      </Button>
       <div className="flex flex-1 justify-center h-min">
         <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md p-6">
           <div className="w-full max-w-sm mx-auto">

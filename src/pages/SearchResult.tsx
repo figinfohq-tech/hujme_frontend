@@ -501,10 +501,10 @@ const SearchResults = () => {
   const filteredResults = getFilteredResults();
 
   const handleSearchClick = () => {
-    if (!selectedStateId) {
-      setErrors((prev) => ({ ...prev, state: true }));
-      return;
-    }
+    // if (!selectedStateId) {
+    //   setErrors((prev) => ({ ...prev, state: true }));
+    //   return;
+    // }
 
     fetchSearchResult();
   };
@@ -571,6 +571,18 @@ const SearchResults = () => {
                     />
                     <CommandEmpty>No state found.</CommandEmpty>
                     <CommandGroup className="max-h-60 overflow-y-auto">
+                      {/* CLEAR OPTION */}
+                      <CommandItem
+                        value="clear"
+                        onSelect={() => {
+                          setSelectedStateId("");
+                          setSelectedCityId("");
+                          setStateSearch("");
+                          setIsStateOpen(false);
+                        }}
+                      >
+                        Clear selected state
+                      </CommandItem>
                       {state
                         .filter((item) =>
                           item.stateName
@@ -620,6 +632,16 @@ const SearchResults = () => {
                     />
                     <CommandEmpty>No city found.</CommandEmpty>
                     <CommandGroup className="max-h-60 overflow-y-auto">
+                      <CommandItem
+                        value="clear"
+                        onSelect={() => {
+                          setSelectedCityId("");
+                          setSelectedCityId("");
+                          setIsCityOpen(false);
+                        }}
+                      >
+                        Clear selected city
+                      </CommandItem>
                       {cities
                         .filter((item) =>
                           item.cityName

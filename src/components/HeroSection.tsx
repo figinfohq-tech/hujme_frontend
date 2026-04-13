@@ -245,6 +245,19 @@ const HeroSection = () => {
                       <CommandEmpty>No state found.</CommandEmpty>
 
                       <CommandGroup className="max-h-60 overflow-y-auto">
+                        {/* CLEAR OPTION */}
+                        <CommandItem
+                          value="clear"
+                          onSelect={() => {
+                            setSelectedStateId("");
+                            setSelectedCityId("");
+                            setStateSearch("");
+                            setIsStateOpen(false);
+                          }}
+                        >
+                          Clear selected state
+                        </CommandItem>
+
                         {state
                           .filter((item) =>
                             item.stateName
@@ -313,6 +326,16 @@ const HeroSection = () => {
                       <CommandEmpty>No city found.</CommandEmpty>
 
                       <CommandGroup className="max-h-60 overflow-y-auto">
+                        <CommandItem
+                          value="clear"
+                          onSelect={() => {
+                            setSelectedCityId("");
+                            setCitySearch("");
+                            setIsCityOpen(false);
+                          }}
+                        >
+                          Clear selected city
+                        </CommandItem>
                         {cities
                           .filter((item) =>
                             item.cityName

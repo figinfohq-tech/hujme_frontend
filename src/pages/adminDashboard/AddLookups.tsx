@@ -240,7 +240,7 @@ const AddLookups = () => {
 
               <Textarea
                 id="lookupsData-description"
-                placeholder="Describe the lookupsData and its features..."
+                placeholder="Describe the lookups and its features..."
                 value={newFacility.description}
                 onChange={(e) =>
                   setNewFacility((prev) => ({
