@@ -53,89 +53,17 @@ interface Facility {
 }
 
 function FacilityMaster() {
-  const [facilities, setFacilities] = useState<Facility[]>([
-    {
-      id: "1",
-      name: "Luxury Hotel Makkah",
-      category: "Luxury",
-      type: "Hotel",
-      description: "5-star accommodation near Haram with premium amenities",
-      isActive: true,
-      isMandatory: false,
-      usageCount: 87,
-    },
-    {
-      id: "2",
-      name: "VIP Transport Service",
-      category: "Premium",
-      type: "Transport",
-      description: "Air-conditioned buses with professional drivers",
-      isActive: true,
-      isMandatory: true,
-      usageCount: 156,
-    },
-    {
-      id: "3",
-      name: "Halal Buffet Package",
-      category: "Basic",
-      type: "Meals",
-      description: "Three meals daily with international and local cuisine",
-      isActive: true,
-      isMandatory: false,
-      usageCount: 203,
-    },
-    {
-      id: "4",
-      name: "Expert Islamic Guide",
-      category: "Premium",
-      type: "Guide",
-      description: "Knowledgeable guide for religious sites and rituals",
-      isActive: true,
-      isMandatory: false,
-      usageCount: 134,
-    },
-    {
-      id: "5",
-      name: "Travel Insurance",
-      category: "Basic",
-      type: "Insurance",
-      description: "Comprehensive medical and travel coverage",
-      isActive: true,
-      isMandatory: true,
-      usageCount: 245,
-    },
-  ]);
   const [facilities1, setFacilities1] = useState<any>([]);
   const [categories, setCategories] = useState<any>([]);
   const [deleteFacilityId, setDeleteFacilityId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
-  const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [editingFacilityId, setEditingFacilityId] = useState<string | null>(
-    null,
-  );
 
   const navigate = useNavigate();
-
-  const [newFacility, setNewFacility] = useState({
-    name: "",
-    category: "Basic" as "Basic" | "Premium" | "Luxury",
-    type: "Hotel" as
-      | "Hotel"
-      | "Transport"
-      | "Meals"
-      | "Guide"
-      | "Insurance"
-      | "Other",
-    description: "",
-    isActive: true,
-    isMandatory: false,
-  });
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -330,165 +258,6 @@ function FacilityMaster() {
             <Plus className="w-4 h-4 mr-2" />
             Add Facility
           </Button>
-          {/* <Dialog
-            open={isCreateDialogOpen}
-            onOpenChange={(open) => {
-              setIsCreateDialogOpen(open);
-
-              if (!open) {
-                resetFacilityForm();
-              }
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Facility
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {isEditMode ? "Edit Facility" : "Add New Facility"}
-                </DialogTitle>
-                <DialogDescription>
-                  {isEditMode
-                    ? "Update the facility details for agents packages"
-                    : "Create a new facility for agents to include in their packages"}
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="facility-name">Facility Name</Label>
-                  <Input
-                    id="facility-name"
-                    placeholder="e.g., Premium Hotel Medina"
-                    value={newFacility.name}
-                    onChange={(e) =>
-                      setNewFacility((prev) => ({
-                        ...prev,
-                        name: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Category</Label>
-                    <Select
-                      value={newFacility.category}
-                      onValueChange={(value: "Basic" | "Premium" | "Luxury") =>
-                        setNewFacility((prev) => ({ ...prev, category: value }))
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Basic">Basic</SelectItem>
-                        <SelectItem value="Premium">Premium</SelectItem>
-                        <SelectItem value="Luxury">Luxury</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Type</Label>
-                    <Select
-                      value={newFacility.type}
-                      onValueChange={(
-                        value:
-                          | "Hotel"
-                          | "Transport"
-                          | "Meals"
-                          | "Guide"
-                          | "Insurance"
-                          | "Other",
-                      ) => setNewFacility((prev) => ({ ...prev, type: value }))}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Hotel">Hotel</SelectItem>
-                        <SelectItem value="Transport">Transport</SelectItem>
-                        <SelectItem value="Meals">Meals</SelectItem>
-                        <SelectItem value="Guide">Guide</SelectItem>
-                        <SelectItem value="Insurance">Insurance</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="facility-description">Description</Label>
-                  <Textarea
-                    id="facility-description"
-                    placeholder="Describe the facility and its features..."
-                    value={newFacility.description}
-                    onChange={(e) =>
-                      setNewFacility((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    rows={3}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="facility-active"
-                      checked={newFacility.isActive}
-                      onCheckedChange={(checked) =>
-                        setNewFacility((prev) => ({
-                          ...prev,
-                          isActive: checked,
-                        }))
-                      }
-                    />
-                    <Label htmlFor="facility-active">Active</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="facility-mandatory"
-                      checked={newFacility.isMandatory}
-                      onCheckedChange={(checked) =>
-                        setNewFacility((prev) => ({
-                          ...prev,
-                          isMandatory: checked,
-                        }))
-                      }
-                    />
-                    <Label htmlFor="facility-mandatory">Mandatory</Label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  onClick={handleCreateFacility}
-                  className="flex-1 bg-primary hover:bg-primary/90"
-                >
-                  {isEditMode ? "Update Facility" : "Add Facility"}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsCreateDialogOpen(false);
-                    resetFacilityForm();
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog> */}
         </div>
 
         {/* Filters */}
@@ -586,13 +355,7 @@ function FacilityMaster() {
               <Star className="w-8 h-8 text-primary/90" />
               <div>
                 <p className="text-sm text-muted-foreground">Most Used</p>
-                <p className="text-lg font-bold">
-                  {
-                    facilities.reduce((prev, current) =>
-                      prev.usageCount > current.usageCount ? prev : current,
-                    ).usageCount
-                  }
-                </p>
+                <p className="text-lg font-bold">245</p>
               </div>
             </CardContent>
           </Card>

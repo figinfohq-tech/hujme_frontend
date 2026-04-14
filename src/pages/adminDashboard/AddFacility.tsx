@@ -28,7 +28,7 @@ const AddFacility = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [newFacility, setNewFacility] = useState({
     name: "",
-    category: "Basic" as "Basic" | "Premium" | "Luxury",
+    category: "",
     type: "Hotel" as
       | "Hotel"
       | "Transport"
@@ -43,6 +43,8 @@ const AddFacility = () => {
   const [editingFacilityId, setEditingFacilityId] = useState<string | null>(
     null,
   );
+  const [categories, setCategories] = useState<any>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const token = sessionStorage.getItem("token");
   const navigate = useNavigate();
@@ -122,6 +124,30 @@ const AddFacility = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      setIsLoading(true);
+      const response = await axios.get(
+        `${baseURL}facilities/categories/distinct`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setCategories(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Categories API Error", error);
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
   const resetFacilityForm = () => {
     setIsEditMode(false);
     setEditingFacilityId(null);
@@ -176,7 +202,7 @@ const AddFacility = () => {
 
             {/* CATEGORY + TYPE */}
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label>Category</Label>
                 <Select
                   value={newFacility.category}
@@ -192,6 +218,29 @@ const AddFacility = () => {
                     <SelectItem value="Basic">Basic</SelectItem>
                     <SelectItem value="Premium">Premium</SelectItem>
                     <SelectItem value="Luxury">Luxury</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div> */}
+
+              <div className="space-y-2">
+                <Label>Category</Label>
+
+                <Select
+                  value={newFacility.category || ""}
+                  onValueChange={(value) =>
+                    setNewFacility((prev) => ({ ...prev, category: value }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {categories.map((item: any, index: any) => (
+                      <SelectItem key={index} value={item}>
+                        {item}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
