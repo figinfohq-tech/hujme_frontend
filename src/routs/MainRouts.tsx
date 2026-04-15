@@ -61,6 +61,8 @@ import { MediaGallery } from "@/pages/agents/MediaGallery";
 import { MediaLibrary } from "@/pages/user/MediaLibrary";
 import LookupsMaster from "@/pages/adminDashboard/LookupsMaster";
 import AddLookups from "@/pages/adminDashboard/AddLookups";
+import { AgentAnalytics } from "@/pages/agents/AgentAnalytics";
+
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
@@ -182,7 +184,7 @@ const MainRouts = () => {
                 path="subscription-upgrade"
                 element={<UpgradeSubscriptionPage />}
               />
-              <Route path="analytics" element={<h1>Analytics Page</h1>} />
+              <Route path="analytics" element={<AgentAnalytics />} />
               <Route path="/agent/about" element={<AboutUs />} />
               <Route path="/agent/privacy-policy" element={<PrivacyPolicy />} />
               <Route

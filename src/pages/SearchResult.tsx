@@ -15,9 +15,6 @@ import {
   Star,
   MapPin,
   Calendar,
-  Users,
-  Phone,
-  Mail,
   Filter,
   CalendarDays,
   ArrowUpDown,
@@ -25,14 +22,12 @@ import {
   Eye,
   Search,
   Bed,
-  ImageIcon,
   ZoomOut,
   ZoomIn,
 } from "lucide-react";
 // import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import axios from "axios";
-import image from "../../public/placeholder.svg";
 import { baseURL } from "@/utils/constant/url";
 import { format } from "date-fns";
 import { ReviewsDialog } from "@/components/ReviewsDialog";
@@ -60,11 +55,11 @@ const SearchResults = () => {
   const [packageTypeFilter, setPackageTypeFilter] = useState<string>("");
   const [compareList, setCompareList] = useState<string[]>([]);
   const [packages, setPackages] = useState<any>([]);
-  const [agentLogos, setAgentLogos] = useState<{ [key: string]: string }>({});
   const [packageFacilities, setPackageFacilities] = useState({});
   const [sortBy, setSortBy] = useState<string>("rating");
   const [sortOrder, setSortOrder] = useState<string>("desc");
   const [packageFilter, setPackageFilter] = useState<any>([]);
+  const [packageDepartureDate, setPackageDepartureDate] = useState<any>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [selectedCountryId, setSelectedCountryId] = useState("");
@@ -85,10 +80,6 @@ const SearchResults = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [imageZoomed, setImageZoomed] = useState(false);
   const [selectedPkgImages, setSelectedPkgImages] = useState([]);
-  const [errors, setErrors] = useState({
-    country: false,
-    state: false,
-  });
   const token = sessionStorage.getItem("token");
   const role = sessionStorage.getItem("role");
 
@@ -466,6 +457,13 @@ const SearchResults = () => {
         }
       }
 
+      // Package type filter
+      if (packageDepartureDate && packageDepartureDate !== "all") {
+        if (result.departureDate !== packageDepartureDate) {
+          return false;
+        }
+      }
+
       return true;
     });
 
@@ -752,7 +750,7 @@ const SearchResults = () => {
                       {packageFilter.agents?.map((item: any) => (
                         <SelectItem key={item} value={item}>
                           {item}
-                        </SelectItem>
+                        </SelectItem> //ds
                       ))}
                     </SelectContent>
                   </Select>
@@ -797,6 +795,29 @@ const SearchResults = () => {
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
                       {packageFilter.packageTypes?.map((item: any) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Departure Date */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    Departure Date
+                  </label>
+                  <Select
+                    value={packageDepartureDate || ""}
+                    onValueChange={setPackageDepartureDate}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Departure Date" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Dates</SelectItem>
+                      {packageFilter.departureDates?.map((item: any) => (
                         <SelectItem key={item} value={item}>
                           {item}
                         </SelectItem>
