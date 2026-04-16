@@ -417,12 +417,16 @@ const SearchResults = () => {
     return 0;
   };
 
-  const parseDate = (date: any): number => {
-    if (!date) return 0;
+  // const parseDate = (date: any): number => {
+  //   if (!date) return 0;
 
-    const parsed = new Date(date);
-    return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
-  };
+  //   const parsed = new Date(date);
+  //   return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+  // };
+
+  const parseDate = (dateStr: string) => {
+  return new Date(dateStr).setHours(0, 0, 0, 0);
+};
 
   const getFilteredResults = () => {
     const filtered = packages.filter((result: any) => {
@@ -458,11 +462,20 @@ const SearchResults = () => {
       }
 
       // Package type filter
-      if (packageDepartureDate && packageDepartureDate !== "all") {
-        if (result.departureDate !== packageDepartureDate) {
-          return false;
+      // if (packageDepartureDate && packageDepartureDate !== "all") {
+      //   if (result.departureDate !== packageDepartureDate) {
+      //     return false;
+      //   }
+      // }
+      // Package Departure Date filter
+        if (packageDepartureDate && packageDepartureDate !== "all") {
+          const resultDate = parseDate(result.departureDate);
+          const selectedDate = parseDate(packageDepartureDate);
+
+          if (resultDate !== selectedDate) {
+            return false;
+          }
         }
-      }
 
       return true;
     });
