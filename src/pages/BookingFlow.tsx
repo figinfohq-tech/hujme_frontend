@@ -149,6 +149,18 @@ export const BookingFlow: React.FC = () => {
           "Passport expiry must be at least 60 days from today";
       }
     }
+    if (t.passportIssueDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const issueDate = new Date(t.passportIssueDate);
+      issueDate.setHours(0, 0, 0, 0);
+
+      if (issueDate >= today) {
+        e.passportIssueDate =
+          "Passport issue date must be at least one day before today";
+      }
+    }
 
     return e;
   };
@@ -165,7 +177,11 @@ export const BookingFlow: React.FC = () => {
   // };
 
   const calculateTotalAmount = (finalTravelerCount: number) => {
-    const price = Number(packageData?.price || 0);
+    const price = Number(
+      existingBooking
+        ? packageData?.booking?.packageDetails?.data?.price || 0
+        : packageData?.price || 0,
+    );
     return price * finalTravelerCount;
   };
 
@@ -416,10 +432,10 @@ export const BookingFlow: React.FC = () => {
   const minPartialAmount = Math.ceil(totalAmount * 0.2);
 
   const getMinExpiryDate = () => {
-  const today = new Date();
-  today.setDate(today.getDate() + 60); // +60 days
-  return today;
-};
+    const today = new Date();
+    today.setDate(today.getDate() + 60); // +60 days
+    return today;
+  };
 
   /** --- UI Renders --- **/
   if (step === 1) {
@@ -451,7 +467,13 @@ export const BookingFlow: React.FC = () => {
               </div>
               <div>
                 <p className="font-semibold text-lg">
-                  ₹{(packageData?.price || 0).toLocaleString()} per person
+                  ₹
+                  {existingBooking
+                    ? (
+                        packageData?.booking?.packageDetails?.data?.price || 0
+                      ).toLocaleString()
+                    : (packageData?.price || 0).toLocaleString()}{" "}
+                  per person
                 </p>
               </div>
             </div>
@@ -712,7 +734,13 @@ export const BookingFlow: React.FC = () => {
                                 )
                               : ""
                           }
-                          max={formatDateFn(new Date(), "yyyy-MM-dd")}
+                          // max={formatDateFn(new Date(), "yyyy-MM-dd")}
+                          max={formatDateFn(
+                            new Date(
+                              new Date().setDate(new Date().getDate() - 1),
+                            ),
+                            "yyyy-MM-dd",
+                          )}
                           onChange={(e) =>
                             updateTraveler(
                               index,
@@ -721,6 +749,11 @@ export const BookingFlow: React.FC = () => {
                             )
                           }
                         />
+                        {errors[index]?.passportIssueDate && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {errors[index].passportIssueDate}
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -774,7 +807,10 @@ export const BookingFlow: React.FC = () => {
                 {existingBooking
                   ? existingBooking.travelerCount + travelers.length
                   : travelers.length}{" "}
-                traveler(s) × ₹{(packageData?.price || 0).toLocaleString()}
+                traveler(s) × ₹
+                {existingBooking
+                  ? packageData?.booking?.packageDetails?.data?.price || 0
+                  : (packageData?.price || 0).toLocaleString()}
               </p>
             </div>
 

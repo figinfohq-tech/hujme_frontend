@@ -425,8 +425,8 @@ const SearchResults = () => {
   // };
 
   const parseDate = (dateStr: string) => {
-  return new Date(dateStr).setHours(0, 0, 0, 0);
-};
+    return new Date(dateStr).setHours(0, 0, 0, 0);
+  };
 
   const getFilteredResults = () => {
     const filtered = packages.filter((result: any) => {
@@ -468,14 +468,14 @@ const SearchResults = () => {
       //   }
       // }
       // Package Departure Date filter
-        if (packageDepartureDate && packageDepartureDate !== "all") {
-          const resultDate = parseDate(result.departureDate);
-          const selectedDate = parseDate(packageDepartureDate);
+      if (packageDepartureDate && packageDepartureDate !== "all") {
+        const resultDate = parseDate(result.departureDate);
+        const selectedDate = parseDate(packageDepartureDate);
 
-          if (resultDate !== selectedDate) {
-            return false;
-          }
+        if (resultDate !== selectedDate) {
+          return false;
         }
+      }
 
       return true;
     });
@@ -879,7 +879,7 @@ const SearchResults = () => {
           </div>
 
           {/* Search Results */}
-          <div className="col-span-1 xl:col-span-3">
+          <div className="col-span-1 md:col-span-3">
             <div className="space-y-6">
               {filteredResults.length === 0 ? (
                 <Card className="p-8 text-center">
