@@ -97,7 +97,7 @@ export const BookingFlow: React.FC = () => {
     phoneNumber: "",
     alternateNumber: "",
     gender: "",
-    nationality: "india",
+    nationality: "India",
     dateOfBirth: null,
     passportNumber: "",
     passportIssueDate: null,
@@ -141,6 +141,14 @@ export const BookingFlow: React.FC = () => {
     if (!t.nationality.trim()) e.nationality = "Nationality is required";
     if (!t.passportNumber.trim())
       e.passportNumber = "Password Number is required";
+    if (t.passportExpiryDate) {
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() + 60);
+      if (t.passportExpiryDate < minDate) {
+        e.passportExpiryDate =
+          "Passport expiry must be at least 60 days from today";
+      }
+    }
 
     return e;
   };
@@ -406,6 +414,12 @@ export const BookingFlow: React.FC = () => {
   const totalAmount = (packageData?.price || 0) * travelerCount;
 
   const minPartialAmount = Math.ceil(totalAmount * 0.2);
+
+  const getMinExpiryDate = () => {
+  const today = new Date();
+  today.setDate(today.getDate() + 60); // +60 days
+  return today;
+};
 
   /** --- UI Renders --- **/
   if (step === 1) {
@@ -721,14 +735,7 @@ export const BookingFlow: React.FC = () => {
                                 )
                               : ""
                           }
-                          min={
-                            traveler.passportIssueDate
-                              ? formatDateFn(
-                                  traveler.passportIssueDate,
-                                  "yyyy-MM-dd",
-                                )
-                              : undefined
-                          }
+                          min={formatDateFn(getMinExpiryDate(), "yyyy-MM-dd")}
                           max="2100-01-01"
                           onChange={(e) =>
                             updateTraveler(
@@ -738,6 +745,11 @@ export const BookingFlow: React.FC = () => {
                             )
                           }
                         />
+                        {errors[index]?.passportExpiryDate && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {errors[index].passportExpiryDate}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </CardContent>
