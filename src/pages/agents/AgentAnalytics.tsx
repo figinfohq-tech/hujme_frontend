@@ -290,7 +290,7 @@ const MetricCard = ({
             {subtitle && (
               <p className="text-xs text-muted-foreground">{subtitle}</p>
             )}
-            <div className="flex items-center gap-1 pt-1">
+            {/* <div className="flex items-center gap-1 pt-1">
               {isPositive ? (
                 <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
               ) : (
@@ -305,7 +305,7 @@ const MetricCard = ({
               <span className="text-xs text-muted-foreground">
                 {changeLabel}
               </span>
-            </div>
+            </div> */}
           </div>
           <div
             className={`h-11 w-11 rounded-xl ${iconBg} flex items-center justify-center`}
@@ -462,6 +462,10 @@ export const AgentAnalytics = () => {
     { name: "Completed", value: completedCount, color: "hsl(var(--chart-4))" },
   ];
 
+  const activePackages = agentPackages.filter(
+    (pkg) => pkg.packageStatus !== "CLOSED",
+  ).length;
+
   if (isLoading) {
     return <Loader />;
   }
@@ -508,17 +512,17 @@ export const AgentAnalytics = () => {
           icon={Users}
           iconBg="bg-secondary/15"
           iconColor="text-secondary-foreground"
-          subtitle="58 this month"
+          // subtitle="58 this month"
         />
         <MetricCard
-          title="Conversion Rate"
-          value="15.6%"
+          title="Total Packages"
+          value={activePackages || 0}
           change={3.8}
           changeLabel="vs last quarter"
           icon={Target}
           iconBg="bg-chart-3/10"
           iconColor="text-chart-3"
-          subtitle="Inquiry to booking"
+          // subtitle="Inquiry to booking"
         />
         <MetricCard
           title="Customer Rating"

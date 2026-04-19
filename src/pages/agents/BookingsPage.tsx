@@ -518,15 +518,23 @@ export const BookingsPage = () => {
     switch (status) {
       case "CONFIRMED":
         return "bg-green-100 text-green-800 border-green-200";
+      case "ACTIVE":
+        return "bg-green-100 text-green-800 border-green-200";
       case "PENDING":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
       case "REJECTED":
         return "bg-red-100 text-red-800 border-red-200";
+      case "CLOSED":
+        return "bg-blue-100 text-blue-800 border-blue-200";
       case "CANCELLED":
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-red-100 text-red-800 border-red-200";
       case "partially_cancelled":
         return "bg-orange-100 text-orange-800 border-orange-200";
+      case "INACTIVE":
+        return "bg-orange-100 text-orange-800 border-orange-200";
       case "completed":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "NEW":
         return "bg-blue-100 text-blue-800 border-blue-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
@@ -537,15 +545,23 @@ export const BookingsPage = () => {
     switch (status) {
       case "CONFIRMED":
         return <CheckCircle className="h-4 w-4" />;
+      case "ACTIVE":
+        return <CheckCircle className="h-4 w-4" />;
       case "PENDING":
         return <Clock className="h-4 w-4" />;
       case "REJECTED":
+        return <XCircle className="h-4 w-4" />;
+      case "CLOSED":
         return <XCircle className="h-4 w-4" />;
       case "CANCELLED":
         return <XCircle className="h-4 w-4" />;
       case "partially_cancelled":
         return <AlertTriangle className="h-4 w-4" />;
+      case "INACTIVE":
+        return <AlertTriangle className="h-4 w-4" />;
       case "completed":
+        return <CheckCircle className="h-4 w-4" />;
+      case "CLOSED":
         return <CheckCircle className="h-4 w-4" />;
       default:
         return <AlertCircle className="h-4 w-4" />;
@@ -1078,16 +1094,40 @@ export const BookingsPage = () => {
               </CardDescription>
             </div>
             <div className="flex flex-col gap-2">
-              <Badge className={getStatusColor(booking.bookingStatus)}>
-                {getStatusIcon(booking.bookingStatus)}
-                <span className="ml-1 capitalize">{booking.bookingStatus}</span>
-              </Badge>
-              {/* {hasPendingRefund && (
+              <div className="flex justify-between flex-wrap gap-2">
+                <span>Booking :</span>
+                <Badge className={getStatusColor(booking.bookingStatus)}>
+                  {getStatusIcon(booking.bookingStatus)}
+                  <span className="ml-1 capitalize">
+                    {booking.bookingStatus}
+                  </span>
+                </Badge>
+                {/* {hasPendingRefund && (
                 <Badge className="bg-blue-100 text-blue-800 text-xs">
                   <Banknote className="h-3 w-3 mr-1" />
                   Refund Pending
                 </Badge>
               )} */}
+              </div>
+              <div className="flex justify-between flex-wrap gap-2">
+                <span>Trip :</span>
+                <Badge
+                  className={getStatusColor(
+                    booking?.packageDetails?.data?.packageStatus,
+                  )}
+                >
+                  {getStatusIcon(booking?.packageDetails?.data?.packageStatus)}
+                  <span className="ml-1 capitalize">
+                    {booking?.packageDetails?.data?.packageStatus}
+                  </span>
+                </Badge>
+                {/* {hasPendingRefund && (
+                <Badge className="bg-blue-100 text-blue-800 text-xs">
+                  <Banknote className="h-3 w-3 mr-1" />
+                  Refund Pending
+                </Badge>
+              )} */}
+              </div>
             </div>
           </div>
         </CardHeader>
