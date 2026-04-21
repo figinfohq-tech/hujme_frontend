@@ -103,7 +103,7 @@ const MainRouts = () => {
             element={<CancellationRefundPolicy />}
           />
 
-          <Route
+          {/* <Route
             path="/booking-detail"
             element={
               <ProtectedBookFlow>
@@ -119,7 +119,7 @@ const MainRouts = () => {
                 <BookingConfirmation />
               </ProtectedBookFlow>
             }
-          />
+          /> */}
 
           {/* Role Based */}
           {role === "USER" ? (
@@ -155,6 +155,23 @@ const MainRouts = () => {
                 path="/customer/cancellation-refund"
                 element={<CancellationRefundPolicy />}
               />
+              <Route
+            path="/booking-detail"
+            element={
+              <ProtectedBookFlow>
+                <BookingFlow />
+              </ProtectedBookFlow>
+            }
+          />
+
+          <Route
+            path="/booking-confirmation"
+            element={
+              <ProtectedBookFlow>
+                <BookingConfirmation />
+              </ProtectedBookFlow>
+            }
+          />
             </Route>
           ) : role === "AGENT" ? (
             <Route
@@ -196,6 +213,23 @@ const MainRouts = () => {
                 path="/agent/cancellation-refund"
                 element={<CancellationRefundPolicy />}
               />
+              <Route
+            path="/booking-detail"
+            element={
+              <ProtectedBookFlow>
+                <BookingFlow />
+              </ProtectedBookFlow>
+            }
+          />
+
+          <Route
+            path="/booking-confirmation"
+            element={
+              <ProtectedBookFlow>
+                <BookingConfirmation />
+              </ProtectedBookFlow>
+            }
+          />
             </Route>
           ) : role === "ADMIN" ? (
             <Route path="/" element={<AdminSideBar />}>

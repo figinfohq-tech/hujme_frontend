@@ -815,6 +815,31 @@ const Packages = () => {
 
                       {/* 🔥 EXISTING BUTTONS & LOGIC UNCHANGED */}
                       <div className="flex flex-wrap gap-2">
+                        {pkg.packageStatus === "ACTIVE" ? (
+                          <Button
+                            disabled={!pkg}
+                            onClick={() => {
+                              if (!pkg) return;
+
+                              navigate("/booking-detail", {
+                                state: {
+                                  packageData: {
+                                    id: pkg?.packageId,
+                                    title: pkg?.packageName,
+                                    price: pkg?.price,
+                                    duration: pkg?.duration,
+                                  },
+                                  packageDetails: pkg?.data,
+                                },
+                              });
+                            }}
+                            className="px-6 bg-gradient-button text-primary-foreground hover:opacity-90 transition-all duration-200"
+                          >
+                            Book Now
+                          </Button>
+                        ) : (
+                          ""
+                        )}
                         <Button
                           variant="outline"
                           size="sm"

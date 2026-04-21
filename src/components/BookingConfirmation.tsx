@@ -56,6 +56,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
 }) => {
   const [booking, setBooking] = useState<BookingDetails | null>(null);
   const [agent, setAgent] = useState<any>("");
+  const [agentRole, setAgentRole] = useState<any>("");
   const [packageDetails, setpackageDetails] = useState<any>("");
   const [airlineDetails, setAirlineDetails] = useState<any>([]);
   const [travelers, setTravelers] = useState<any[]>([]);
@@ -78,6 +79,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
     if (booking?.userId) {
       fetchPackage();
       fetchAirline();
+      fetchUser();
     }
   }, [booking?.userId]);
 
@@ -101,6 +103,40 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
         },
       );
       setBooking(response.data);
+    } catch (error: any) {
+      console.error("Fetch Booking Error:", error);
+
+      toast({
+        title: "Error",
+        description:
+          error?.response?.data?.message || "Failed to fetch booking details",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const fetchUser = async () => {
+    try {
+      setIsLoading(true);
+
+      const token = sessionStorage.getItem("token");
+      // const userId = sessionStorage.getItem("userId");
+
+      if (!bookingId) {
+        throw new Error("Booking ID not found");
+      }
+
+      const response = await axios.get(
+        `${baseURL}users/${booking?.userId}`, // 👈 API path
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      setAgentRole(response.data);
     } catch (error: any) {
       console.error("Fetch Booking Error:", error);
 
@@ -272,7 +308,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
             <p className="text-muted-foreground mt-2">
               Unable to retrieve booking details.
             </p>
-            <Button onClick={onClose} className="mt-4">
+            <Button onClick={() => navigate(-1)} className="mt-4">
               Go Back
             </Button>
           </CardContent>
@@ -642,7 +678,9 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4">
         <Button
-          onClick={() => navigate("/customer/search")}
+          onClick={() =>
+            navigate(agentRole.role === "AGENT" ? "/" : "/customer/search")
+          }
           variant="outline"
           className="flex-1"
         >
