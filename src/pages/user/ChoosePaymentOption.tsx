@@ -19,7 +19,7 @@ const ChoosePaymentOption = () => {
   const navigate = useNavigate();
 
   const location = useLocation();
-  const booking = location.state?.booking;
+  const booking = location.state?.state?.booking;
 
   useEffect(() => {
     if (booking.bookingId) {
@@ -68,7 +68,7 @@ const ChoosePaymentOption = () => {
 
     toast.success("Payment Successful");
 
-    navigate("/payment-corfirm", {
+    navigate("/customer/payment-corfirm", {
       state: { booking: booking },
     });
   };

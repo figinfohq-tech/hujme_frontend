@@ -49,6 +49,7 @@ const PackageDetails = () => {
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
 
   // Mock package data - in real app, fetch based on id
+  const token = sessionStorage.getItem("token");
   const packageData = {
     id: 1,
     agentName: "Al-Haramain Tours",
@@ -240,7 +241,7 @@ const PackageDetails = () => {
           className="mb-3 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Search Results
+          Back
         </Button>
 
         <div className="grid grid-cols-1 bg-white-900 border rounded-xl shadow p-5 gap-8">
@@ -337,7 +338,7 @@ const PackageDetails = () => {
                           onClick={() => {
                             if (!packageDetail) return;
 
-                            navigate("/booking-detail", {
+                            navigate("/customer/booking-detail", {
                               state: {
                                 packageData: {
                                   id: packageDetail?.data?.packageId,

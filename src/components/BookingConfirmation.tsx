@@ -678,9 +678,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4">
         <Button
-          onClick={() =>
-            navigate(agentRole.role === "AGENT" ? "/" : "/customer/search")
-          }
+          onClick={() => navigate("/")}
           variant="outline"
           className="flex-1"
         >

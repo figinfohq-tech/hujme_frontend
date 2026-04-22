@@ -361,7 +361,7 @@ export const BookingFlow: React.FC = () => {
           },
         );
       }
-      navigate("/payment-option", {
+      navigate("/customer/upload-passport", {
         state: { booking: bookingToSend },
       });
 

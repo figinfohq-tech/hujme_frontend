@@ -62,7 +62,7 @@ import { MediaLibrary } from "@/pages/user/MediaLibrary";
 import LookupsMaster from "@/pages/adminDashboard/LookupsMaster";
 import AddLookups from "@/pages/adminDashboard/AddLookups";
 import { AgentAnalytics } from "@/pages/agents/AgentAnalytics";
-
+import { UploadPassport } from "@/pages/user/UploadPassport";
 
 const MainRouts = () => {
   const role = sessionStorage.getItem("role");
@@ -92,8 +92,6 @@ const MainRouts = () => {
           <Route path="/media-library" element={<MediaLibrary />} />
           <Route path="/package/:id" element={<PackageDetails />} />
           <Route path="/compare" element={<ComparePackages />} />
-          <Route path="/payment-option" element={<ChoosePaymentOption />} />
-          <Route path="/payment-corfirm" element={<PaymentProcessComfirm />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-conditions" element={<TermsConditions />} />
@@ -102,24 +100,34 @@ const MainRouts = () => {
             path="/cancellation-refund"
             element={<CancellationRefundPolicy />}
           />
+          {!token ? (
+            <>
+              <Route path="/payment-option" element={<ChoosePaymentOption />} />
+              <Route
+                path="/payment-corfirm"
+                element={<PaymentProcessComfirm />}
+              />
+              <Route
+                path="/customer/booking-detail"
+                element={
+                  <ProtectedBookFlow>
+                    <BookingFlow />
+                  </ProtectedBookFlow>
+                }
+              />
 
-          {/* <Route
-            path="/booking-detail"
-            element={
-              <ProtectedBookFlow>
-                <BookingFlow />
-              </ProtectedBookFlow>
-            }
-          />
-
-          <Route
-            path="/booking-confirmation"
-            element={
-              <ProtectedBookFlow>
-                <BookingConfirmation />
-              </ProtectedBookFlow>
-            }
-          /> */}
+              <Route
+                path="/customer/booking-confirmation"
+                element={
+                  <ProtectedBookFlow>
+                    <BookingConfirmation />
+                  </ProtectedBookFlow>
+                }
+              />
+            </>
+          ) : (
+            ""
+          )}
 
           {/* Role Based */}
           {role === "USER" ? (
@@ -156,22 +164,34 @@ const MainRouts = () => {
                 element={<CancellationRefundPolicy />}
               />
               <Route
-            path="/booking-detail"
-            element={
-              <ProtectedBookFlow>
-                <BookingFlow />
-              </ProtectedBookFlow>
-            }
-          />
+                path="/customer/upload-passport"
+                element={<UploadPassport />}
+              />
+              <Route
+                path="/customer/payment-option"
+                element={<ChoosePaymentOption />}
+              />
+              <Route
+                path="/customer/payment-corfirm"
+                element={<PaymentProcessComfirm />}
+              />
+              <Route
+                path="/customer/booking-detail"
+                element={
+                  <ProtectedBookFlow>
+                    <BookingFlow />
+                  </ProtectedBookFlow>
+                }
+              />
 
-          <Route
-            path="/booking-confirmation"
-            element={
-              <ProtectedBookFlow>
-                <BookingConfirmation />
-              </ProtectedBookFlow>
-            }
-          />
+              <Route
+                path="/customer/booking-confirmation"
+                element={
+                  <ProtectedBookFlow>
+                    <BookingConfirmation />
+                  </ProtectedBookFlow>
+                }
+              />
             </Route>
           ) : role === "AGENT" ? (
             <Route
@@ -214,22 +234,22 @@ const MainRouts = () => {
                 element={<CancellationRefundPolicy />}
               />
               <Route
-            path="/booking-detail"
-            element={
-              <ProtectedBookFlow>
-                <BookingFlow />
-              </ProtectedBookFlow>
-            }
-          />
+                path="/booking-detail"
+                element={
+                  <ProtectedBookFlow>
+                    <BookingFlow />
+                  </ProtectedBookFlow>
+                }
+              />
 
-          <Route
-            path="/booking-confirmation"
-            element={
-              <ProtectedBookFlow>
-                <BookingConfirmation />
-              </ProtectedBookFlow>
-            }
-          />
+              <Route
+                path="/booking-confirmation"
+                element={
+                  <ProtectedBookFlow>
+                    <BookingConfirmation />
+                  </ProtectedBookFlow>
+                }
+              />
             </Route>
           ) : role === "ADMIN" ? (
             <Route path="/" element={<AdminSideBar />}>
@@ -241,7 +261,7 @@ const MainRouts = () => {
               />
               <Route path="facility-master" element={<FacilityMaster />} />
               <Route path="facility-add" element={<AddFacility />} />
-              <Route path="Lookups-add" element={<AddLookups/>} />
+              <Route path="Lookups-add" element={<AddLookups />} />
               <Route path="hotel-master" element={<HotelMaster />} />
               <Route path="add-hotel" element={<AddHotelPage />} />
               <Route path="edit-hotel" element={<EditHotelPage />} />

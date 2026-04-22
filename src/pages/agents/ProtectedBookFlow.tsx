@@ -6,11 +6,16 @@ const ProtectedBookFlow = ({ children }) => {
   const location = useLocation();
   const passedState = location.state; // <-- YOUR PARAMS HERE
 
-
   if (!token) {
-    return <Navigate to="/auth" replace state={{
+    return (
+      <Navigate
+        to="/auth"
+        replace
+        state={{
           packageData: passedState?.packageData || null,
-        }} />;
+        }}
+      />
+    );
   }
 
   return children;

@@ -153,7 +153,7 @@ const PaymentProcessComfirm = () => {
             <Button
               disabled={!booking}
               onClick={() =>
-                navigate("/booking-confirmation", {
+                navigate("/customer/booking-confirmation", {
                   state: { booking: booking },
                 })
               }

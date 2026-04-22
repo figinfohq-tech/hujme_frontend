@@ -85,9 +85,7 @@ const UpgradeSubscriptionPage = () => {
            Authorization: `Bearer ${token}`,
          },
        });
-       setSubscriptionHeader(response.data);
-       console.log("jhdjhdjhew==>",response.data);
-       
+       setSubscriptionHeader(response.data);       
        setLoading(false);
      } catch (error) {
        console.error("Stats API Error", error);
@@ -170,18 +168,13 @@ const UpgradeSubscriptionPage = () => {
     if (agent?.agentId) {
       fetchAgentSubscription();
     }
-  }, [agent?.agentId]);
-
-  console.log("activeSubscriptions==>", subscriptions);
-  
+  }, [agent?.agentId]);  
 
   const activeSubscriptions = subscriptions?.filter((item) => item.isActive);  
 
   const popularSubscription = activeSubscriptions?.find(
     (item) => item.subscriptionId === subscriptionHeader?.mostPopularTier,
   );
-  console.log("popularSubscription===>", popularSubscription);
-
   if (loading) {
     return <Loader />;
   }

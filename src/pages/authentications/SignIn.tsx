@@ -23,25 +23,25 @@ const SignIn = ({ packageId }) => {
   // Handle submit
   const handleSubmit = async (values, { resetForm, setSubmitting }) => {
     try {
-        // STATIC ADMIN LOGIN
-    // if (
-    //   values.email === "admin@hujme.com" &&
-    //   values.password === "admin@1234"
-    // ) {
-    //   sessionStorage.setItem("role", "ADMIN");
-    //    sessionStorage.setItem(
-    //     "userDetails",
-    //     JSON.stringify({
-    //       firstName: "ADMIN",
-    //       lastName: "admin@hujme.com",
-    //     }));
-    //   toast.success("Admin login successful!");
-    //   navigate("/");
-    //   window.location.reload();
-    //   return;
-    // }
+      // STATIC ADMIN LOGIN
+      // if (
+      //   values.email === "admin@hujme.com" &&
+      //   values.password === "admin@1234"
+      // ) {
+      //   sessionStorage.setItem("role", "ADMIN");
+      //    sessionStorage.setItem(
+      //     "userDetails",
+      //     JSON.stringify({
+      //       firstName: "ADMIN",
+      //       lastName: "admin@hujme.com",
+      //     }));
+      //   toast.success("Admin login successful!");
+      //   navigate("/");
+      //   window.location.reload();
+      //   return;
+      // }
 
-// -----------------------------------Main Login Api Logic------------------------------------------
+      // -----------------------------------Main Login Api Logic------------------------------------------
 
       const payload = {
         email: values.email,
@@ -62,30 +62,14 @@ const SignIn = ({ packageId }) => {
 
       // Wait for toast → then redirect → then reload
       // setTimeout(() => {
-      if (response.data.user.role === "AGENT") {
-        {
-          packageId ? navigate(`/package/${packageId}`) : navigate("/");
-        }
-      } else if (response.data.user.role === "USER") {
-        {
-          packageId ? navigate(`/package/${packageId}`) : navigate("/");
-        }
-      } else if (response.data.user.role === "USER") {
-        {
-          packageId ? navigate(`/package/${packageId}`) : navigate("/");
-        }
-      } else if (response.data.user.role === "USER") {
-        {
-          packageId ? navigate(`/package/${packageId}`) : navigate("/");
-        }
-      } else if (response.data.user.role === "USER") {
-        {
-          packageId ? navigate(`/package/${packageId}`) : navigate("/");
-        }
-      } else if (response.data.user.role === "ADMIN") {
-        {
-           navigate("/");
-        }
+      const role = response.data.user.role;
+
+      if (role === "AGENT") {
+        navigate("/");
+      } else if (role === "USER") {
+        packageId ? navigate(`/customer/package/${packageId}`) : navigate("/");
+      } else if (role === "ADMIN") {
+        navigate("/");
       } else {
         navigate("/auth");
       }
