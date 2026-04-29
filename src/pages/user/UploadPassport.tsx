@@ -103,6 +103,7 @@ export const UploadPassport = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const role = sessionStorage.getItem("role");
 
   const booking = location.state.booking;
 
@@ -782,10 +783,8 @@ export const UploadPassport = () => {
           className="px-8 py-3 text-base font-semibold shadow-md"
           disabled={!allDocumentsUploaded}
           onClick={() =>
-            navigate("/customer/payment-option", {
-              state: {
-                state: { booking: booking },
-              },
+            navigate(role === "AGENT" ? "/payment-option" : "/customer/payment-option", {
+              state: { state: { booking: booking }, },
             })
           }
         >

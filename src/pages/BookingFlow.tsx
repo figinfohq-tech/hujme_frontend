@@ -84,8 +84,10 @@ export const BookingFlow: React.FC = () => {
   );
   const [partialAmount, setPartialAmount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [photoState, setPhotoState] = useState({});
+  const [passportState, setPassportState] = useState({});
   const bookingApiCalledRef = useRef(false);
+  const role = sessionStorage.getItem("role");
 
   // initial traveler object matching backend keys (dates as Date | null)
   const initialTraveler: TravelerState = {
@@ -261,6 +263,27 @@ export const BookingFlow: React.FC = () => {
     );
   };
 
+  const validateDocuments = () => {
+    let isValid = true;
+
+    travelers.forEach((_, index) => {
+      const passport = passportState[index];
+      const photo = photoState[index];
+
+      if (!passport?.preview || passport?.error) {
+        toast.error(`Traveler ${index + 1}: Please upload valid passport`);
+        isValid = false;
+      }
+
+      if (!photo?.preview || photo?.error) {
+        toast.error(`Traveler ${index + 1}: Please upload valid photo`);
+        isValid = false;
+      }
+    });
+
+    return isValid;
+  };
+
   /** Submit single traveler (backend expects one object as in Postman) */
   const handleBookingSubmit = async () => {
     if (bookingApiCalledRef.current) return;
@@ -273,6 +296,13 @@ export const BookingFlow: React.FC = () => {
       toast.error("Please fix the highlighted errors");
       return;
     }
+
+    // STEP 2: NEW DOCUMENT VALIDATION
+    const isDocsValid = validateDocuments();
+    if (!isDocsValid) {
+      return; //STOP API CALL
+    }
+
     setIsProcessing(true);
 
     try {
@@ -361,9 +391,15 @@ export const BookingFlow: React.FC = () => {
           },
         );
       }
-      navigate("/customer/upload-passport", {
-        state: { booking: bookingToSend },
-      });
+      if (role === "AGENT") {
+        navigate("/payment-option", {
+          state: { booking: bookingToSend },
+        });
+      } else {
+        navigate("/customer/payment-option", {
+          state: { booking: bookingToSend },
+        });
+      }
 
       // 🔥 RESET FORM HERE
       setTravelers([
@@ -398,6 +434,172 @@ export const BookingFlow: React.FC = () => {
     }
   };
 
+  const userId = sessionStorage.getItem("userId");
+  const token = sessionStorage.getItem("token");
+  // Upload image
+  const handlePhotoUpload = async (e, index) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const preview = URL.createObjectURL(file);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    if (userId) {
+      formData.append("userId", userId);
+    }
+
+    try {
+      const res = await axios.post(`${baseURL}validate/photo`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = res.data;
+
+      if (data.success && data.data?.valid) {
+        // Success → show image
+        setPhotoState((prev) => ({
+          ...prev,
+          [index]: {
+            preview,
+            error: "",
+          },
+        }));
+      } else {
+        //  API response me failure
+        const errorMsg =
+          data?.errorMessage ||
+          data?.data?.errors?.join(", ") ||
+          "Invalid photo";
+
+        setPhotoState((prev) => ({
+          ...prev,
+          [index]: {
+            preview: "",
+            error: errorMsg,
+          },
+        }));
+      }
+    } catch (err) {
+      // Network / 4xx / 5xx error
+      const errorMsg =
+        err?.response?.data?.errorMessage || "Upload failed. Try again.";
+
+      setPhotoState((prev) => ({
+        ...prev,
+        [index]: {
+          preview: "",
+          error: errorMsg,
+        },
+      }));
+    }
+  };
+
+  const splitName = (fullName = "") => {
+    const parts = fullName.trim().split(" ");
+
+    return {
+      firstName: parts[0] || "",
+      lastName: parts.length > 1 ? parts[parts.length - 1] : "",
+    };
+  };
+
+  //  Upload Passposrt
+  const handlePassportUpload = async (e, index) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const preview = URL.createObjectURL(file);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    if (userId) {
+      formData.append("userId", userId);
+    }
+
+    try {
+      const res = await axios.post(`${baseURL}passport/read`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = res.data;
+
+      if (data.success) {
+        const apiData = data.data;
+
+        // ✅ Name split
+        const { firstName, lastName } = splitName(apiData.firstName);
+
+        // ✅ Traveler auto-fill
+        setTravelers((prev) => {
+          const updated = [...prev];
+
+          updated[index] = {
+            ...updated[index],
+
+            firstName: firstName || updated[index].firstName,
+            lastName: lastName || updated[index].lastName,
+            middleName: "",
+
+            gender: apiData.gender?.toLowerCase() || "",
+            nationality: apiData.nationality || "",
+
+            passportNumber: apiData.passportNumber || "",
+
+            // Dates convert
+            dateOfBirth: apiData.dateOfBirth
+              ? new Date(apiData.dateOfBirth)
+              : null,
+
+            passportIssueDate: apiData.passportIssueDate
+              ? new Date(apiData.passportIssueDate)
+              : null,
+
+            passportExpiryDate: apiData.passportExpiryDate
+              ? new Date(apiData.passportExpiryDate)
+              : null,
+          };
+
+          return updated;
+        });
+
+        // ✅ UI state
+        setPassportState((prev) => ({
+          ...prev,
+          [index]: {
+            preview,
+            error: "",
+          },
+        }));
+      } else {
+        setPassportState((prev) => ({
+          ...prev,
+          [index]: {
+            preview: "",
+            error: data?.errorMessage || "Something went wrong",
+          },
+        }));
+      }
+    } catch (err) {
+      const errorMsg =
+        err?.response?.data?.errorMessage || "Upload failed. Try again.";
+
+      setPassportState((prev) => ({
+        ...prev,
+        [index]: {
+          preview: "",
+          error: errorMsg,
+        },
+      }));
+    }
+  };
+
   const handlePaymentOptionSubmit = () => {
     if (!paymentType) {
       toast({
@@ -428,7 +630,6 @@ export const BookingFlow: React.FC = () => {
 
   const travelerCount = travelers.length;
   const totalAmount = (packageData?.price || 0) * travelerCount;
-
   const minPartialAmount = Math.ceil(totalAmount * 0.2);
 
   const getMinExpiryDate = () => {
@@ -488,306 +689,435 @@ export const BookingFlow: React.FC = () => {
                 </Button>
               </div>
 
-              {travelers.map((traveler, index) => (
-                <Card key={index}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">
-                        {traveler.isPrimary
-                          ? "Primary Traveler"
-                          : `Traveler ${index + 1}`}
-                      </CardTitle>
-                      {!traveler.isPrimary && travelers.length > 1 && (
-                        <Button
-                          onClick={() => removeTraveler(index)}
-                          variant="ghost"
-                          size="sm"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label className="mb-2">
-                          First Name <span className="text-red-500">*</span>
-                        </Label>
-
-                        <Input
-                          id={`firstName-${index}`}
-                          value={traveler.firstName}
-                          onChange={(e) =>
-                            updateTraveler(index, "firstName", e.target.value)
-                          }
-                          placeholder="Enter first name"
-                        />
-                        {errors[index]?.firstName && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {errors[index].firstName}
-                          </p>
+              {travelers.map((traveler, index) => {
+                const isPassportValid =
+                  passportState[index]?.preview && !passportState[index]?.error;
+                return (
+                  <Card key={index}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">
+                          {traveler.isPrimary
+                            ? "Primary Traveler"
+                            : `Traveler ${index + 1}`}
+                        </CardTitle>
+                        {!traveler.isPrimary && travelers.length > 1 && (
+                          <Button
+                            onClick={() => removeTraveler(index)}
+                            variant="ghost"
+                            size="sm"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         )}
                       </div>
-
-                      <div>
-                        <Label className="mb-2">Middle Name</Label>
-
-                        <Input
-                          value={traveler.middleName}
-                          onChange={(e) =>
-                            updateTraveler(index, "middleName", e.target.value)
-                          }
-                          placeholder="Enter middle name"
-                        />
-                      </div>
-
-                      <div>
-                        <Label className="mb-2">
-                          Last Name <span className="text-red-500">*</span>
-                        </Label>
-
-                        <Input
-                          id={`lastName-${index}`}
-                          value={traveler.lastName}
-                          onChange={(e) =>
-                            updateTraveler(index, "lastName", e.target.value)
-                          }
-                          placeholder="Enter last name"
-                        />
-                        {errors[index]?.lastName && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {errors[index].lastName}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label className="mb-2">
-                          Email <span className="text-red-500">*</span>
-                        </Label>
-
-                        <Input
-                          id={`emailId-${index}`}
-                          type="email"
-                          value={traveler.emailId}
-                          onChange={(e) =>
-                            updateTraveler(index, "emailId", e.target.value)
-                          }
-                          placeholder="Enter email"
-                        />
-                        {errors[index]?.emailId && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {errors[index].emailId}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label className="mb-2">
-                          Phone Number <span className="text-red-500">*</span>
-                        </Label>
-
-                        <Input
-                          id={`phone-${index}`}
-                          maxLength={10}
-                          inputMode="numeric"
-                          value={traveler.phoneNumber}
-                          onChange={(e) =>
-                            updateTraveler(index, "phoneNumber", e.target.value)
-                          }
-                          placeholder="Enter phone number"
-                        />
-                        {errors[index]?.phoneNumber && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {errors[index].phoneNumber}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label
-                          htmlFor={`alternateNumber-${index}`}
-                          className="mb-2"
-                        >
-                          Alternate Number
-                        </Label>
-                        <Input
-                          value={traveler.alternateNumber}
-                          maxLength={10}
-                          inputMode="numeric"
-                          onChange={(e) =>
-                            updateTraveler(
-                              index,
-                              "alternateNumber",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="Enter alternate number"
-                        />
-                      </div>
-
-                      <div>
-                        <Label className="mb-2">
-                          Gender <span className="text-red-500">*</span>
-                        </Label>
-
-                        <select
-                          className="border rounded p-2 w-full"
-                          value={traveler.gender}
-                          onChange={(e) =>
-                            updateTraveler(index, "gender", e.target.value)
-                          }
-                        >
-                          <option value="">Select gender</option>
-                          <option value="male">Male</option>
-                          <option value="female">Female</option>
-                        </select>
-                        {errors[index]?.gender && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {errors[index].gender}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label className="mb-2">
-                          Date of Birth <span className="text-red-500">*</span>
-                        </Label>
-
-                        <Input
-                          type="date"
-                          value={
-                            traveler.dateOfBirth
-                              ? formatDateFn(traveler.dateOfBirth, "yyyy-MM-dd")
-                              : ""
-                          }
-                          max={formatDateFn(new Date(), "yyyy-MM-dd")}
-                          onChange={(e) =>
-                            updateTraveler(
-                              index,
-                              "dateOfBirth",
-                              e.target.value ? new Date(e.target.value) : null,
-                            )
-                          }
-                        />
-                        {errors[index]?.dateOfBirth && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {errors[index].dateOfBirth}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label className="mb-2">
-                          Nationality <span className="text-red-500">*</span>
-                        </Label>
-
-                        <Input
-                          value={traveler.nationality}
-                          onChange={(e) =>
-                            updateTraveler(index, "nationality", e.target.value)
-                          }
-                          placeholder="Enter nationality"
-                        />
-                        {errors[index]?.nationality && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {errors[index].nationality}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label htmlFor={`passport-${index}`} className="mb-2">
-                          Passport Number{" "}
+                    </CardHeader>
+                    {/* Image field */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border rounded-lg p-4 mx-4 bg-gray-50">
+                      {/* upload Passport */}
+                      <div className="border rounded-xl p-5 bg-white shadow-sm">
+                        <Label className="mb-3 block text-sm font-semibold text-gray-700">
+                          Upload Passport{" "}
                           <span className="text-red-500">*</span>
                         </Label>
-                        <Input
-                          id={`passport-${index}`}
-                          value={traveler.passportNumber}
-                          onChange={(e) =>
-                            updateTraveler(
-                              index,
-                              "passportNumber",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="Enter passport number"
-                        />
-                        {errors[index]?.passportNumber && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {errors[index].passportNumber}
-                          </p>
-                        )}
-                      </div>
 
-                      <div>
-                        <Label className="mb-2">Passport Issue Date</Label>
-                        <Input
-                          type="date"
-                          value={
-                            traveler.passportIssueDate
-                              ? formatDateFn(
-                                  traveler.passportIssueDate,
-                                  "yyyy-MM-dd",
-                                )
-                              : ""
-                          }
-                          // max={formatDateFn(new Date(), "yyyy-MM-dd")}
-                          max={formatDateFn(
-                            new Date(
-                              new Date().setDate(new Date().getDate() - 1),
-                            ),
-                            "yyyy-MM-dd",
+                        <div className="flex items-center gap-5">
+                          {/* Preview */}
+                          {passportState[index]?.preview ? (
+                            <img
+                              src={passportState[index].preview}
+                              alt="passport preview"
+                              className="w-20 h-20 rounded-lg object-cover border-2 border-dashed border-gray-300 shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-xs text-center px-2">
+                              No Image
+                            </div>
                           )}
-                          onChange={(e) =>
-                            updateTraveler(
-                              index,
-                              "passportIssueDate",
-                              e.target.value ? new Date(e.target.value) : null,
-                            )
-                          }
-                        />
-                        {errors[index]?.passportIssueDate && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {errors[index].passportIssueDate}
-                          </p>
+
+                          {/* Upload */}
+                          <div className="flex flex-col gap-2">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handlePassportUpload(e, index)}
+                              className="cursor-pointer text-sm"
+                            />
+
+                            <p className="text-xs text-gray-500">
+                              JPG, PNG • Max size 2MB
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Error */}
+                        {passportState[index]?.error && (
+                          <div className="mt-3 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">
+                            <span>⚠️</span>
+                            <span>{passportState[index].error}</span>
+                          </div>
                         )}
                       </div>
 
-                      <div>
-                        <Label className="mb-2">Passport Expiry Date</Label>
-                        <Input
-                          type="date"
-                          value={
-                            traveler.passportExpiryDate
-                              ? formatDateFn(
-                                  traveler.passportExpiryDate,
-                                  "yyyy-MM-dd",
-                                )
-                              : ""
-                          }
-                          min={formatDateFn(getMinExpiryDate(), "yyyy-MM-dd")}
-                          max="2100-01-01"
-                          onChange={(e) =>
-                            updateTraveler(
-                              index,
-                              "passportExpiryDate",
-                              e.target.value ? new Date(e.target.value) : null,
-                            )
-                          }
-                        />
-                        {errors[index]?.passportExpiryDate && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {errors[index].passportExpiryDate}
-                          </p>
+                      {/* upload image */}
+
+                      <div className="border rounded-xl p-5 bg-white shadow-sm">
+                        <Label className="mb-3 block text-sm font-semibold text-gray-700">
+                          Upload Photo <span className="text-red-500">*</span>
+                        </Label>
+
+                        <div className="flex items-center gap-5">
+                          {/* Preview */}
+                          {photoState[index]?.preview ? (
+                            <img
+                              src={photoState[index].preview}
+                              alt="preview"
+                              className="w-20 h-20 rounded-lg object-cover border-2 border-dashed border-gray-300 shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-xs text-center px-2">
+                              No Image
+                            </div>
+                          )}
+
+                          {/* Upload */}
+                          <div className="flex flex-col gap-2">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              disabled={!isPassportValid}
+                              onChange={(e) => handlePhotoUpload(e, index)}
+                              className={`text-sm ${
+                                !isPassportValid
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : "cursor-pointer"
+                              }`}
+                            />
+
+                            {!isPassportValid ? (
+                              <p className="text-xs text-amber-600">
+                                Upload valid passport first
+                              </p>
+                            ) : (
+                              <p className="text-xs text-gray-500">
+                                JPG, PNG • Max size 2MB
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Error */}
+                        {photoState[index]?.error && (
+                          <div className="mt-3 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">
+                            <span>⚠️</span>
+                            <span>{photoState[index].error}</span>
+                          </div>
                         )}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="mb-2">
+                            First Name <span className="text-red-500">*</span>
+                          </Label>
+
+                          <Input
+                            id={`firstName-${index}`}
+                            value={traveler.firstName}
+                            onChange={(e) =>
+                              updateTraveler(index, "firstName", e.target.value)
+                            }
+                            placeholder="Enter first name"
+                          />
+                          {errors[index]?.firstName && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {errors[index].firstName}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="mb-2">Middle Name</Label>
+
+                          <Input
+                            value={traveler.middleName}
+                            onChange={(e) =>
+                              updateTraveler(
+                                index,
+                                "middleName",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Enter middle name"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="mb-2">
+                            Last Name <span className="text-red-500">*</span>
+                          </Label>
+
+                          <Input
+                            id={`lastName-${index}`}
+                            value={traveler.lastName}
+                            onChange={(e) =>
+                              updateTraveler(index, "lastName", e.target.value)
+                            }
+                            placeholder="Enter last name"
+                          />
+                          {errors[index]?.lastName && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {errors[index].lastName}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="mb-2">
+                            Email <span className="text-red-500">*</span>
+                          </Label>
+
+                          <Input
+                            id={`emailId-${index}`}
+                            type="email"
+                            value={traveler.emailId}
+                            onChange={(e) =>
+                              updateTraveler(index, "emailId", e.target.value)
+                            }
+                            placeholder="Enter email"
+                          />
+                          {errors[index]?.emailId && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {errors[index].emailId}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="mb-2">
+                            Phone Number <span className="text-red-500">*</span>
+                          </Label>
+
+                          <Input
+                            id={`phone-${index}`}
+                            maxLength={10}
+                            inputMode="numeric"
+                            value={traveler.phoneNumber}
+                            onChange={(e) =>
+                              updateTraveler(
+                                index,
+                                "phoneNumber",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Enter phone number"
+                          />
+                          {errors[index]?.phoneNumber && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {errors[index].phoneNumber}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label
+                            htmlFor={`alternateNumber-${index}`}
+                            className="mb-2"
+                          >
+                            Alternate Number
+                          </Label>
+                          <Input
+                            value={traveler.alternateNumber}
+                            maxLength={10}
+                            inputMode="numeric"
+                            onChange={(e) =>
+                              updateTraveler(
+                                index,
+                                "alternateNumber",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Enter alternate number"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="mb-2">
+                            Gender <span className="text-red-500">*</span>
+                          </Label>
+
+                          <select
+                            className="border rounded p-2 w-full"
+                            value={traveler.gender}
+                            onChange={(e) =>
+                              updateTraveler(index, "gender", e.target.value)
+                            }
+                          >
+                            <option value="">Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                          </select>
+                          {errors[index]?.gender && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {errors[index].gender}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="mb-2">
+                            Date of Birth{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+
+                          <Input
+                            type="date"
+                            value={
+                              traveler.dateOfBirth
+                                ? formatDateFn(
+                                    traveler.dateOfBirth,
+                                    "yyyy-MM-dd",
+                                  )
+                                : ""
+                            }
+                            max={formatDateFn(new Date(), "yyyy-MM-dd")}
+                            onChange={(e) =>
+                              updateTraveler(
+                                index,
+                                "dateOfBirth",
+                                e.target.value
+                                  ? new Date(e.target.value)
+                                  : null,
+                              )
+                            }
+                          />
+                          {errors[index]?.dateOfBirth && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {errors[index].dateOfBirth}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="mb-2">
+                            Nationality <span className="text-red-500">*</span>
+                          </Label>
+
+                          <Input
+                            value={traveler.nationality}
+                            onChange={(e) =>
+                              updateTraveler(
+                                index,
+                                "nationality",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Enter nationality"
+                          />
+                          {errors[index]?.nationality && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {errors[index].nationality}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label htmlFor={`passport-${index}`} className="mb-2">
+                            Passport Number{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id={`passport-${index}`}
+                            value={traveler.passportNumber}
+                            onChange={(e) =>
+                              updateTraveler(
+                                index,
+                                "passportNumber",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Enter passport number"
+                          />
+                          {errors[index]?.passportNumber && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {errors[index].passportNumber}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="mb-2">Passport Issue Date</Label>
+                          <Input
+                            type="date"
+                            value={
+                              traveler.passportIssueDate
+                                ? formatDateFn(
+                                    traveler.passportIssueDate,
+                                    "yyyy-MM-dd",
+                                  )
+                                : ""
+                            }
+                            // max={formatDateFn(new Date(), "yyyy-MM-dd")}
+                            max={formatDateFn(
+                              new Date(
+                                new Date().setDate(new Date().getDate() - 1),
+                              ),
+                              "yyyy-MM-dd",
+                            )}
+                            onChange={(e) =>
+                              updateTraveler(
+                                index,
+                                "passportIssueDate",
+                                e.target.value
+                                  ? new Date(e.target.value)
+                                  : null,
+                              )
+                            }
+                          />
+                          {errors[index]?.passportIssueDate && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {errors[index].passportIssueDate}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="mb-2">Passport Expiry Date</Label>
+                          <Input
+                            type="date"
+                            value={
+                              traveler.passportExpiryDate
+                                ? formatDateFn(
+                                    traveler.passportExpiryDate,
+                                    "yyyy-MM-dd",
+                                  )
+                                : ""
+                            }
+                            min={formatDateFn(getMinExpiryDate(), "yyyy-MM-dd")}
+                            max="2100-01-01"
+                            onChange={(e) =>
+                              updateTraveler(
+                                index,
+                                "passportExpiryDate",
+                                e.target.value
+                                  ? new Date(e.target.value)
+                                  : null,
+                              )
+                            }
+                          />
+                          {errors[index]?.passportExpiryDate && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {errors[index].passportExpiryDate}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             {/* Total Amount */}

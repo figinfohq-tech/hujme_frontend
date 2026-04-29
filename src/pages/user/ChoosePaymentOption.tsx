@@ -17,9 +17,9 @@ const ChoosePaymentOption = () => {
   const [bookinById, setBookingById] = useState<any>();
 
   const navigate = useNavigate();
-
+  const role = sessionStorage.getItem("role");
   const location = useLocation();
-  const booking = location.state?.state?.booking;
+  const booking = location.state?.booking;
 
   useEffect(() => {
     if (booking.bookingId) {
@@ -68,7 +68,7 @@ const ChoosePaymentOption = () => {
 
     toast.success("Payment Successful");
 
-    navigate("/customer/payment-corfirm", {
+    navigate(role ==="AGENT" ? "/payment-corfirm" : "/customer/payment-corfirm" , {
       state: { booking: booking },
     });
   };

@@ -29,7 +29,7 @@ const Facilities = ({ pkg, packageId, isDuplicate }) => {
   const [featuredFacilities, setFeaturedFacilities] = useState([]);
 
   const navigate = useNavigate();
-  const id = pkg?.packageId;
+  const id = packageId ?? pkg?.packageId;
 
   // ---------------- FETCH ALL FACILITIES ----------------
   const fetchFacilities = async () => {
@@ -138,7 +138,7 @@ const Facilities = ({ pkg, packageId, isDuplicate }) => {
       const token = sessionStorage.getItem("token");
       if (!token) return toast.error("Token missing");
 
-      const finalPackageId =  packageId ?? id;
+      const finalPackageId =  packageId ?? id;      
       if (!finalPackageId) return toast.error("Package missing — create first");
 
       // if (selectedFacilities.length === 0)

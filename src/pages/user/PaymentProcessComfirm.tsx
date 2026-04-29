@@ -17,6 +17,7 @@ const PaymentProcessComfirm = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const role = sessionStorage.getItem("role");
   const booking = location.state?.booking;
 
   const fetchPackage = async () => {
@@ -153,7 +154,7 @@ const PaymentProcessComfirm = () => {
             <Button
               disabled={!booking}
               onClick={() =>
-                navigate("/customer/booking-confirmation", {
+                navigate(role === "AGENT" ? "/booking-confirmation" : "/customer/booking-confirmation", {
                   state: { booking: booking },
                 })
               }

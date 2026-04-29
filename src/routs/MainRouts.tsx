@@ -250,6 +250,26 @@ const MainRouts = () => {
                   </ProtectedBookFlow>
                 }
               />
+               <Route
+                path="/upload-passport"
+                element={<UploadPassport />}
+              />
+              <Route
+                path="/payment-option"
+                element={<ChoosePaymentOption />}
+              />
+              <Route
+                path="/payment-corfirm"
+                element={<PaymentProcessComfirm />}
+              />
+               <Route
+                path="/booking-confirmation"
+                element={
+                  <ProtectedBookFlow>
+                    <BookingConfirmation />
+                  </ProtectedBookFlow>
+                }
+              />
             </Route>
           ) : role === "ADMIN" ? (
             <Route path="/" element={<AdminSideBar />}>
