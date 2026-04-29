@@ -84,6 +84,7 @@ export const BookingFlow: React.FC = () => {
   );
   const [partialAmount, setPartialAmount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState({});
   const [photoState, setPhotoState] = useState({});
   const [passportState, setPassportState] = useState({});
   const bookingApiCalledRef = useRef(false);
@@ -436,6 +437,7 @@ export const BookingFlow: React.FC = () => {
 
   const userId = sessionStorage.getItem("userId");
   const token = sessionStorage.getItem("token");
+
   // Upload image
   const handlePhotoUpload = async (e, index) => {
     const file = e.target.files[0];
@@ -443,12 +445,18 @@ export const BookingFlow: React.FC = () => {
 
     const preview = URL.createObjectURL(file);
 
+    setUploadLoading((prev) => ({
+      ...prev,
+      [index]: { ...prev[index], photo: true },
+    }));
+
     const formData = new FormData();
     formData.append("file", file);
 
     if (userId) {
       formData.append("userId", userId);
     }
+    formData.append("passportNumber", travelers[index]?.passportNumber || "");
 
     try {
       const res = await axios.post(`${baseURL}validate/photo`, formData, {
@@ -495,6 +503,11 @@ export const BookingFlow: React.FC = () => {
           error: errorMsg,
         },
       }));
+    } finally {
+      setUploadLoading((prev) => ({
+        ...prev,
+        [index]: { ...prev[index], photo: false },
+      }));
     }
   };
 
@@ -513,6 +526,12 @@ export const BookingFlow: React.FC = () => {
     if (!file) return;
 
     const preview = URL.createObjectURL(file);
+    const fileType = file.type;
+
+    setUploadLoading((prev) => ({
+      ...prev,
+      [index]: { ...prev[index], passport: true },
+    }));
 
     const formData = new FormData();
     formData.append("file", file);
@@ -575,6 +594,7 @@ export const BookingFlow: React.FC = () => {
           [index]: {
             preview,
             error: "",
+            type: fileType,
           },
         }));
       } else {
@@ -596,6 +616,12 @@ export const BookingFlow: React.FC = () => {
           preview: "",
           error: errorMsg,
         },
+      }));
+    } finally {
+      // ✅ STOP LOADER
+      setUploadLoading((prev) => ({
+        ...prev,
+        [index]: { ...prev[index], passport: false },
       }));
     }
   };
@@ -723,12 +749,42 @@ export const BookingFlow: React.FC = () => {
 
                         <div className="flex items-center gap-5">
                           {/* Preview */}
-                          {passportState[index]?.preview ? (
+                          {/* {passportState[index]?.preview ? (
                             <img
                               src={passportState[index].preview}
                               alt="passport preview"
                               className="w-20 h-20 rounded-lg object-cover border-2 border-dashed border-gray-300 shadow-sm"
                             />
+                          ) : (
+                            <div className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-xs text-center px-2">
+                              No Image
+                            </div>
+                          )} */}
+
+                          {uploadLoading[index]?.passport ? (
+                            <div className="w-20 h-20 flex items-center justify-center border rounded-lg">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                            </div>
+                          ) : passportState[index]?.preview ? (
+                            // <img
+                            //   src={passportState[index].preview}
+                            //   className="w-20 h-20 rounded-lg object-cover border-2 border-dashed border-gray-300 shadow-sm"
+                            // />
+                            passportState[index]?.type === "application/pdf" ? (
+                              <a
+                                href={passportState[index].preview}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-20 h-20 flex items-center justify-center border rounded-lg text-xs text-blue-600 underline"
+                              >
+                                View PDF
+                              </a>
+                            ) : (
+                              <img
+                                src={passportState[index].preview}
+                                className="w-20 h-20 rounded-lg object-cover border-2 border-dashed border-gray-300 shadow-sm"
+                              />
+                            )
                           ) : (
                             <div className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-xs text-center px-2">
                               No Image
@@ -739,13 +795,13 @@ export const BookingFlow: React.FC = () => {
                           <div className="flex flex-col gap-2">
                             <Input
                               type="file"
-                              accept="image/*"
+                              accept="image/*,application/pdf"
                               onChange={(e) => handlePassportUpload(e, index)}
                               className="cursor-pointer text-sm"
                             />
 
                             <p className="text-xs text-gray-500">
-                              JPG, PNG • Max size 2MB
+                              JPG, PNG, PDF • Max size 2MB
                             </p>
                           </div>
                         </div>
@@ -768,10 +824,13 @@ export const BookingFlow: React.FC = () => {
 
                         <div className="flex items-center gap-5">
                           {/* Preview */}
-                          {photoState[index]?.preview ? (
+                          {uploadLoading[index]?.photo ? (
+                            <div className="w-20 h-20 flex items-center justify-center border rounded-lg">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                            </div>
+                          ) : photoState[index]?.preview ? (
                             <img
                               src={photoState[index].preview}
-                              alt="preview"
                               className="w-20 h-20 rounded-lg object-cover border-2 border-dashed border-gray-300 shadow-sm"
                             />
                           ) : (
