@@ -426,6 +426,7 @@ export const BookingsPage = () => {
     useState(false);
   const [isProcessingRefund, setIsProcessingRefund] = useState(false);
   const [selectedPilgrims, setSelectedPilgrims] = useState<string[]>([]);
+  const [pilgrims, setSetPilgrims] = useState<string[]>([]);
   const [cancellationType, setCancellationType] = useState<"full" | "partial">(
     "full",
   );
@@ -439,15 +440,14 @@ export const BookingsPage = () => {
     bankName: "",
   });
 
+  const token = sessionStorage.getItem("token");
+  const userId = sessionStorage.getItem("userId");
   const navigate = useNavigate();
 
   // Fetch Booking By User
   const fetchBookingByUser = async () => {
     setIsLoading(true);
     try {
-      const token = sessionStorage.getItem("token");
-      const userId = sessionStorage.getItem("userId");
-
       const response = await axios.get(`${baseURL}bookings/byUser/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -460,7 +460,34 @@ export const BookingsPage = () => {
     }
   };
   // Fetch Booking By User
+
+  // Fetch Travelers By Booking
+  const fetchTravelersByBooking = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        `${baseURL}travelers/byBooking/${selectedBooking?.bookingId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      console.log("Travlers--->", response.data);
+      setSetPilgrims(response?.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Package Fetch Error:", error);
+      setIsLoading(false);
+    }
+  };
+  // Fetch Travelers By Booking
+
   const ActiveUser = bookingUser.length;
+
+  useEffect(() => {
+    if (selectedBooking?.bookingId) {
+      fetchTravelersByBooking();
+    }
+  }, [selectedBooking?.bookingId]);
 
   useEffect(() => {
     fetchBookingByUser();
@@ -669,32 +696,38 @@ export const BookingsPage = () => {
   };
 
   const calculateRefundAmount = (booking: Booking, pilgrimIds?: string[]) => {
+    const departureDate = new Date(
+      booking?.packageDetails?.data?.departureDate,
+    );
+
     const daysToDeparture = Math.ceil(
-      (booking.departureDate.getTime() - new Date().getTime()) /
-        (1000 * 60 * 60 * 24),
+      (departureDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
     );
 
     // Find applicable refund percentage
     const applicableRule =
-      booking.cancellationPolicy.rules
+      booking?.cancellationPolicy?.rules
         .sort((a, b) => b.daysBeforeDeparture - a.daysBeforeDeparture)
         .find((rule) => daysToDeparture >= rule.daysBeforeDeparture) ||
-      booking.cancellationPolicy.rules[
-        booking.cancellationPolicy.rules.length - 1
+      booking?.cancellationPolicy?.rules[
+        booking?.cancellationPolicy?.rules?.length - 1
       ];
 
-    let refundPercentage = applicableRule.refundPercentage;
+    let refundPercentage = applicableRule?.refundPercentage;
 
     // Calculate refund based on pilgrim count
     let refundAmount = 0;
-    if (pilgrimIds && pilgrimIds.length > 0) {
+    if (pilgrimIds && pilgrimIds?.length > 0) {
       // Partial cancellation - calculate per pilgrim
-      const perPilgrimAmount = booking.amountPaid / booking.pilgrims.length;
+      const perPilgrimAmount = booking?.totalAmt / pilgrims?.length;
+
       refundAmount =
-        (perPilgrimAmount * pilgrimIds.length * refundPercentage) / 100;
+        // (perPilgrimAmount * pilgrimIds?.length * refundPercentage) / 100;
+        (perPilgrimAmount * pilgrimIds?.length) / 100;
     } else {
       // Full cancellation
-      refundAmount = (booking.amountPaid * refundPercentage) / 100;
+      // refundAmount = (booking?.totalAmt * refundPercentage) / 100;
+      refundAmount = booking?.totalAmt / 100;
     }
 
     return {
@@ -804,6 +837,23 @@ export const BookingsPage = () => {
     }
 
     setIsProcessingCancellation(true);
+
+    try {
+      const token = sessionStorage.getItem("token");
+
+      await Promise.all(
+        selectedPilgrims.map((id) =>
+          axios.delete(`${baseURL}travelers/${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        ),
+      );
+      console.log("All selected pilgrims deleted successfully");
+    } catch (error) {
+      console.error("Error deleting pilgrims:", error);
+    }
 
     try {
       // Mock cancellation processing
@@ -1310,17 +1360,17 @@ export const BookingsPage = () => {
                 <Button
                   variant="destructive"
                   size="sm"
-                  // onClick={() => {
-                  //   setSelectedBooking(booking);
-                  //   setSelectedPilgrims([]);
-                  //   setCancellationType(
-                  //     booking.pilgrims.filter((p) => p.status === "active")
-                  //       .length > 1
-                  //       ? "full"
-                  //       : "full"
-                  //   );
-                  //   setIsCancelOpen(true);
-                  // }}
+                  onClick={() => {
+                    setSelectedBooking(booking);
+                    setSelectedPilgrims([]);
+                    // setCancellationType(
+                    //   booking.pilgrims.filter((p) => p.status === "active")
+                    //     .length > 1
+                    //     ? "full"
+                    //     : "full"
+                    // );
+                    setIsCancelOpen(true);
+                  }}
                 >
                   Cancel
                 </Button>
@@ -1346,7 +1396,7 @@ export const BookingsPage = () => {
               size="sm"
               className="w-full text-primary border-primary hover:bg-primary/5"
               onClick={() =>
-                navigate("/booking-detail", {
+                navigate("/customer/booking-detail", {
                   state: {
                     packageData: {
                       booking: booking,
@@ -1423,8 +1473,8 @@ export const BookingsPage = () => {
       {/* Bookings List */}
       {filteredBookings.length > 0 ? (
         <div className="grid lg:grid-cols-2 gap-6">
-          {filteredBookings.map((booking) => (
-            <BookingCard key={booking.id} booking={booking} />
+          {filteredBookings.map((booking, index) => (
+            <BookingCard key={index} booking={booking} />
           ))}
         </div>
       ) : (
@@ -1488,7 +1538,7 @@ export const BookingsPage = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Type</span>
-                        <Badge>{selectedBooking.type.toUpperCase()}</Badge>
+                        <Badge>{selectedBooking?.type?.toUpperCase()}</Badge>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Duration</span>
@@ -1521,8 +1571,8 @@ export const BookingsPage = () => {
                         <Badge
                           className={getStatusColor(selectedBooking.status)}
                         >
-                          {selectedBooking.status.charAt(0).toUpperCase() +
-                            selectedBooking.status.slice(1).replace("_", " ")}
+                          {selectedBooking?.status?.charAt(0).toUpperCase() +
+                            selectedBooking?.status?.slice(1).replace("_", " ")}
                         </Badge>
                       </div>
                       <div className="flex justify-between">
@@ -1646,18 +1696,18 @@ export const BookingsPage = () => {
                         <span className="text-muted-foreground">
                           Payment Status
                         </span>
-                        <Badge
+                        {/* <Badge
                           className={getPaymentStatusColor(
-                            selectedBooking.paymentStatus,
+                            selectedBooking?.paymentStatus,
                           )}
                         >
-                          {selectedBooking.paymentStatus
+                          {selectedBooking?.paymentStatus
                             .charAt(0)
                             .toUpperCase() +
-                            selectedBooking.paymentStatus
+                            selectedBooking?.paymentStatus
                               .slice(1)
                               .replace("_", " ")}
-                        </Badge>
+                        </Badge> */}
                       </div>
 
                       {/* Payment Progress */}
@@ -1685,7 +1735,7 @@ export const BookingsPage = () => {
                       )}
 
                       {/* Refund Information for Cancelled Bookings */}
-                      {selectedBooking.refundTransactions.length > 0 && (
+                      {selectedBooking?.refundTransactions?.length > 0 && (
                         <div className="pt-2 border-t">
                           {selectedBooking.refundTransactions.map(
                             (refund, index) => (
@@ -1824,7 +1874,7 @@ export const BookingsPage = () => {
                     <CardContent>
                       <div className="space-y-4">
                         {/* Payment Transactions */}
-                        {selectedBooking.paymentTransactions.map(
+                        {selectedBooking?.paymentTransactions?.map(
                           (transaction) => (
                             <div
                               key={transaction.id}
@@ -1866,7 +1916,7 @@ export const BookingsPage = () => {
                         )}
 
                         {/* Refund Transactions */}
-                        {selectedBooking.refundTransactions.map((refund) => (
+                        {selectedBooking?.refundTransactions?.map((refund) => (
                           <div
                             key={refund.id}
                             className="flex items-center justify-between p-3 border rounded-lg border-blue-200 bg-blue-50"
@@ -1926,7 +1976,7 @@ export const BookingsPage = () => {
 
               <TabsContent value="pilgrims" className="space-y-6">
                 <div className="grid gap-6">
-                  {selectedBooking.pilgrims.map((pilgrim, index) => (
+                  {selectedBooking?.pilgrims?.map((pilgrim, index) => (
                     <Card
                       key={pilgrim.id}
                       className={
@@ -2041,7 +2091,7 @@ export const BookingsPage = () => {
               </TabsContent>
 
               <TabsContent value="progress" className="space-y-6">
-                {selectedBooking.pilgrims.map((pilgrim, index) => (
+                {selectedBooking?.pilgrims?.map((pilgrim, index) => (
                   <Card
                     key={pilgrim.id}
                     className={
@@ -2116,7 +2166,7 @@ export const BookingsPage = () => {
               </TabsContent>
 
               <TabsContent value="documents" className="space-y-6">
-                {selectedBooking.pilgrims.map((pilgrim, index) => (
+                {selectedBooking?.pilgrims?.map((pilgrim, index) => (
                   <Card
                     key={pilgrim.id}
                     className={
@@ -2188,7 +2238,7 @@ export const BookingsPage = () => {
                     <div className="flex items-center gap-4 p-4 border rounded-lg">
                       <Avatar className="h-12 w-12">
                         <AvatarFallback className="bg-primary text-primary-foreground">
-                          {selectedBooking.agentName.charAt(0)}
+                          {selectedBooking?.agentName?.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
@@ -2204,7 +2254,7 @@ export const BookingsPage = () => {
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedBooking.agentContact.phone}</span>
+                        <span>{selectedBooking?.agentContact?.phone}</span>
                         <Button variant="outline" size="sm">
                           Call
                         </Button>
@@ -2212,16 +2262,16 @@ export const BookingsPage = () => {
 
                       <div className="flex items-center gap-3">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedBooking.agentContact.email}</span>
+                        <span>{selectedBooking?.agentContact?.email}</span>
                         <Button variant="outline" size="sm">
                           Email
                         </Button>
                       </div>
 
-                      {selectedBooking.agentContact.whatsapp && (
+                      {selectedBooking?.agentContact?.whatsapp && (
                         <div className="flex items-center gap-3">
                           <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                          <span>{selectedBooking.agentContact.whatsapp}</span>
+                          <span>{selectedBooking?.agentContact?.whatsapp}</span>
                           <Button
                             variant="outline"
                             size="sm"
@@ -2244,10 +2294,10 @@ export const BookingsPage = () => {
                   </CardHeader>
                   <CardContent>
                     <p className="text-yellow-700 text-sm mb-4">
-                      {selectedBooking.cancellationPolicy.description}
+                      {selectedBooking?.cancellationPolicy?.description}
                     </p>
                     <div className="space-y-2">
-                      {selectedBooking.cancellationPolicy.rules.map(
+                      {selectedBooking?.cancellationPolicy?.rules?.map(
                         (rule, index) => (
                           <div
                             key={index}
@@ -2264,11 +2314,11 @@ export const BookingsPage = () => {
                       )}
                     </div>
 
-                    {selectedBooking.status !== "cancelled" &&
+                    {selectedBooking?.status !== "cancelled" &&
                       getActiveCount(selectedBooking) > 0 &&
-                      (selectedBooking.status === "confirmed" ||
-                        selectedBooking.status === "pending" ||
-                        selectedBooking.status === "partially_cancelled") && (
+                      (selectedBooking?.status === "confirmed" ||
+                        selectedBooking?.status === "pending" ||
+                        selectedBooking?.status === "partially_cancelled") && (
                         <div className="mt-4 pt-4 border-t border-yellow-200">
                           <p className="font-medium text-yellow-800 mb-2">
                             Current Refund Amount (Full Cancellation):
@@ -2423,12 +2473,17 @@ export const BookingsPage = () => {
           {selectedBooking && (
             <div className="space-y-6">
               <div className="p-4 bg-muted rounded-lg">
-                <h4 className="font-medium">{selectedBooking.packageTitle}</h4>
+                <h4 className="font-medium">
+                  {selectedBooking?.packageDetails?.data?.packageName}
+                </h4>
                 <p className="text-sm text-muted-foreground">
-                  Booking ID: {selectedBooking.id}
+                  Booking ID: {selectedBooking.bookingRef}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Departure: {formatDate(selectedBooking.departureDate)}
+                  Departure Date:{" "}
+                  {formatDate(
+                    selectedBooking?.packageDetails?.data?.departureDate,
+                  )}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Active Pilgrims: {getActiveCount(selectedBooking)}
@@ -2484,37 +2539,38 @@ export const BookingsPage = () => {
                 <div className="space-y-3">
                   <Label>Select Pilgrims to Cancel</Label>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {selectedBooking.pilgrims
-                      .filter((pilgrim) => pilgrim.status === "active")
-                      .map((pilgrim) => (
-                        <div
-                          key={pilgrim.id}
-                          className="flex items-center space-x-2 p-2 border rounded"
+                    {/* // .filter((pilgrim) => pilgrim.status === "active") */}
+                    {pilgrims?.map((pilgrim) => (
+                      <div
+                        key={pilgrim?.travelerId}
+                        className="flex items-center space-x-2 p-2 border rounded"
+                      >
+                        <Checkbox
+                          id={pilgrim?.travelerId}
+                          checked={selectedPilgrims.includes(
+                            pilgrim?.travelerId,
+                          )}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedPilgrims((prev) => [
+                                ...prev,
+                                pilgrim?.travelerId,
+                              ]);
+                            } else {
+                              setSelectedPilgrims((prev) =>
+                                prev.filter((id) => id !== pilgrim?.travelerId),
+                              );
+                            }
+                          }}
+                        />
+                        <Label
+                          htmlFor={pilgrim?.travelerId}
+                          className="flex-1 font-normal"
                         >
-                          <Checkbox
-                            id={pilgrim.id}
-                            checked={selectedPilgrims.includes(pilgrim.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedPilgrims((prev) => [
-                                  ...prev,
-                                  pilgrim.id,
-                                ]);
-                              } else {
-                                setSelectedPilgrims((prev) =>
-                                  prev.filter((id) => id !== pilgrim.id),
-                                );
-                              }
-                            }}
-                          />
-                          <Label
-                            htmlFor={pilgrim.id}
-                            className="flex-1 font-normal"
-                          >
-                            {pilgrim.name} ({pilgrim.relationship})
-                          </Label>
-                        </div>
-                      ))}
+                          {pilgrim?.firstName + " " + pilgrim?.lastName}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -2539,24 +2595,24 @@ export const BookingsPage = () => {
                         <p className="text-sm text-yellow-700">
                           Days to departure: {refundInfo.daysToDeparture}
                         </p>
-                        <p className="text-sm text-yellow-700">
-                          Applicable rule: {refundInfo.rule.description}
-                        </p>
+                        {/* <p className="text-sm text-yellow-700">
+                          Applicable rule: {refundInfo?.rule?.description}
+                        </p> */}
                         <p className="font-medium text-yellow-800">
                           Refund Amount:{" "}
-                          {formatCurrency(refundInfo.refundAmount)}
+                          {formatCurrency(refundInfo?.refundAmount)}
                           <span className="text-sm font-normal ml-2">
-                            ({refundInfo.refundPercentage}% of{" "}
+                            ({refundInfo?.refundPercentage}% of{" "}
                             {cancellationType === "partial" &&
                             selectedPilgrims.length > 0
                               ? `${formatCurrency(
-                                  (selectedBooking.amountPaid /
-                                    selectedBooking.pilgrims.length) *
-                                    selectedPilgrims.length,
-                                )} (${selectedPilgrims.length} pilgrim${
-                                  selectedPilgrims.length > 1 ? "s" : ""
+                                  (selectedBooking?.amountPaid /
+                                    selectedBooking?.pilgrims?.length) *
+                                    selectedPilgrims?.length,
+                                )} (${selectedPilgrims?.length} pilgrim${
+                                  selectedPilgrims?.length > 1 ? "s" : ""
                                 })`
-                              : formatCurrency(selectedBooking.amountPaid)}
+                              : formatCurrency(selectedBooking?.amountPaid)}
                             )
                           </span>
                         </p>
@@ -2653,9 +2709,9 @@ export const BookingsPage = () => {
                         Refund Amount
                       </h4>
                       <p className="text-2xl font-bold text-blue-600">
-                        {selectedBooking.refundTransactions.length > 0
+                        {selectedBooking?.refundTransactions?.length > 0
                           ? formatCurrency(
-                              selectedBooking.refundTransactions[0].amount,
+                              selectedBooking?.refundTransactions[0]?.amount,
                             )
                           : "₹0"}
                       </p>
